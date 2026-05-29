@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "collab_flow",
+  "title": "上下游协同流(P7 字段名对齐 validate_html LEGAL_COLLAB_KEYS)",
+  "description": "展示上下游协同链路 + KPI。字段名固定 demand_source / deliverables / downstream_flow / kpi,与 validate_html.py 的 LEGAL_COLLAB_KEYS 严格一致。显示文案由 renderer 硬编码(需求来源 / 交付物 / 下一步流转),LLM 只填具体内容。",
+  "type": "object",
+  "required": [
+    "demand_source",
+    "deliverables",
+    "downstream_flow",
+    "kpi"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "demand_source": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "需求来源:上游协作对象 / 需求方"
+    },
+    "demand_source_evidence_quotes": {
+      "$ref": "#/$defs/evidence_quotes",
+      "description": "支撑需求来源字段的访谈原话,渲染为对应 flow-cell 的 data-evidence"
+    },
+    "deliverables": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "交付物:自身角色的产出"
+    },
+    "deliverables_evidence_quotes": {
+      "$ref": "#/$defs/evidence_quotes",
+      "description": "支撑交付物字段的访谈原话,渲染为对应 flow-cell 的 data-evidence"
+    },
+    "downstream_flow": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "下一步流转:下游协作对象 / 使用方"
+    },
+    "downstream_flow_evidence_quotes": {
+      "$ref": "#/$defs/evidence_quotes",
+      "description": "支撑下一步流转字段的访谈原话,渲染为对应 flow-cell 的 data-evidence"
+    },
+    "kpi": {
+      "type": "object",
+      "description": "KPI 块",
+      "required": [
+        "title",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "description": "KPI 名称"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "KPI 数值或描述"
+        },
+        "evidence_quotes": {
+          "$ref": "#/$defs/evidence_quotes",
+          "description": "支撑 KPI 字段的访谈原话,渲染为 kpi-block 的 data-evidence"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidence_quotes": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "quote",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "quote": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          }
+        }
+      }
+    }
+  }
+}

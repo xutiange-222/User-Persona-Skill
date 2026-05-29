@@ -1,0 +1,7 @@
+.pytest_cache/
+scripts/tests/_reports/
+__pycache__/
+*.pyc
+用户画像报告输出/
+docs/reference/layouts/_build/
+_sample_assets_staging/

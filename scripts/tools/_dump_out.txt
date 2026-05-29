@@ -1,0 +1,2 @@
+﻿persona-1-journey: 枚举转供？
+persona-2-journey: 要预控？

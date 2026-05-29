@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detail_headline",
+  "title": "toC 详情页大标题",
+  "description": "详情页顶部核心观点标题。",
+  "type": "object",
+  "required": [
+    "headline"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "headline": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 60,
+      "description": "详情页核心观点标题。允许用 \\n 换行(渲染成 <br>),通常拆成「主句:转折/补语」两段,如「深听场景派对 HiRes 的核心期待:\\n不是更清晰的音源,而是更值得的『听』」。"
+    }
+  }
+}

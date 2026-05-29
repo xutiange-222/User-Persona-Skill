@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mockup_list",
+  "title": "产品截图列表",
+  "description": "详情页截图槽列表。1 个 → 单列;2 个 → 2 列;3 个 → 3 列。无 screenshot 时渲染占位 frame(emoji + frame_label)。",
+  "type": "object",
+  "required": [
+    "mockups"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "mockups": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "截图槽列表",
+      "items": {
+        "type": "object",
+        "description": "截图槽",
+        "required": [
+          "caption"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "caption": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "description": "截图说明(在 frame 下方)"
+          },
+          "frame_label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 8,
+            "description": "无 screenshot 时,占位 frame 中央显示的短标签(如「专区首页」「曲目详情」)。有 screenshot 时忽略。"
+          },
+          "screenshot": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "可选截图文件名,与 scenario_grid 统一命名;Python 检查 <项目运行目录>/界面截图/<filename> 是否存在,不存在时渲染占位帧"
+          }
+        }
+      }
+    }
+  }
+}

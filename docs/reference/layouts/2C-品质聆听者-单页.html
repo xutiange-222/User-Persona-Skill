@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!--
+  toC 单画像样板 v3:品质聆听者(P4-C, 按参考图复刻拼贴布局)
+  ------------------------------------------------------------
+  按 image002/005(私房菜/唱片店)视觉风格重新设计:
+    - 主背景白底(极浅米),不再铺米黄
+    - 身份卡是独立小卡(占左列),不再是全栏左侧
+    - 代表原话占右上跨 2 列,色块底突出
+    - 信息段卡:胶囊小标题 + 一句话粗体总结 + 展开正文(3 层)
+    - 4 个 section + 1 个跨整宽 section(核心痛点)
+    - 插画位置:<img class="persona-illust" src="...">,没图时 fallback 到几何占位
+  ------------------------------------------------------------
+  来源:5 份 Hi-res 音乐专区会员访谈(U1-U5)
+  主题:2C / 密度:low / 强调色:雾蓝 #7BA8C9
+-->
+<html lang="zh-CN" data-theme="2c" data-density="low" style="--color-accent: #7BA8C9; --color-accent-soft: rgba(123, 168, 201, 0.12);">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>品质聆听者 — Hi-res 音乐专区用户画像</title>
+  <link rel="stylesheet" href="_design-tokens.css">
+  <link rel="stylesheet" href="_components.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-7);
+    }
+    .report-meta-bar {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-3);
+      color: var(--color-text-secondary);
+      font-size: var(--text-lg);
+    }
+    .report-meta-title { font-size: var(--text-2xl); font-weight: var(--font-semibold); color: var(--color-text-primary); }
+    .report-meta-info { font-size: var(--text-lg); color: var(--color-text-secondary); }
+
+    .persona-slide {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      aspect-ratio: var(--canvas-aspect);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      background: var(--color-bg-canvas-right);
+      overflow: hidden;
+      position: relative;
+    }
+    .persona-slide:not(.active) { display: none; }
+
+    [data-evidence]:not([data-evidence=""]) { cursor: help; }
+
+    #global-tooltip {
+      position: fixed;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      line-height: var(--leading-relaxed);
+      max-width: 380px;
+      z-index: 9999;
+      box-shadow: var(--shadow-tooltip);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+    #global-tooltip.visible { display: block; opacity: 1; }
+    #global-tooltip .tip-quote { padding: var(--space-2) 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-quote:first-child { padding-top: 0; }
+    #global-tooltip .tip-text { color: var(--tooltip-text); font-style: italic; }
+    #global-tooltip .tip-source { color: var(--tooltip-source); font-size: var(--text-sm); margin-top: var(--space-1); }
+    #global-tooltip::after { content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--tooltip-bg); }
+
+    /* 让"核心痛点"段卡跨整宽 */
+    .section-block.full-width {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="global-tooltip"></div>
+
+  <div class="report-meta-bar">
+    <div class="report-meta-title">Hi-res 音乐专区会员画像研究</div>
+    <div class="report-meta-info">1 个画像 · 来源 5 份访谈 · 2026-05-17</div>
+  </div>
+
+  <section class="persona-slide layout-2c-portrait active" id="persona-1">
+
+    <!-- ============ 身份卡(独立小卡,占左列) ============ -->
+    <div class="identity-card">
+      <!-- 用户有 PNG 透明插画时:替换为 <img class="persona-illust" src="../插画素材/品质聆听者.png" alt="品质聆听者"> -->
+      <div class="persona-illust-placeholder">聆</div>
+
+      <div>
+        <h1 class="persona-name-anchor">品质聆听者</h1>
+        <p class="persona-subtitle">为放松、助眠、沉思而追求 Hi-res 的中高知音乐爱好者</p>
+      </div>
+
+      <div class="meta-tags-list">
+        <div class="meta-tag-card">
+          <span class="meta-tag-label">年龄段</span>
+          <span class="meta-tag-value">25-55 岁,跨度大</span>
+        </div>
+        <div class="meta-tag-card">
+          <span class="meta-tag-label">职业</span>
+          <span class="meta-tag-value">医生 / 商务 / 学生</span>
+        </div>
+        <div class="meta-tag-card">
+          <span class="meta-tag-label">月收入</span>
+          <span class="meta-tag-value">3K - 5W+ 分层</span>
+        </div>
+        <div class="meta-tag-card">
+          <span class="meta-tag-label">日均听</span>
+          <span class="meta-tag-value">睡前 1 小时</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 代表原话(右上跨 2 列,色块底突出) ============ -->
+    <div class="persona-quote-pull" data-evidence="&quot;音乐在自己的生活中是倾听者的角色,并不是我去倾听音乐表达的含义,反而是音乐作为倾听者来倾听我的内心,我的心情和感受,有一种情感和灵魂的共鸣的感觉&quot;
+— U1 黄捷">
+      音乐作为倾听者来倾听我的内心,有一种情感和灵魂共鸣的感觉
+      <span class="quote-source">— U1 黄捷(医生 · 50+)</span>
+    </div>
+
+    <!-- ============ 信息段卡网格(2 列,标题+总结+展开) ============ -->
+    <div class="section-blocks-grid">
+
+      <div class="section-block">
+        <div class="section-block-title">核心需求</div>
+        <div class="section-block-summary">音乐不是被听,而是来陪伴生活的安静时刻</div>
+        <div class="section-block-body">
+          关键词:<strong>放松、助眠、沉思、专注</strong>。<strong>5/5 共识</strong>地把 Hi-res 当作营造氛围的工具,而非"鉴赏对象"——所以追求的不是细节,而是"够通透不糊"。
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-title">听歌时刻</div>
+        <div class="section-block-summary">临睡前 1 小时是 5/5 共识场景</div>
+        <div class="section-block-body">
+          通勤、开车、健身房是个人差异化场景。<strong>工作时间不听 Hi-res</strong>——古典曲长太完整不能被打断,改换流行/古风作背景。
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-title">内容偏好</div>
+        <div class="section-block-summary">主轴是古典,明确拒绝抖音神曲</div>
+        <div class="section-block-body">
+          梁祝、四季、月光、小提琴/钢琴是主轴;经典流行、欧美、民族是副轴。<strong>"专区要保持自己的特点,不要为迎合大众变得普通"(3/5)</strong>。
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-title">设备生态</div>
+        <div class="section-block-summary">家用音响、出门用耳机,会验证全链路</div>
+        <div class="section-block-body">
+          华为粉用全套华为(SoundX / FreeBuds);跨品牌玩家选索尼降噪、博士、雅马哈。<strong>主动验证"硬件是否支持 Hi-res 全链路"</strong>是这群人的共性。
+        </div>
+      </div>
+
+      <div class="section-block full-width">
+        <div class="section-block-title">核心痛点</div>
+        <div class="section-block-summary">试听入口太隐蔽是最大共识(5/5)</div>
+        <div class="section-block-body">
+          <strong>试听入口太隐蔽 5/5</strong>(都不知道有免费试听)。其他高频:<strong>不能下载</strong>(出差/飞机场景)、<strong>无 PC 端</strong>(工作时只能用网易/酷狗)、<strong>介绍偏作者荣誉而非曲子故事</strong>(中文译名缺失)、<strong>资源同步索尼慢、流行曲库有限</strong>。
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+      function showTooltip(target) {
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        const blocks = evidence.split('\n\n').map(b => b.trim()).filter(Boolean);
+        const html = blocks.map(block => {
+          const lines = block.split('\n');
+          const text = lines[0] || '';
+          let source = '';
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].startsWith('—') || lines[i].startsWith('-')) {
+              source = lines[i].replace(/^[—-]\s*/, '');
+              break;
+            }
+          }
+          const safe = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="tip-quote"><div class="tip-text">${safe(text)}</div>${source ? `<div class="tip-source">— ${safe(source)}</div>` : ''}</div>`;
+        }).join('');
+        tooltip.innerHTML = html;
+        tooltip.classList.add('visible');
+        const rect = target.getBoundingClientRect();
+        const tipRect = tooltip.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - tipRect.width / 2;
+        let top = rect.top - tipRect.height - 12;
+        const margin = 8;
+        if (left < margin) left = margin;
+        if (left + tipRect.width > window.innerWidth - margin) left = window.innerWidth - tipRect.width - margin;
+        if (top < margin) top = rect.bottom + 12;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+      function hideTooltip() { tooltip.classList.remove('visible'); }
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        clearTimeout(hideTimer);
+        showTooltip(target);
+      });
+      document.body.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+{
+  "type": "tob_journey_l1",
+  "props": {
+    "banner_title": "调度处置密集任务全流程",
+    "banner_subtitle": "4 阶段 x 4 角色,34 个节点高密度覆盖告警、核查、下令、转供、抢修和归档",
+    "stages": [
+      {
+        "id": "alarm",
+        "name": "接警研判",
+        "subStages": [
+          "告警",
+          "定位",
+          "核对"
+        ]
+      },
+      {
+        "id": "isolate",
+        "name": "隔离处置",
+        "subStages": [
+          "下令",
+          "操作",
+          "回令"
+        ]
+      },
+      {
+        "id": "restore",
+        "name": "协同恢复",
+        "subStages": [
+          "转供",
+          "抢修",
+          "恢复"
+        ]
+      },
+      {
+        "id": "review",
+        "name": "复盘沉淀",
+        "subStages": [
+          "上报",
+          "会签",
+          "归档"
+        ]
+      }
+    ],
+    "lanes": [
+      {
+        "id": "dispatcher",
+        "name": "调度员",
+        "tag": "主责"
+      },
+      {
+        "id": "upper",
+        "name": "上级调度",
+        "tag": "指令"
+      },
+      {
+        "id": "field",
+        "name": "现场运维",
+        "tag": "执行"
+      },
+      {
+        "id": "system",
+        "name": "监控系统",
+        "tag": "数据"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "lane": "dispatcher",
+        "stage": "alarm",
+        "type": "start",
+        "label": "收到告警",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n2",
+        "lane": "dispatcher",
+        "stage": "alarm",
+        "type": "step",
+        "label": "判断影响",
+        "slot": 2,
+        "track": 0
+      },
+      {
+        "id": "n3",
+        "lane": "dispatcher",
+        "stage": "alarm",
+        "type": "decision",
+        "label": "需停电?",
+        "slot": 4,
+        "track": 1
+      },
+      {
+        "id": "n4",
+        "lane": "system",
+        "stage": "alarm",
+        "type": "doc",
+        "label": "记录初判",
+        "slot": 4,
+        "track": 1
+      },
+      {
+        "id": "n5",
+        "lane": "dispatcher",
+        "stage": "isolate",
+        "type": "action",
+        "label": "申请停电",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n6",
+        "lane": "dispatcher",
+        "stage": "isolate",
+        "type": "action",
+        "label": "下发调令",
+        "slot": 3,
+        "track": 0
+      },
+      {
+        "id": "n7",
+        "lane": "dispatcher",
+        "stage": "isolate",
+        "type": "decision",
+        "label": "回令完成?",
+        "slot": 5,
+        "track": 1
+      },
+      {
+        "id": "n8",
+        "lane": "dispatcher",
+        "stage": "restore",
+        "type": "decision",
+        "label": "可转供?",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n9",
+        "lane": "dispatcher",
+        "stage": "restore",
+        "type": "step",
+        "label": "校核负荷",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n10",
+        "lane": "dispatcher",
+        "stage": "review",
+        "type": "doc",
+        "label": "事故报告",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n11",
+        "lane": "upper",
+        "stage": "alarm",
+        "type": "action",
+        "label": "接收报备",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n12",
+        "lane": "upper",
+        "stage": "alarm",
+        "type": "step",
+        "label": "核对管辖",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n13",
+        "lane": "upper",
+        "stage": "isolate",
+        "type": "decision",
+        "label": "批复操作?",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n14",
+        "lane": "upper",
+        "stage": "restore",
+        "type": "step",
+        "label": "协调负荷",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n15",
+        "lane": "upper",
+        "stage": "restore",
+        "type": "action",
+        "label": "下发方案",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n16",
+        "lane": "upper",
+        "stage": "review",
+        "type": "doc",
+        "label": "会签归档",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n17",
+        "lane": "field",
+        "stage": "alarm",
+        "type": "step",
+        "label": "现场核查",
+        "slot": 0,
+        "track": 1
+      },
+      {
+        "id": "n18",
+        "lane": "field",
+        "stage": "isolate",
+        "type": "action",
+        "label": "执行倒闸",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n19",
+        "lane": "field",
+        "stage": "isolate",
+        "type": "doc",
+        "label": "回令记录",
+        "slot": 3,
+        "track": 1
+      },
+      {
+        "id": "n20",
+        "lane": "field",
+        "stage": "restore",
+        "type": "step",
+        "label": "定位抢修",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n21",
+        "lane": "field",
+        "stage": "restore",
+        "type": "action",
+        "label": "送电验收",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n22",
+        "lane": "field",
+        "stage": "review",
+        "type": "end",
+        "label": "完成复盘",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n23",
+        "lane": "system",
+        "stage": "alarm",
+        "type": "step",
+        "label": "推送量测",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n24",
+        "lane": "system",
+        "stage": "alarm",
+        "type": "doc",
+        "label": "录波数据",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n25",
+        "lane": "system",
+        "stage": "isolate",
+        "type": "step",
+        "label": "记录操作",
+        "slot": 1,
+        "track": 1
+      },
+      {
+        "id": "n26",
+        "lane": "system",
+        "stage": "restore",
+        "type": "action",
+        "label": "计算转供",
+        "slot": 0,
+        "track": 0
+      },
+      {
+        "id": "n27",
+        "lane": "system",
+        "stage": "restore",
+        "type": "step",
+        "label": "监测越限",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n28",
+        "lane": "system",
+        "stage": "review",
+        "type": "doc",
+        "label": "OMS 归档",
+        "slot": 1,
+        "track": 0
+      },
+      {
+        "id": "n29",
+        "lane": "field",
+        "stage": "review",
+        "type": "doc",
+        "label": "现场记录",
+        "slot": 2,
+        "track": 1
+      },
+      {
+        "id": "n30",
+        "lane": "system",
+        "stage": "review",
+        "type": "step",
+        "label": "数据校验",
+        "slot": 3,
+        "track": 1
+      },
+      {
+        "id": "n31",
+        "lane": "dispatcher",
+        "stage": "restore",
+        "type": "action",
+        "label": "确认风险",
+        "slot": 4,
+        "track": 0
+      },
+      {
+        "id": "n32",
+        "lane": "upper",
+        "stage": "isolate",
+        "type": "doc",
+        "label": "补充批复",
+        "slot": 3,
+        "track": 1
+      },
+      {
+        "id": "n33",
+        "lane": "field",
+        "stage": "isolate",
+        "type": "decision",
+        "label": "安全复核?",
+        "slot": 5,
+        "track": 0
+      },
+      {
+        "id": "n34",
+        "lane": "system",
+        "stage": "restore",
+        "type": "action",
+        "label": "AI生成建议",
+        "slot": 4,
+        "track": 0
+      }
+    ],
+    "edges": [
+      {
+        "from": "n23",
+        "to": "n1",
+        "style": "dashed"
+      },
+      {
+        "from": "n24",
+        "to": "n2",
+        "style": "dashed"
+      },
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3"
+      },
+      {
+        "from": "n3",
+        "to": "n4",
+        "branch": "no",
+        "style": "dashed"
+      },
+      {
+        "from": "n3",
+        "to": "n5",
+        "branch": "yes"
+      },
+      {
+        "from": "n4",
+        "to": "n5",
+        "style": "dashed"
+      },
+      {
+        "from": "n11",
+        "to": "n12"
+      },
+      {
+        "from": "n12",
+        "to": "n13"
+      },
+      {
+        "from": "n13",
+        "to": "n32",
+        "style": "dashed"
+      },
+      {
+        "from": "n32",
+        "to": "n6"
+      },
+      {
+        "from": "n5",
+        "to": "n13",
+        "style": "dashed"
+      },
+      {
+        "from": "n13",
+        "to": "n6",
+        "branch": "yes"
+      },
+      {
+        "from": "n17",
+        "to": "n18"
+      },
+      {
+        "from": "n6",
+        "to": "n18"
+      },
+      {
+        "from": "n18",
+        "to": "n33"
+      },
+      {
+        "from": "n33",
+        "to": "n19",
+        "branch": "yes"
+      },
+      {
+        "from": "n18",
+        "to": "n19"
+      },
+      {
+        "from": "n19",
+        "to": "n7"
+      },
+      {
+        "from": "n7",
+        "to": "n25",
+        "style": "dashed"
+      },
+      {
+        "from": "n7",
+        "to": "n8"
+      },
+      {
+        "from": "n26",
+        "to": "n8",
+        "style": "dashed"
+      },
+      {
+        "from": "n26",
+        "to": "n34"
+      },
+      {
+        "from": "n34",
+        "to": "n31",
+        "style": "dashed"
+      },
+      {
+        "from": "n8",
+        "to": "n9",
+        "branch": "yes"
+      },
+      {
+        "from": "n9",
+        "to": "n31"
+      },
+      {
+        "from": "n14",
+        "to": "n15"
+      },
+      {
+        "from": "n15",
+        "to": "n31",
+        "style": "dashed"
+      },
+      {
+        "from": "n31",
+        "to": "n21"
+      },
+      {
+        "from": "n20",
+        "to": "n21"
+      },
+      {
+        "from": "n21",
+        "to": "n27",
+        "style": "dashed"
+      },
+      {
+        "from": "n31",
+        "to": "n10"
+      },
+      {
+        "from": "n21",
+        "to": "n29"
+      },
+      {
+        "from": "n29",
+        "to": "n22"
+      },
+      {
+        "from": "n27",
+        "to": "n30"
+      },
+      {
+        "from": "n30",
+        "to": "n28"
+      },
+      {
+        "from": "n10",
+        "to": "n16"
+      },
+      {
+        "from": "n16",
+        "to": "n28"
+      },
+      {
+        "from": "n28",
+        "to": "n22"
+      }
+    ]
+  }
+}

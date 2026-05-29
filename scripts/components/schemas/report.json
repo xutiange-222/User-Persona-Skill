@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report",
+  "title": "用户画像报告(顶层 components JSON)",
+  "description": "LLM 在阶段最后产出的 05-report.json 必须符合这个 schema。Python render_report.py 读它,按 layouts 拼出最终 report.html。组件化 P8 架构。",
+  "type": "object",
+  "required": ["metadata", "personas"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "报告级元信息,填顶部 meta-bar 和 _base.html 的 slot",
+      "required": [
+        "report_title",
+        "theme",
+        "density",
+        "source_count",
+        "persona_count",
+        "generated_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "report_title": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 40,
+          "description": "顶部主标题,例:电力调度员用户画像 — AI 辅助决策需求研究"
+        },
+        "page_title": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 60,
+          "description": "可选;浏览器 <title> 标签内容,缺省则用 report_title"
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["2b", "2c", "2d"],
+          "description": "主题色板。toB=2b(深蓝高密度),toC=2c(暖米黄低密度),toD=2d(开发者)"
+        },
+        "density": {
+          "type": "string",
+          "enum": ["high", "mid", "low"],
+          "description": "信息密度。toB 默认 high,toC 默认 low。双页兜底场景自动切 mid"
+        },
+        "source_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "description": "有效访谈份数"
+        },
+        "persona_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "description": "画像数量。tab 数量上限 12(visual-system.md §3.2)"
+        },
+        "generated_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2})?$",
+          "description": "生成时间。格式 YYYY-MM-DD 或 YYYY-MM-DD HH:MM"
+        }
+      }
+    },
+
+    "personas": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "description": "画像列表。每个画像对应一个 .persona-slide section。多画像 + 旅程页 + detail 页 + L1 全景等都拍平到这个数组,Python 按 id 命名自动配 nav-pair",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "layout", "components"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "pattern": "^(persona-(\\d+(-(journey|core|detail|detail-\\d+))?|q[1-4])|journey-l1|matrix|distribution)$",
+            "description": "画像 section 的 id。命名约定见 visual-system.md §3.2:persona-N / persona-N-journey / persona-N-core / persona-N-detail / persona-N-detail-K / persona-qN(R4 象限) / journey-l1(L1 全景) / matrix(矩阵首页) / distribution(分布首页)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "画像名;短优先(2-6 字),允许英文头衔拼接如'交付型 Scrum Master'(15 字);R4 象限画像名仍需 ≤ 5 字(SKILL.md 约束 10,由 schema 层不可强约束,paradigm 提示)"
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "layout-2b-grid",
+              "layout-2b-grid-detail",
+              "layout-2b-journey",
+              "layout-2c-portrait",
+              "layout-2c-detail",
+              "layout-2c-journey",
+              "layout-matrix-2d",
+              "layout-distribution-multi"
+            ],
+            "description": "8 个 layout 选 1。LLM 不主动选 layout-2b-grid-detail(由 Python solver 拆双页时自动设)"
+          },
+          "accent": {
+            "type": "string",
+            "enum": [
+              "purple",
+              "mist-blue",
+              "moss-green",
+              "warm-orange",
+              "clay-red",
+              "mustard"
+            ],
+            "description": "2C 主题强调色 6 选 1。2B/2D 主题忽略本字段(可不填)。AI 类画像强制 purple;否则按 visual-system.md §4 哈希算法选"
+          },
+          "subtitle_for_nav": {
+            "type": "string",
+            "maxLength": 8,
+            "description": "可选;给 nav-pair 右半按钮的文字前缀,默认按 id 后缀自动推:-journey→旅程,-detail→细节,-core→核心,-detail-K→专题"
+          },
+          "components": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "description": "本画像里要渲染的组件序列。LLM 不写 grid 坐标,只按重要性排序;Python solver 自动布局。注意:容器型 layout(matrix_2d / distribution_multi / journey_2c / tob_journey_l1/l2)整个 layout 通常只放 1 个容器组件,可选附 matrix_guidance_strip 等独立组件",
+            "items": {
+              "type": "object",
+              "required": ["type", "props"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "identity_panel",
+                    "resp_rings",
+                    "collab_flow",
+                    "scenario_grid",
+                    "ai_scenario_grid",
+                    "painpoint_list",
+                    "titled_list",
+                    "generic_text",
+                    "generic_bullet",
+                    "generic_kv",
+                    "tob_journey_l1",
+                    "tob_journey_l2",
+                    "identity_card",
+                    "persona_quote_pull",
+                    "section_blocks_grid",
+                    "detail_headline",
+                    "mockup_list",
+                    "detail_analysis",
+                    "detail_illust_corner",
+                    "journey_2c",
+                    "matrix_guidance_strip",
+                    "matrix_2d",
+                    "distribution_multi"
+                  ],
+                  "description": "24 个允许的顶层组件 type。section_block 只能作为 section_blocks_grid.blocks 的子项出现。props 字段由对应 schemas/<type>.json 单独严格校验"
+                },
+                "props": {
+                  "type": "object",
+                  "description": "组件的属性。具体字段约束在 schemas/<type>.json,由 validate_components_json.py 二次校验"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

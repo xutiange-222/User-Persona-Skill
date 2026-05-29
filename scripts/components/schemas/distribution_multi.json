@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "distribution_multi",
+  "title": "多维画像分布图",
+  "description": "R5 多维分布图容器,描述画像在多个区分点上的档位。",
+  "type": "object",
+  "required": [
+    "title",
+    "subtitle",
+    "value_variables",
+    "personas"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "分布图标题"
+    },
+    "subtitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "分布图副标题(一句话提示读图角度;过长会挤压主图)"
+    },
+    "footer_hint": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "description": "可选底部提示"
+    },
+    "value_variables": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "description": "区分点列表",
+      "items": {
+        "type": "object",
+        "description": "价值变量",
+        "required": [
+          "name",
+          "levels"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "区分点名称"
+          },
+          "levels": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "三档定义,必须为 high、middle、low",
+            "items": {
+              "type": "object",
+              "description": "档位定义",
+              "required": [
+                "level",
+                "name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 6,
+                  "description": "档位枚举",
+                  "enum": [
+                    "high",
+                    "middle",
+                    "low"
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 10,
+                  "description": "档位显示名"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "personas": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "description": "画像折线列表",
+      "items": {
+        "type": "object",
+        "description": "画像折线",
+        "required": [
+          "id",
+          "name",
+          "color",
+          "positions",
+          "respondents"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "画像 id",
+            "pattern": "^persona-\\d+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "画像名"
+          },
+          "color": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 7,
+            "description": "十六进制颜色",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "positions": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "description": "该画像在各区分点上的档位,应与 value_variables 对齐",
+            "items": {
+              "type": "object",
+              "description": "画像档位位置",
+              "required": [
+                "variable_idx",
+                "level"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "variable_idx": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4,
+                  "description": "区分点索引"
+                },
+                "level": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 6,
+                  "description": "档位枚举",
+                  "enum": [
+                    "high",
+                    "middle",
+                    "low"
+                  ]
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300,
+                  "description": "Optional representative quote for this persona at this variable/level."
+                },
+                "evidence_quotes": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 6,
+                  "description": "Optional raw user quotes for this point; multiple quotes are all shown on hover.",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                      },
+                      {
+                        "type": "object",
+                        "anyOf": [
+                          {
+                            "required": [
+                              "quote"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "text"
+                            ]
+                          }
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "quote": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "respondent": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 20
+                          },
+                          "source": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 20
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "quotes": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 6,
+                  "description": "Legacy alias read by renderer; prefer evidence_quotes for new data.",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300
+                      },
+                      {
+                        "type": "object",
+                        "anyOf": [
+                          {
+                            "required": [
+                              "quote"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "text"
+                            ]
+                          }
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "quote": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "text": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 300
+                          },
+                          "respondent": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 20
+                          },
+                          "source": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 20
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "respondents": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 6,
+            "description": "该画像下的受访者脱敏名",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8,
+              "description": "受访者脱敏名"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3132 @@
+﻿/* ============================================================
+   user-persona-v8 Components (v1)
+   ------------------------------------------------------------
+   当前包含:2B/2D 主题的全部 16 个组件。
+   未来追加:2C 主题(大插画头像/超大锚点名/journey-map/2D 矩阵)。
+
+   全部样式仅用 _design-tokens.css 暴露的 var(--xxx);
+   不要在此文件硬编码任何颜色/字号/间距值,
+   以保证密度切换(high/mid/low)和主题切换自动生效。
+   ============================================================ */
+
+
+/* ============================================================
+   1. Layout: 2B/2D 30/70 双栏 + 12×3 右栏网格
+   ============================================================ */
+.persona-slide.layout-2b-grid {
+  display: grid;
+  grid-template-columns: var(--panel-ratio);
+}
+
+/* ---- 左栏:身份卡容器 ---- */
+.layout-2b-grid .identity-panel {
+  padding: var(--space-10) var(--space-9);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-canvas-left);
+  border-right: 1px solid var(--color-border-subtle);
+  gap: var(--space-6);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---- 右栏:12 列 × 3 行 网格 ---- */
+.layout-2b-grid .modules-panel {
+  padding: 0 var(--space-9);
+  background: var(--color-bg-canvas-right);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  grid-template-rows: auto auto auto;
+  align-content: space-evenly;
+  column-gap: var(--grid-gap-x);
+  row-gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+
+/* ============================================================
+   2. 身份卡:头像 + 名字 + 描述
+   ============================================================ */
+.avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-1);
+}
+
+.persona-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  background: var(--color-bg-card);
+}
+
+.persona-avatar.placeholder {
+  background: linear-gradient(135deg, var(--gradient-avatar-from) 0%, var(--gradient-avatar-to) 100%);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-5xl);
+  font-weight: var(--font-normal);
+}
+
+.identity-name {
+  text-align: center;
+  margin-top: 2px;
+}
+
+.identity-name .name-line {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
+.identity-name .name-line + .name-line {
+  margin-top: 2px;
+}
+
+.identity-desc {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  text-align: center;
+  padding: 0 var(--space-1);
+}
+
+
+/* ============================================================
+   3. 身份卡 meta rows
+   ============================================================ */
+.identity-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.meta-row {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  align-items: flex-start;
+}
+
+/* 短维度合并行:并排两个卡 */
+.meta-row-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.meta-row-pair .meta-row {
+  padding: var(--space-3) var(--space-4);
+}
+
+.meta-label {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  flex-shrink: 0;
+  width: 56px;
+  border-right: 1px solid var(--color-border-subtle);
+  padding-right: var(--space-3);
+  line-height: 1.4;
+  text-align: left;
+}
+
+.meta-row-pair .meta-label {
+  width: 56px;
+  padding-right: var(--space-3);
+}
+
+.meta-value {
+  color: var(--color-text-primary);
+  line-height: var(--leading-relaxed);
+  flex: 1;
+  text-align: left;
+}
+
+
+/* ============================================================
+   4. 一句话需求:左栏视觉锚点
+   ============================================================ */
+.one-sentence-need {
+  margin-top: var(--space-1);
+  padding: var(--space-7) var(--space-7) var(--space-7);
+  background: var(--color-bg-card);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  position: relative;
+  cursor: help;
+}
+
+.one-sentence-need::before {
+  content: "\201C";
+  position: absolute;
+  left: var(--space-3);
+  top: var(--space-1);
+  font-size: 38px;
+  color: var(--color-accent);
+  font-family: var(--font-family-serif);
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.osn-text {
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  padding-left: var(--space-8);
+}
+
+.osn-source {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-3);
+  text-align: right;
+}
+
+
+/* ============================================================
+   5. 右栏单个网格组件(grid-module + module-title)
+   ============================================================ */
+.grid-module {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.module-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.module-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  padding: var(--space-2) var(--space-7) var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  width: fit-content;
+}
+
+.module-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.module-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* ============================================================
+   6. 职责饼图(resp-rings)
+   ============================================================ */
+.resp-rings {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-around;
+}
+
+.ring-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  cursor: help;
+  position: relative;
+}
+
+.ring-svg {
+  width: 70px;
+  height: 70px;
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--color-primary-light);
+  stroke-width: 8;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.ring-pct {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  fill: var(--color-text-primary);
+}
+
+.ring-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.4;
+  max-width: 100px;
+}
+
+
+/* ============================================================
+   7. 协同流程图 + KPI
+   ============================================================ */
+.collab-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-6);
+  align-items: stretch;
+}
+
+.flow-cell {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  position: relative;
+  cursor: help;
+}
+
+.flow-cell.highlight {
+  background: var(--color-primary-soft);
+  border-color: var(--color-accent);
+}
+
+.flow-cell-label {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-xs);
+  margin-bottom: var(--space-1);
+}
+
+.flow-cell-value {
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+/* flow-cell 之间的箭头 */
+.flow-cell:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -11px;
+  top: 50%;
+  width: 14px;
+  height: 10px;
+  transform: translateY(-50%);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'><path d='M1 5 L11 5 M7 1 L11 5 L7 9' stroke='%231e40af' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 2;
+}
+/* 注意:箭头 SVG 颜色硬编码为深蓝 #1e40af,2C 主题需另写覆盖样式 */
+
+.kpi-block {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  cursor: help;
+}
+
+.kpi-block .kpi-label {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  margin-right: var(--space-3);
+}
+
+
+/* ============================================================
+   8. 典型业务场景(自适应列数,1-6 卡)
+   ============================================================ */
+.scenarios-grid-1 { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+.scenarios-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+.scenarios-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+.scenarios-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+
+.scenario-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: #f8f6f0;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-height: 112px;
+  cursor: help;
+  position: relative;
+}
+
+/* ai_scenario_grid:卡片与标签视觉与 scenario_grid 一致,仅模块标题区分 */
+.scenario-card.is-ai {
+  background: #f8f6f0;
+  border: none;
+}
+
+.scenario-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  line-height: 1.35;
+}
+
+.scenario-desc {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.scenario-image {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.scenario-card.has-image .scenario-image {
+  aspect-ratio: 16 / 9;
+  margin: var(--space-1) 0;
+}
+
+/* 形态 B（无截图）:2B 右栏 6 列宽时 4:3 占位会撑满半行并挤压痛点/目标行 */
+.layout-2b-grid .scenario-card:not(.has-image) .scenario-image,
+.layout-2b-grid-detail .scenario-card:not(.has-image) .scenario-image {
+  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+  max-height: 88px;
+}
+
+.layout-2b-grid .scenario-card:not(.has-image),
+.layout-2b-grid-detail .scenario-card:not(.has-image) {
+  min-height: 0;
+}
+
+.layout-2b-grid .scenario-card:not(.has-image) .scenario-placeholder-icons,
+.layout-2b-grid-detail .scenario-card:not(.has-image) .scenario-placeholder-icons {
+  padding: var(--space-3);
+}
+
+.scenario-image-empty span {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.scenario-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scenario-placeholder-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: var(--space-4);
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-icon-tag {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.scenario-tools {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+/* 场景卡内工具标签:典型业务场景与 AI 辅助场景统一黑字中性样式(不用主题 accent 色) */
+.scenario-card .tool-icon-tag,
+.scenario-tools .tool-icon-tag {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-sm);
+}
+
+.grid-module-ai-scenario-grid .module-title {
+  color: var(--color-text-inverse);
+}
+
+.scenario-caption {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.scenario-caption strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+}
+
+.scenario-caption .scenario-tool-names {
+  color: var(--color-text-primary);
+}
+
+
+/* ============================================================
+   9. 痛点列表(painpoint)
+   ============================================================ */
+.painpoints-list {
+  list-style: none;
+  padding: 0;
+}
+
+.painpoint-item {
+  font-size: var(--text-base);
+  line-height: var(--leading-tight);
+  padding: 0 var(--space-3) 0 var(--space-7);
+  margin-bottom: var(--space-2);
+  position: relative;
+  color: var(--color-text-primary);
+  cursor: help;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+}
+
+.painpoint-item:last-child { margin-bottom: 0; }
+
+.painpoint-item::before {
+  content: "•";
+  position: absolute;
+  left: var(--space-1);
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.painpoint-item:hover {
+  background: var(--color-primary-soft);
+}
+
+.pp-title {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  margin-right: var(--space-3);
+}
+
+.pp-title::after {
+  content: " | ";
+  color: var(--color-text-tertiary);
+  font-weight: normal;
+  margin-left: var(--space-3);
+}
+
+.pp-sep {
+  color: var(--color-text-tertiary);
+  font-weight: normal;
+  margin: 0 var(--space-2);
+}
+
+.painpoint-item.has-inline-metric .pp-title {
+  margin-right: var(--space-1);
+}
+
+.painpoint-item.has-inline-metric .pp-title::after {
+  content: none;
+}
+
+.pp-detail {
+  color: var(--color-text-primary);
+}
+
+/* titled_list 第三层洞察(item.insight,可选);灰色小字 italic。
+   旧 .pp-insight 同款样式,仅当 painpoint_list 也想用洞察层时保留;新 titled_list 走 .gl-insight。 */
+.pp-insight,
+.gl-insight {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+
+/* ---- titled_list 专属样式:与 painpoint_list 视觉接近,但语义独立 ---- */
+.generic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.generic-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dashed var(--color-border-subtle);
+  cursor: help;
+}
+
+.generic-list-item:last-child {
+  border-bottom: none;
+}
+
+.gl-title {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+}
+
+.gl-detail {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+}
+
+
+/* ============================================================
+   10. 频次徽章(M>1 时显示)
+   ============================================================ */
+.mention-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: var(--space-2);
+  background: var(--color-primary-light);
+  color: var(--color-accent);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  line-height: 1;
+  cursor: help;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.painpoint-item .mention-badge {
+  float: none;
+  margin: 0 0 0 var(--space-1);
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-semibold);
+}
+
+.ring-label .mention-badge {
+  margin-left: var(--space-1);
+  font-size: 9px;
+  min-width: 22px;
+  height: 14px;
+}
+
+.flow-cell-label .mention-badge {
+  margin-left: var(--space-1);
+  font-size: 9px;
+  min-width: 20px;
+  height: 13px;
+  padding: 0 3px;
+}
+
+
+/* ============================================================
+   11. 通用组件(自定义字段)
+   ============================================================ */
+.generic-text-card {
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  padding: var(--space-1) 0;
+  cursor: help;
+}
+
+.generic-bullet-list {
+  list-style: none;
+  padding: 0;
+}
+
+.generic-bullet-item {
+  font-size: var(--text-base);
+  line-height: var(--leading-tight);
+  padding: 0 var(--space-3) 0 var(--space-7);
+  margin-bottom: var(--space-2);
+  position: relative;
+  color: var(--color-text-primary);
+  cursor: help;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.generic-bullet-item:last-child { margin-bottom: 0; }
+
+.generic-bullet-item::before {
+  content: "•";
+  position: absolute;
+  left: var(--space-1);
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.generic-bullet-item:hover {
+  background: var(--color-primary-soft);
+}
+
+.generic-bullet-item .bullet-text {
+  flex: 1;
+}
+
+.generic-kv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.kv-row {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  padding: var(--space-1) 0;
+  cursor: help;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.kv-row:last-child { border-bottom: none; }
+
+/* generic_kv 可选表头行(props.headers 存在时) */
+.kv-header-row {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.04em;
+  border-bottom: 1.5px solid var(--color-border-subtle);
+  cursor: default;
+}
+.kv-header-row .kv-key,
+.kv-header-row .kv-value {
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-semibold);
+}
+
+.kv-key {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  flex-shrink: 0;
+  min-width: 70px;
+}
+
+.kv-value {
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+
+/* 段落 12-14 已删除:task_freq_list / system_grid / fault_list 已废弃,
+   各自字段映射到 titled_list / scenario_grid.tools / generic_kv 兜底组件。 */
+
+
+/* ============================================================
+   ============================================================
+   2C 主题部分:暖米黄低密度,清爽插画风
+   ============================================================
+   ============================================================ */
+
+
+/* ============================================================
+   15. 2C 对 2B 组件的样式覆盖(色调与质感调整)
+   ============================================================ */
+
+/* ---- 头像 placeholder 渐变:已通过 --gradient-avatar-from/to token 自动切换,
+        2B 用柔和蓝,2C 用米黄→accent,无需再覆盖 ---- */
+
+/* ---- 协同流程箭头:2C 用 accent 色(原 2B 硬编码深蓝);
+        SVG data URI 颜色无法用 CSS var,这里用 currentColor 重写 ---- */
+[data-theme="2c"] .flow-cell:not(:last-child)::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'><path d='M1 5 L11 5 M7 1 L11 5 L7 9' stroke='%239B7BC4' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+/* 注意:2C 下若 accent 被 inline 覆盖(如换成暖橙),箭头仍是默认紫。
+   修复路径:render_html.py 在生成 HTML 时,根据 accent 选择匹配的 SVG data URI 注入。
+   当前第一版留此 limitation。 */
+
+/* ---- 业务场景占位渐变:2C 用暖色 ---- */
+[data-theme="2c"] .scenario-image {
+  background: linear-gradient(135deg, var(--color-bg-card-soft) 0%, var(--color-primary-light) 100%);
+}
+
+/* ---- 一句话需求:2C 下引号装饰用 accent ---- */
+[data-theme="2c"] .one-sentence-need::before {
+  color: var(--color-accent);
+}
+
+/* ---- 痛点列表 hover 浅底:2C 用 accent-soft ---- */
+[data-theme="2c"] .painpoint-item:hover,
+[data-theme="2c"] .generic-bullet-item:hover {
+  background: var(--color-accent-soft);
+}
+
+
+/* ============================================================
+   16. 2C Layout — 单画像单页(白底 + 拼贴色块卡片)
+   参考:image002 "私房菜" / image005 "唱片店"
+   主背景白(极浅米),内容用独立卡片拼贴自由布局。
+   ============================================================ */
+.persona-slide.layout-2c-portrait {
+  background: var(--color-bg-page);
+  padding: var(--space-8);
+  display: grid;
+  grid-template-columns: 32% 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-6);
+  overflow: hidden;
+}
+
+/* 身份卡:左侧整列(行 1-2 跨满) */
+.layout-2c-portrait .identity-card {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+
+/* 代表原话:右上,跨 2 列 */
+.layout-2c-portrait .persona-quote-pull {
+  grid-column: 2 / 4;
+  grid-row: 1 / 2;
+}
+
+/* 信息段卡:右下网格,2 列自适应 */
+.layout-2c-portrait .section-blocks-grid {
+  grid-column: 2 / 4;
+  grid-row: 2 / 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: var(--space-5);
+  align-items: stretch;
+  min-height: 0;
+}
+
+
+/* ============================================================
+   17. 身份卡(独立小卡:大插画 + 名字 + 副标 + meta tags)
+        参考:image002 私房菜的"小卡片",占角落一格
+   ============================================================ */
+.identity-card {
+  background: var(--color-bg-illust);
+  border-radius: var(--radius-xl);
+  padding: var(--space-7) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+/* 大插画半身像(用户提供 PNG 透明背景图最佳) */
+.persona-illust {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+}
+
+/* 占位:无插画图时显示色块 + 装饰几何 + 大字符
+   做出"插画占位"的视觉感:渐变背景 + 装饰圆 + 大透明水印字
+   注:用户提供 PNG 透明背景插画时,用 <img class="persona-illust"> 替代本占位 */
+.persona-illust-placeholder {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--color-accent) 35%, var(--color-bg-card)) 0%,
+    color-mix(in srgb, var(--color-accent) 70%, var(--color-bg-card)) 100%);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-display);
+  font-size: 140px;
+  color: var(--color-text-inverse);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.02em;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* 装饰几何:右下角圆形色块,营造插画感 */
+.persona-illust-placeholder::before {
+  content: "";
+  position: absolute;
+  width: 140%;
+  height: 140%;
+  bottom: -60%;
+  right: -50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-text-inverse) 25%, transparent) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* 装饰几何:左上角斜线纹理 */
+.persona-illust-placeholder::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-text-inverse) 15%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   18. 超大锚点名字(2C 视觉焦点,3-4 字)
+   ============================================================ */
+.persona-name-anchor {
+  font-family: var(--font-family-display);
+  font-size: 44px;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 身份卡内字号收紧,适配小卡容器(避免 5 字画像名溢出) */
+.identity-card .persona-name-anchor {
+  font-size: 36px;
+  letter-spacing: 0.04em;
+}
+
+/* density 切档时也跟着缩放(独立场景如旅程图标题时使用大字号) */
+[data-density="high"] .persona-name-anchor { font-size: 40px; }
+[data-density="low"]  .persona-name-anchor { font-size: 48px; }
+[data-density="high"] .identity-card .persona-name-anchor { font-size: 32px; }
+[data-density="low"]  .identity-card .persona-name-anchor { font-size: 40px; }
+
+.persona-name-anchor + .persona-subtitle {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-3);
+  line-height: var(--leading-relaxed);
+  max-width: 480px;
+  text-align: center;
+}
+
+
+/* ============================================================
+   18.5. 身份卡内的 meta 标签列表(年龄/职业/兴趣等并列)
+   ============================================================ */
+.meta-tags-list {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.meta-tag-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.meta-tag-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.05em;
+}
+
+.meta-tag-value {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+  line-height: 1.3;
+}
+
+
+/* ============================================================
+   19. 信息段卡(2C 替代 2B grid-module,3 层结构:标题/总结/展开)
+   参考:image002 "变得专业""自己专属""白天黑夜风格不同"
+        每段:胶囊小标题 + 一句话粗体总结 + 展开正文
+   ============================================================ */
+.section-block {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  border-left: 3px solid var(--color-accent);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-accent) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 标题改成胶囊色块(accent 底 + 白字) */
+.section-block-title {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-inverse);
+  background: var(--color-accent);
+  padding: var(--space-1) var(--space-5);
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.05em;
+}
+
+/* 一句话总结(粗体大字,信息层第 2 层) */
+.section-block-summary {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+}
+
+/* 展开正文(信息层第 3 层) */
+.section-block-body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.section-block-body strong {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+}
+
+
+/* ============================================================
+   20. 旁白式代表原话(2C 视觉锚,accent-soft 色块底)
+   参考:image002 "用了 Hi-Res 之后觉得外面的音乐就听不下去了"
+   ============================================================ */
+.persona-quote-pull {
+  font-size: var(--text-lg);
+  font-style: italic;
+  color: var(--color-text-primary);
+  line-height: var(--leading-relaxed);
+  padding: var(--space-6) var(--space-7);
+  background: var(--color-bg-quote-pull);
+  border-left: 4px solid var(--color-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  position: relative;
+  cursor: help;
+}
+
+/* 装饰大引号 */
+.persona-quote-pull::before {
+  content: "\201C";
+  position: absolute;
+  top: -8px;
+  left: var(--space-5);
+  font-size: 60px;
+  font-family: var(--font-family-serif);
+  color: var(--color-accent);
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.persona-quote-pull .quote-source {
+  display: block;
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+  color: var(--color-text-tertiary);
+  font-style: normal;
+}
+
+
+/* ============================================================
+   21. 2C Layout — 用户旅程图
+   参考:image004 "用户旅程图—私房菜" / image007 "用户旅程图—唱片店"
+   横轴:阶段(上传/下载/试听/购买/离开),纵轴:维度(思考/行为/情绪)
+   ============================================================ */
+.persona-slide.layout-2c-journey {
+  padding: var(--space-9);
+  background: var(--color-bg-canvas-right);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.journey-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-7);
+}
+
+.journey-header .persona-illust-placeholder {
+  max-width: 100px;
+  aspect-ratio: 1 / 1;
+  padding-bottom: 0;
+  font-size: var(--text-3xl);
+  flex-shrink: 0;
+}
+
+.journey-header .persona-illust {
+  max-width: 100px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.journey-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  font-family: var(--font-family-display);
+  color: var(--color-text-primary);
+}
+
+.journey-subtitle {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-2);
+}
+
+/* ---- 旅程网格(N 列阶段 + 1 列维度标签) ---- */
+.journey-grid {
+  flex: 1;
+  display: grid;
+  /* 通过 inline style 设置 --journey-stages,例:style="--journey-stages: 5" */
+  grid-template-columns: 100px repeat(var(--journey-stages, 5), 1fr);
+  gap: 1px;
+  background: var(--color-border-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.journey-cell {
+  background: var(--color-bg-card);
+  padding: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.journey-stage-header {
+  background: var(--color-bg-card-soft);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* 阶段编号(① ② ③ ④ ⑤),与阶段名同行 */
+.journey-stage-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+  line-height: 1;
+  margin-right: 4px;
+}
+
+.journey-dimension-label {
+  background: var(--color-bg-card-soft);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* ---- journey-cell 内 2 层信息结构(关键词标签 + 一句话总结) ---- */
+/* 第 1 层:关键词胶囊(accent-soft 底,字号小,清淡)
+   margin-left 负值:让胶囊内文字的左边视觉对齐 summary 文字的左边(胶囊外框略往左探出) */
+.journey-cell-keyword {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 2px var(--space-3);
+  margin-left: calc(var(--space-3) * -1);
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+/* 第 2 层:一句话总结(主色字,稍重) */
+.journey-cell-summary {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+}
+
+.journey-cell-summary strong {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+}
+
+/* ---- 痛点行高频共识高亮("💡 机会点"色块) ---- */
+.journey-pain-highlight {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg-card));
+  border-left: 3px solid var(--color-accent);
+  padding-left: calc(var(--space-4) - 3px);
+}
+
+.journey-pain-highlight .journey-cell-keyword {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.journey-pain-opportunity-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+  margin-top: 2px;
+}
+
+/* ---- 触点行(可选维度):用小色块图标式展示 ---- */
+.journey-cell-touchpoint {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.journey-cell-touchpoint .touchpoint-tag {
+  display: inline-block;
+  background: var(--color-bg-card-soft);
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  margin: 1px 3px 1px 0;
+  line-height: 1.3;
+}
+
+/* ---- 情绪曲线行:跨越所有阶段列 ---- */
+/* row 高度 + padding 给上下 label 留空间,避免 .persona-slide overflow:hidden 截断 */
+.journey-emotion-row {
+  grid-column: 2 / -1;
+  background: var(--color-bg-card);
+  position: relative;
+  min-height: 150px;
+  padding: 32px var(--space-4) 32px;
+}
+
+.journey-emotion-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 色块阴影区(path 闭合到 SVG 底部,填充半透明 accent) */
+.journey-emotion-svg .emotion-area {
+  fill: var(--color-accent);
+  opacity: 0.14;
+  stroke: none;
+}
+
+.journey-emotion-svg path {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* 即使 SVG 被横向拉伸,stroke 仍保持视觉宽度 */
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---- 节点 overlay:与 SVG 内容区对齐(同 padding inset),允许 point 直接用 cx/cy 百分比 ---- */
+.journey-emotion-points-overlay {
+  position: absolute;
+  top: 32px;
+  bottom: 32px;
+  left: var(--space-4);
+  right: var(--space-4);
+  pointer-events: none;
+}
+
+/* journey-emotion-point:节点容器,left/top 直接用 SVG viewBox 内 cx/cy 百分比
+   例:cx=50/500 → left:10%, cy=30/100 → top:30% */
+.journey-emotion-point {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* 圆点(永远正圆,px 单位) */
+.emotion-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid var(--color-bg-card);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+/* label 容器:emoji + 文字,贴在圆点上方或下方 */
+.emotion-label {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.emotion-label.above {
+  bottom: 8px;
+}
+
+.emotion-label.below {
+  top: 8px;
+}
+
+.emotion-label .emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.emotion-label .label-text {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+
+/* ============================================================
+   22. 范式总览页 — R4 二维矩阵(layout-matrix-2d, theme 控制配色)
+   参考:image001 "私房菜/啊污伪 ..." 4 象限矩阵
+   ============================================================ */
+.persona-slide.layout-matrix-2d {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-10);
+  background: var(--color-bg-canvas-right);
+  position: relative;
+}
+
+/* 让 matrix-container 拿 strip 之后的剩余高度,防止 height:100% 把它顶出 slide 底 */
+.persona-slide.layout-matrix-2d > .matrix-container {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.matrix-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  /* 留出轴标签空间 */
+  padding: var(--space-9);
+}
+
+/* ---- 轴线 ---- */
+.matrix-axis {
+  position: absolute;
+  background: var(--color-text-tertiary);
+}
+
+.matrix-axis.horizontal {
+  left: var(--space-9);
+  right: var(--space-9);
+  top: 50%;
+  height: 1px;
+}
+
+.matrix-axis.vertical {
+  top: var(--space-9);
+  bottom: var(--space-9);
+  left: 50%;
+  width: 1px;
+}
+
+/* ---- 轴标签(上下左右 4 个) ---- */
+.matrix-axis-label {
+  position: absolute;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.matrix-axis-label.top {
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.matrix-axis-label.bottom {
+  bottom: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.matrix-axis-label.left {
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.matrix-axis-label.right {
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ---- 4 象限内容(画像名 + 受访者点位) ---- */
+.matrix-quadrant {
+  position: absolute;
+  width: calc(50% - var(--space-9));
+  height: calc(50% - var(--space-9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matrix-quadrant.q1 { top: var(--space-9); right: var(--space-9); }
+.matrix-quadrant.q2 { top: var(--space-9); left: var(--space-9); }
+.matrix-quadrant.q3 { bottom: var(--space-9); left: var(--space-9); }
+.matrix-quadrant.q4 { bottom: var(--space-9); right: var(--space-9); }
+
+.matrix-quadrant-label {
+  font-family: var(--font-family-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.matrix-quadrant-label:hover {
+  transform: scale(1.05);
+}
+
+.matrix-quadrant-label::before { content: "「"; }
+.matrix-quadrant-label::after  { content: "」"; }
+
+/* ---- 受访者点位:[三角][姓名] 横排整组定位(2026-05-28) ----
+   规则 1: flex row + gap 8px,三角永远在姓名左侧且间距一致。
+   规则 2: renderer 用 --matrix-nudge-x/y 将整组推向矩阵中心,避开四角象限胶囊。 */
+
+.matrix-container > .matrix-respondent {
+  position: absolute;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  z-index: 6;
+  cursor: help;
+  /* 锚点落在三角几何中心,再叠加 nudge */
+  transform: translate(-7px, -7px)
+    translate(var(--matrix-nudge-x, 0px), var(--matrix-nudge-y, 0px));
+}
+
+.matrix-container > .matrix-respondent .matrix-respondent-dot {
+  position: static;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  align-self: center;
+  background: var(--color-accent);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  transform: none;
+  /* 上尖三角视觉重心偏下,微沉 1px 与 pill 内文字垂直中线对齐 */
+  margin-top: 1px;
+}
+
+.matrix-container > .matrix-respondent .respondent-label {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-sm);
+  line-height: 14px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  box-sizing: content-box;
+}
+
+
+/* ============================================================
+   23. 范式总览页 — R5 多维分布(layout-distribution-multi, theme 控制配色)
+   ------------------------------------------------------------
+   横向:N 个价值变量并列(3-5 个,平均分布)
+   纵向:3 档刻度(高/中/低,也可换成 1-5 分)
+   每类画像:在每个变量上选 1 个档位,把这些点用折线连起来 → 蛇形线
+   多条蛇形线叠加在同一 SVG 上,用各自的 accent 色区分类别
+   点击图例(或蛇形线本体)→ 切到对应的 layout-2c-portrait 单画像
+
+   坐标约定(SVG viewBox 内,模型按此填数):
+     - viewBox = "0 0 1000 460"
+     - 绘图区:x [120, 960],y [70, 400]
+     - 4 变量时列中心 x:225, 470, 715, 875 ... 模型按列均分计算
+     - 3 档 y:高=90,中=235,低=380
+     - 节点 cx/cy 直接套上面的值
+   ============================================================ */
+.persona-slide.layout-distribution-multi {
+  background: var(--color-bg-page);
+  padding: var(--space-9) var(--space-9) var(--space-8);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-6);
+  overflow: hidden;
+}
+
+/* ---- 顶部:标题 + 副标 + 图例 ---- */
+.distribution-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.distribution-title {
+  font-family: var(--font-family-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: 0.04em;
+}
+
+.distribution-subtitle {
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.distribution-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.distribution-legend-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-5);
+  background: var(--color-bg-card);
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 图例色块:用 inline-style 注入 var(--accent-XXX) 作为线条预览 */
+.distribution-legend-swatch {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  position: relative;
+}
+.distribution-legend-swatch::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: inherit;
+  transform: translate(-50%, -50%);
+}
+
+.distribution-legend-btn:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.distribution-legend-btn.active {
+  background: var(--color-bg-card);
+  border-color: currentColor;
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-md);
+}
+
+.distribution-legend-name {
+  font-size: var(--text-base);
+  line-height: 1.2;
+}
+
+.distribution-legend-count {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-card-soft);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  margin-left: var(--space-1);
+}
+
+/* ---- 主图:SVG 多维分布图(自适应填充) ---- */
+.distribution-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+}
+
+.distribution-chart svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* 网格背景(3 档水平线,虚线) */
+.snake-grid-line {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+/* 变量分隔列(可选垂直浅线) */
+.snake-grid-col {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+/* y 轴档位标签(高/中/低,左侧) */
+.snake-axis-y-label {
+  font-family: var(--font-family-sans);
+  font-size: 13px;
+  fill: var(--color-text-tertiary);
+  text-anchor: end;
+  letter-spacing: 0.04em;
+}
+
+/* x 轴变量名(底部) */
+.snake-axis-x-label {
+  font-family: var(--font-family-sans);
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--color-text-primary);
+  text-anchor: middle;
+}
+
+/* .snake-axis-x-sublabel 已删除(P8 §14 C7):档位名改为标在点位旁(.snake-point-level-label),不再走底部行。 */
+
+/* 蛇形折线主体(每条线 stroke 由 inline-style 指定 accent 色) */
+.snake-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: stroke-width 0.18s, opacity 0.18s;
+}
+
+.snake-line:hover {
+  stroke-width: 5;
+}
+
+/* 节点圆(每个节点带 data-evidence,hover 显示该画像在该变量的代表性证据) */
+.snake-point {
+  stroke: var(--color-bg-page);
+  stroke-width: 2.5;
+  cursor: help;
+  transition: r 0.15s, stroke-width 0.15s;
+}
+
+.snake-point:hover {
+  r: 9;
+  stroke-width: 3;
+}
+
+/* .snake-point-label 已删除(renderer 已统一为 .snake-point-level-label,见 hardening 段)。 */
+
+/* dimmed 状态:某条线被聚焦时,其他线淡化(可选交互) */
+.snake-line.dimmed,
+.snake-point.dimmed {
+  opacity: 0.22;
+}
+
+/* ---- 底部:数据来源/聚类说明 ---- */
+.distribution-footer {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-relaxed);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-6);
+}
+
+.distribution-footer-hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   23. 2C Layout — 专题详情页(layout-2c-detail)
+   参考:image003 / image006("专区内听歌类型..." 单专题深入页)
+   结构:大标题 + 左侧 mockup + 右侧解读 + 角落小插画
+   ============================================================ */
+.persona-slide.layout-2c-detail {
+  background: var(--color-bg-page);
+  padding: var(--space-7) var(--space-9) var(--space-8);
+  display: grid;
+  grid-template-rows: auto auto 1fr;  /* headline / quote_pull?(可空) / body(撑满剩余) */
+  gap: var(--space-5);
+  overflow: hidden;
+  align-content: start;  /* 内容靠上,不让 1fr 撑高把内容压向下方 */
+  position: relative;  /* l2c-corner 用 position:absolute 时锚到 slide */
+  --mockup-frame-height: 310px;  /* mockup-1/2/3 同行帧高一致; 真图按高等比缩放宽 */
+}
+
+/* mockup 内的截图图片 — 完整规则见文件末尾 §2C mockup(须在 .mockup-frame 基础规则之后) */
+
+
+/* ============================================================
+   24. 2B/2D Layout — toB 用户旅程图(L1 全景 + L2 单角色共用)
+   ------------------------------------------------------------
+   视觉基准:模型训练旅程 L1(深蓝 + 浅蓝椭圆 + 红色痛点 banner)
+   双形态共用一套 class,只是 rail 行数和 main 内容结构不同:
+     - L1 全景:rail 列出 N 个角色,main 内每行是一个角色的横向工作流程
+     - L2 单角色:rail 列出 [工作流程/关注点/痛点] 维度,main 内每行一个维度
+   零新 token,只用 v2 已有色板。
+   ============================================================ */
+.persona-slide.layout-2b-journey {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ---- 顶部深色 banner:画像名 + slogan + 角标 ---- */
+.tob-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-9);
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  flex-shrink: 0;
+  gap: var(--space-7);
+}
+
+.tob-banner-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-6);
+  min-width: 0;
+  flex: 1;
+}
+
+.tob-banner-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-inverse);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tob-banner-title::before {
+  content: "|";
+  color: var(--color-warning);
+  margin-right: var(--space-3);
+  font-weight: var(--font-normal);
+}
+
+.tob-banner-subtitle {
+  font-size: var(--text-md);
+  color: var(--color-text-inverse);
+  opacity: 0.85;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
+/* banner-corner 已废弃(原"按钮状态下点跳转"提示无对应交互,移除以免误导) */
+.tob-banner-corner { display: none; }
+
+/* ---- 内容主体:rail (左固定) + main (右 grid) ---- */
+.tob-body {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---- 左侧 rail:深色竖列 ---- */
+.tob-rail {
+  background: var(--color-text-primary);
+  display: grid;
+  grid-template-rows: var(--rail-rows, auto);
+  border-right: 2px solid var(--color-warning);
+}
+
+.tob-rail-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-2);
+  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-align: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text-inverse) 12%, transparent);
+}
+
+.tob-rail-cell:last-child { border-bottom: none; }
+
+/* 阶段标签 cell:浅色变体,贴齐主区 stage-row */
+.tob-rail-cell.tob-rail-stages,
+.tob-rail-cell.tob-rail-substages {
+  background: color-mix(in srgb, var(--color-text-inverse) 8%, var(--color-text-primary));
+  font-size: var(--text-xs);
+  color: var(--color-primary-light);
+}
+
+/* 角色 cell:大号字 + 强调色细条 */
+/* .tob-rail-role / .tob-rail-role-name / .tob-rail-role-tag 已删除:
+   legacy l1 渲染器已下线;新 UML 路径用 .l1-role-* 系列。 */
+
+/* L2 维度标签 cell:工作流程 / 关注点 / 痛点 */
+.tob-rail-cell.tob-rail-dim {
+  background: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  padding: var(--space-4) var(--space-2);
+}
+
+/* ---- 右侧 main:内部网格(stage 列 × 维度行) ---- */
+.tob-main {
+  display: grid;
+  grid-template-columns: repeat(var(--stages, 4), 1fr);
+  grid-template-rows: var(--main-rows, auto);
+  background: var(--color-bg-canvas-right);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ---- 阶段标签行(渐变蓝色块) ---- */
+.tob-stage-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-inverse);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  border-right: 1px solid color-mix(in srgb, var(--color-text-inverse) 18%, transparent);
+  position: relative;
+}
+
+.tob-stage-tag:last-child { border-right: none; }
+
+/* 阶段后的渐隐箭头(伪元素) */
+.tob-stage-tag:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--color-primary-dark);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  z-index: 2;
+}
+
+.tob-stage-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-text-inverse) 22%, transparent);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  margin-right: var(--space-3);
+  line-height: 1;
+}
+
+/* ---- 子阶段标签行(灰底细标签,每阶段 1 组) ---- */
+.tob-substage-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+  background: var(--color-bg-card-soft);
+  border-right: 1px dashed var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.tob-substage-cell:last-child { border-right: none; }
+
+/* .tob-substage-tag 已删除(P8 升级到 .tob-substage-arrow 箭头样式)。 */
+
+/* ---- L2 hybrid 工具/触点行 ---- */
+.tob-tools-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-card-soft);
+  border-right: 1px dashed var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+  min-height: 42px;
+}
+
+.tob-tools-cell:last-child { border-right: none; }
+
+.tob-tools-tag {
+  display: inline-block;
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  line-height: 1.3;
+}
+
+.tob-tools-empty {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.tob-l2-uml-hybrid .tob-rail-tools {
+  font-size: var(--text-sm);
+}
+
+/* ---- 工作流程行(浅蓝椭圆 pill,横向流转) ---- */
+.tob-flow-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  border-right: 1px dashed var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+  position: relative;
+  min-height: 64px;
+}
+
+.tob-flow-cell:last-child { border-right: none; }
+
+/* 跨 cell 连接箭头:同一行内,从一个阶段流转到下一阶段
+   用 ::after 在 cell 右边界正中央贴箭头,带白底遮挡 dashed 分隔线 */
+.tob-flow-cell:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 14'><path d='M1 7 L13 7 M9 2 L13 7 L9 12' stroke='%231e40af' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: var(--color-bg-canvas-right);
+  z-index: 3;
+  border-radius: 50%;
+}
+
+.tob-flow-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-primary-light));
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  cursor: help;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.tob-flow-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.tob-flow-pill.is-highlight {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary-dark);
+}
+
+/* ---- 关注点行(白底卡片 + 红字"亮点 N") ---- */
+.tob-focus-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  border-right: 1px dashed var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.tob-focus-cell:last-child { border-right: none; }
+
+.tob-focus-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  cursor: help;
+  position: relative;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.tob-focus-card:hover {
+  border-color: var(--color-warning);
+  box-shadow: var(--shadow-sm);
+}
+
+.tob-focus-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-2);
+}
+
+.tob-focus-card-title::before {
+  content: "★";
+  font-size: 11px;
+  line-height: 1;
+}
+
+.tob-focus-card-body {
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.tob-focus-card-body strong {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+/* ---- 关注点 - 痛点变体(is-pain):红橙警示风格 ----
+   "关注点"维度下,亮点(默认蓝 ★)与痛点(警告橙 ⚠)并存 */
+.tob-focus-card.is-pain {
+  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-bg-card));
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border-subtle));
+}
+
+.tob-focus-card.is-pain:hover {
+  border-color: var(--color-warning);
+}
+
+.tob-focus-card.is-pain .tob-focus-card-title {
+  color: var(--color-warning);
+}
+
+.tob-focus-card.is-pain .tob-focus-card-title::before {
+  content: "⚠";
+  font-size: 12px;
+}
+
+.tob-focus-card.is-pain .tob-focus-card-body strong {
+  color: var(--color-warning);
+}
+
+/* 关注点卡片下方可选截图占位 */
+.tob-focus-card-mock {
+  margin-top: var(--space-2);
+  background: linear-gradient(135deg, var(--color-bg-card-soft) 0%, var(--color-primary-light) 100%);
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+/* ---- 痛点 banner 已删除(P8):痛点并入 .tob-focus-card.is-pain,不再有底部整行 banner。 ---- */
+
+/* .tob-main 仍需保留 position:relative,UML 内部 layer 依赖 */
+.tob-main {
+  position: relative;
+}
+
+/* 旧 .tob-cross-* / .cross-path / .cross-dot / .cross-arrow / .tob-cross-label 整段已删除:
+   render_cross_role_overlay / _parse_idx 已在 P8 删除,UML 路径不再用 overlay。 */
+
+
+/* ---- L1 全景模式:每行一个角色的 flow-cell 行 ----
+   L1 没有 focus-row / pain-row,只有多个 flow-row(每行一个角色)
+   rail 用 .tob-rail-role,main 每行只放工作流程 pill */
+.layout-2b-journey.is-l1 .tob-flow-cell {
+  min-height: 72px;
+}
+
+/* ---- L2 单角色模式:三行布局
+   .tob-flow-row / .tob-focus-row / .tob-pain-banner */
+.layout-2b-journey.is-l2 .tob-flow-cell {
+  min-height: 56px;
+}
+
+/* ============================================================
+   P4 2C HiRes style iteration: matrix readability, privacy labels,
+   no silent truncation, and per-persona color hooks.
+   ============================================================ */
+
+.persona-name-anchor,
+.identity-card .persona-name-anchor,
+.matrix-quadrant-label,
+.nav-btn {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.section-block-body {
+  display: block;
+  overflow: visible;
+}
+
+.layout-matrix-2d .matrix-container {
+  padding: 76px 118px;
+}
+
+.layout-matrix-2d .matrix-axis.horizontal {
+  left: 118px;
+  right: 118px;
+}
+
+.layout-matrix-2d .matrix-axis.vertical {
+  top: 76px;
+  bottom: 76px;
+}
+
+/* 轴标签:纯文字风格,去掉 pill 的 bg/border/shadow/padding,保留 z-index 防遮挡 */
+.layout-matrix-2d .matrix-axis-label {
+  z-index: 7;
+  font-size: max(18px, var(--text-xl));
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.layout-matrix-2d .matrix-axis-label.left {
+  left: 60px;
+  max-width: 180px;
+  text-align: left;
+}
+
+.layout-matrix-2d .matrix-axis-label.right {
+  right: 60px;
+  max-width: 180px;
+  text-align: right;
+}
+
+.layout-matrix-2d .matrix-axis-label.top,
+.layout-matrix-2d .matrix-axis-label.bottom {
+  max-width: 520px;
+  text-align: center;
+}
+
+/* 顶/底标签离边远一点,避免 slide overflow:hidden 截掉文字 */
+.layout-matrix-2d .matrix-axis-label.top { top: var(--space-5); }
+.layout-matrix-2d .matrix-axis-label.bottom { bottom: var(--space-5); }
+
+.layout-matrix-2d .matrix-quadrant {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.layout-matrix-2d .matrix-quadrant-label {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(240px, 78%);
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 34%, var(--color-border-subtle));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg-card) 86%, var(--color-accent));
+  text-align: center;
+  line-height: 1.25;
+  color: var(--persona-accent, var(--color-accent));
+  box-shadow: var(--shadow-sm);
+}
+
+.layout-matrix-2d .matrix-quadrant-label::before,
+.layout-matrix-2d .matrix-quadrant-label::after {
+  content: "";
+}
+
+/* 受访者标签定位见主样式段 .matrix-container > .matrix-respondent:
+   [三角][姓名] flex 整组,用 --matrix-nudge-x/y 整体推向矩阵中心避开象限胶囊。 */
+
+/* ========================================================================
+   matrix_guidance_strip — R4 矩阵首页顶部读图引导
+   设计:N 个研究问题平铺一行(1-3),每个问题挂 1-4 个判断点 li
+   ======================================================================== */
+.matrix-guidance-strip {
+  width: 100%;
+  max-width: var(--canvas-max-w);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.matrix-guidance-item {
+  background: var(--color-bg-card);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.matrix-guidance-item .mg-label {
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  font-size: 14.5px;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.matrix-guidance-item .mg-hint {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* decision-strip 沿用旧布局(其它地方在用),与 matrix-guidance-strip 解耦 */
+.decision-strip {
+  width: 100%;
+  max-width: var(--canvas-max-w);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+.decision-strip > div {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.decision-strip h4 {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+}
+.decision-strip p {
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
+}
+
+.layout-matrix-2d .matrix-quadrant.is-empty,
+.layout-matrix-2d .matrix-quadrant.empty {
+  color: #9ca3af;
+  opacity: 0.72;
+}
+
+.layout-matrix-2d .matrix-quadrant.is-empty .matrix-quadrant-label,
+.layout-matrix-2d .matrix-quadrant.empty .matrix-quadrant-label,
+.layout-matrix-2d .matrix-quadrant-label.is-empty {
+  background: #f1f1f1;
+  border-color: #d7d7d7;
+  color: #9ca3af;
+  box-shadow: none;
+  cursor: default;
+}
+/* ============================================================
+   P5 2C HiRes hardening: paired tabs, matrix label avoidance
+   Source: 2026-05-20 HiRes regression output.
+   ============================================================ */
+.persona-nav .nav-pair {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 0 0 auto;
+}
+
+.persona-nav .nav-pair .nav-btn {
+  margin: 0;
+  border-radius: 0;
+  min-height: 44px;
+}
+
+.persona-nav .nav-pair .nav-btn-persona {
+  border-top-left-radius: var(--radius-pill);
+  border-bottom-left-radius: var(--radius-pill);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: var(--space-6);
+  padding-right: var(--space-5);
+  max-width: 180px;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.persona-nav .nav-pair .nav-btn-journey {
+  border-left: 0;
+  border-top-right-radius: var(--radius-pill);
+  border-bottom-right-radius: var(--radius-pill);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: var(--space-3);
+  padding-right: var(--space-5);
+  min-width: 86px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-bg-card) 92%, var(--color-accent));
+}
+
+.persona-nav .nav-pair .nav-btn-journey.active,
+.persona-nav .nav-pair .nav-btn-persona.active {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
+}
+
+button.matrix-quadrant-label {
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+/* .respondent-label 在 .matrix-respondent flex 整组内垂直居中;
+   整组位移由 --matrix-nudge-x/y 控制,不再用 label-* 方向类。 */
+
+.layout-matrix-2d .matrix-note {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  max-width: 220px;
+  white-space: normal;
+}
+
+/* P6 journey cleanup: no dangling arrows, no duplicate pain row, no empty screenshot slots. */
+.layout-2b-journey.is-l1 .tob-flow-cell.is-terminal::after,
+.layout-2b-journey.is-l1 .tob-flow-cell:last-of-type::after,
+.layout-2b-journey.is-l2 .tob-flow-cell.is-terminal::after,
+.layout-2b-journey.is-l2 .tob-flow-cell:last-of-type::after {
+  display: none;
+  content: none;
+}
+
+/* .tob-pain-banner 已删除(痛点并入 .tob-focus-card.is-pain);此处兜底规则一并移除。 */
+
+.tob-focus-card:not(.has-screenshot) .tob-focus-card-mock,
+.tob-focus-card-mock.is-empty {
+  display: none;
+}
+
+/* ============================================================
+   P7 (2026-05-21) 防御性兜底
+   ------------------------------------------------------------
+   背景:LLM 在生成 HTML 时反复出现 4 类"静默坏掉":
+     1. 用错 token 名(--accent-blue 而非 --accent-mist-blue)
+        → 已在 _design-tokens.css 用别名兜底
+     2. emotion-label 漏写 .emoji 子元素
+        → 本节用 :has() 兜底默认情绪图标
+     3. 漏写 tooltip script(ds-v4-flash 表现尤其明显,原话全堆顶部)
+        → 本节用 CSS-only ::after 在无 JS 时显示原话
+     4. 自创协作字段标签("上游/核心/下游" 而非 "需求来源/交付物/流转去向/KPI")
+        → 本节用 data-field-key + ::before 强制注入正确中文 label
+   ============================================================ */
+
+/* (1) emoji 兜底:.emotion-label 没有 .emoji 子元素时,前置默认图标
+       依赖 :has() (Chromium 105+/Firefox 121+/Safari 15.4+,2026 全主流支持) */
+.emotion-label:not(:has(.emoji))::before {
+  content: "🎵";
+  font-size: 18px;
+  line-height: 1;
+  display: block;
+}
+
+/* 按情绪关键词(data-emotion 或 .label-text 内容)智能兜底
+   优先级:data-emotion 显式 > 关键词匹配 > 通用默认 */
+.emotion-label[data-emotion="好奇"]:not(:has(.emoji))::before { content: "🙂"; }
+.emotion-label[data-emotion="理解"]:not(:has(.emoji))::before { content: "😌"; }
+.emotion-label[data-emotion="付费"]:not(:has(.emoji))::before { content: "💳"; }
+.emotion-label[data-emotion="使用"]:not(:has(.emoji))::before { content: "🎧"; }
+.emotion-label[data-emotion="判断"]:not(:has(.emoji))::before { content: "🤔"; }
+.emotion-label[data-emotion="困惑"]:not(:has(.emoji))::before { content: "😕"; }
+.emotion-label[data-emotion="满意"]:not(:has(.emoji))::before { content: "😌"; }
+.emotion-label[data-emotion="纠结"]:not(:has(.emoji))::before { content: "😩"; }
+.emotion-label[data-emotion="稳定"]:not(:has(.emoji))::before { content: "🎧"; }
+.emotion-label[data-emotion="开心"]:not(:has(.emoji))::before { content: "😄"; }
+.emotion-label[data-emotion="失望"]:not(:has(.emoji))::before { content: "😞"; }
+
+/* (2) CSS-only tooltip 兜底:JS 缺失或失败时,hover 仍能看原话
+       JS 加载成功必须 document.body.classList.add('has-tooltip-js')
+       才能关闭 CSS 兜底,避免 JS+CSS 双 tooltip 重叠
+
+   2026-05-28 修复 issue 5:排除 matrix 受访者点位与标签 — 它们已经是
+   position:absolute,被这条规则强制改成 position:relative 会让 inline style 的
+   left%/top% 失效,标签横拉成长条。matrix 已是自身定位上下文,不需要 relative
+   也能让 ::after 兜底 tooltip 正确锚定。 */
+[data-evidence]:not([data-evidence=""]):not(.matrix-respondent):not(.matrix-respondent-dot):not(.respondent-label) {
+  position: relative;
+}
+
+body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
+  content: attr(data-evidence);
+  position: absolute;
+  z-index: 10000;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 380px;
+  min-width: 200px;
+  white-space: pre-wrap;
+  text-align: left;
+  pointer-events: none;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  font-style: normal;
+}
+
+/* (3) 协作字段标签强制:flow-cell 必须带 data-field-key,CSS 自动注入中文 label
+       schema-tob.md collaboration 严格 4 个子字段:
+         demand_source / deliverables / downstream_flow / kpi
+       禁止 LLM 自创"上游/核心/下游"这类胡话 */
+.flow-cell[data-field-key] .flow-cell-label {
+  font-size: 0;
+  line-height: 0;
+}
+.flow-cell[data-field-key] .flow-cell-label::before {
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
+  color: var(--color-accent);
+  font-weight: var(--font-semibold);
+  display: inline-block;
+  margin-bottom: var(--space-1);
+}
+.flow-cell[data-field-key="demand_source"]   .flow-cell-label::before { content: "需求来源"; }
+.flow-cell[data-field-key="deliverables"]    .flow-cell-label::before { content: "交付物"; }
+.flow-cell[data-field-key="downstream_flow"] .flow-cell-label::before { content: "流转去向"; }
+.flow-cell[data-field-key="kpi"]             .flow-cell-label::before { content: "KPI 指标"; }
+
+/* (4) fail-loud:nav-btn.active 缺 accent 时显红色虚线
+       兜不住 LLM 写错根级 --color-accent 的情况(已用别名挡掉一部分),
+       这里再加一道"看得见"的视觉警告 */
+.nav-btn.active {
+  background: var(--color-accent, #ff3b30);
+  border-color: var(--color-accent, #ff3b30);
+  color: var(--color-text-inverse, #ffffff);
+}
+.nav-btn.active:not([style*="--color-accent"]):not(:where([data-theme] .nav-btn.active)) {
+  outline: 2px dashed #ff3b30;
+  outline-offset: 2px;
+}
+
+/* ============ P8 视觉升级 ============ */
+
+.tob-substage-arrow {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-card-soft);
+  padding: var(--space-2) var(--space-4);
+  position: relative;
+  margin-right: 4px;
+}
+.tob-substage-arrow::after {
+  content: "";
+  position: absolute;
+  right: -8px; top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: var(--color-primary-light);
+}
+.tob-substage-arrow.is-terminal::after { display: none; }
+
+.matrix-empty-quadrant {
+  background: repeating-linear-gradient(45deg,
+    var(--color-bg-card-soft), var(--color-bg-card-soft) 8px,
+    transparent 8px, transparent 18px);
+  display: flex; align-items: center; justify-content: center;
+}
+.matrix-empty-quadrant .empty-tag {
+  background: var(--color-bg-card);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+}
+
+/* 旧 .respondent-label.label-* 7 方向 transform 已删除(2026-05-29):
+   标签定位改由 .matrix-container > .matrix-respondent flex 整组 + --matrix-nudge-x/y
+   像素平移实现(见上方主样式段与 matrix.py 的 compute_nudge_px),不再用方向类。 */
+
+.snake-point-level-label {
+  font-size: var(--text-sm);
+  fill: var(--color-text-secondary);
+  text-anchor: middle;
+}
+
+.detail-page-banner {
+  background: transparent;
+  padding: var(--space-2) 0 var(--space-3);
+  border-radius: 0;
+  color: var(--color-text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-4);
+}
+
+.persona-slide.layout-2b-grid-detail.active {
+  display: block;  /* 不走 30/70 分栏。关键:必须含 .active,否则会覆盖 _base.html 的 :not(.active){display:none} 导致双页时第二页永远显示 */
+  padding: calc(var(--space-2) * 2 + 22px);  /* 上下左右 4 边都 = module-title 按钮高度(约 32/34/38 px,跟随密度) */
+}
+.persona-slide.layout-2b-grid-detail .modules-panel {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  grid-template-rows: auto;
+  column-gap: var(--space-6);  /* 组件间横向 12px(high):缩短 */
+  row-gap: var(--space-9);     /* 组件间纵向 20px(high):增加 */
+  align-content: start;
+  overflow: hidden;
+  padding: 0 var(--space-9);   /* 与主画像 .modules-panel 水平内边距同口径 */
+}
+
+.persona-slide.layout-2b-grid-detail .detail-page-banner {
+  padding: 0 var(--space-9);
+}
+
+/* detail 页: 左半栏贴左缘、右半栏贴右缘（与 banner 同宽） */
+.persona-slide.layout-2b-grid-detail .modules-panel > .grid-module {
+  width: 100%;
+  max-width: 100%;
+}
+
+.persona-slide.layout-2b-grid-detail .grid-module.grid-anchor-start,
+.persona-slide.layout-2b-grid-detail .modules-panel > .grid-module[style*="grid-column: 1 /"],
+.persona-slide.layout-2b-grid-detail .modules-panel > .grid-module[style*="grid-column:1 /"] {
+  justify-self: start;
+}
+
+.persona-slide.layout-2b-grid-detail .grid-module.grid-anchor-end,
+.persona-slide.layout-2b-grid-detail .modules-panel > .grid-module[style*="grid-column: 7 /"],
+.persona-slide.layout-2b-grid-detail .modules-panel > .grid-module[style*="grid-column:7 /"] {
+  justify-self: end;
+}
+
+.persona-slide.layout-2b-grid-detail .grid-module.grid-anchor-full {
+  justify-self: stretch;
+}
+
+.section-blocks-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+.section-blocks-grid.count-4 { grid-template-columns: 1fr 1fr; }
+.section-blocks-grid.count-5 { grid-template-columns: 1fr 1fr; }
+.section-blocks-grid.count-6 { grid-template-columns: 1fr 1fr; }
+.section-blocks-grid .section-block.full-width { grid-column: 1 / -1; }
+
+.emoji {
+  display: inline-block;
+  width: 20px; height: 20px;
+  vertical-align: middle;
+}
+
+
+/* ===== P8 golden sample truth styles ===== */
+.demo-nav-area { width:100%; max-width:var(--canvas-max-w); display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-start; padding:0; }
+.nav-trio,.nav-pair { display:inline-flex; align-items:stretch; }
+.nav-btn { padding:8px 18px; border:1px solid #c8d2dd; background:white; color:#2c3e50; cursor:pointer; font-family:inherit; font-size:14px; border-radius:999px; }
+.nav-btn:hover { background:#eaf2fa; color:#1a72b8; }
+.nav-btn.active { background:#1a72b8; color:white; border-color:#1a72b8; }
+.nav-btn.single { border-radius:999px; }
+.nav-pair .nav-btn-persona { border-radius:999px 0 0 999px; padding-right:14px; }
+.nav-pair .nav-btn-journey { border-radius:0 999px 999px 0; border-left:0; padding-left:14px; padding-right:18px; }
+.nav-trio .nav-btn-persona { border-radius:999px 0 0 999px; padding-right:14px; }
+.nav-trio .nav-btn-detail { border-radius:0; border-left:0; padding-left:14px; padding-right:14px; }
+.nav-trio .nav-btn-journey { border-radius:0 999px 999px 0; border-left:0; padding-left:14px; padding-right:18px; }
+.l1-frame { background:#fff; border-radius:8px; overflow:hidden; border:1px solid #dde5ef; position:relative; }
+.l1-flow-title { background:#1e3a5f; color:#fff; text-align:center; padding:11px 18px; font-size:17px; font-weight:600; letter-spacing:0.5px; }
+.l1-flow-subtitle { background:#f7f9fc; color:#62728a; padding:8px 20px; border-bottom:1px solid #dde5ef; font-size:12px; }
+.l1-stage-board { margin:12px 14px 0; border:1px solid #dde5ef; border-bottom:0; overflow:hidden; border-radius:4px 4px 0 0; }
+.l1-row.stage-row .l1-rail-cell.head { border-right:1px solid rgba(255,255,255,0.28); }
+.l1-row { display:grid; grid-template-columns:92px repeat(9, 1fr); align-items:stretch; }
+.l1-rail-cell { background:#1e3a5f; color:white; padding:9px 7px; text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.l1-rail-cell.head { font-weight:600; }
+.l1-row.stage-row { background:#1e3a5f; padding:0; }
+.l1-stage-cell { grid-column:span 3; padding:0; position:relative; }
+.l1-stage-cell:not(:last-of-type)::after { content:""; position:absolute; right:0; top:7px; bottom:7px; width:1px; background:rgba(255,255,255,0.22); }
+.l1-stage-tag { background:#1e3a5f; color:white; padding:9px 14px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:14px; font-weight:600; clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
+.l1-stage-num { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,0.20); display:inline-flex; align-items:center; justify-content:center; font-size:11.5px; }
+.l1-row.substage-row { background:#fff; padding:5px 0; border-top:1px solid #dde5ef; }
+.l1-substage-bar { grid-column:span 3; background:#e3ecf6; color:#2c4a6e; padding:5px 20px 5px 12px; display:flex; align-items:center; justify-content:space-evenly; font-size:12px; line-height:1.3; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); }
+.l1-substage-bar .sep { color:#7299c9; font-weight:600; font-size:13px; line-height:1; }
+.l1-uml-wrap { padding:0 14px 14px; overflow:hidden; background:#fafbfd; }
+.l1-uml-svg { display:block; width:100%; max-width:100%; height:auto; background:#fff; border:1px solid #d4dee9; border-radius:0 0 4px 4px; }
+.l1-lane-bg { fill:#ffffff; }
+.l1-lane-bg.alt { fill:#f4f7fb; }
+.l1-lane-line { stroke:#dde5ef; stroke-width:1; }
+.l1-role-bg { fill:#1e3a5f; }
+.l1-role-text { fill:#fff; font-size:15px; font-weight:700; writing-mode:tb; glyph-orientation-vertical:0; letter-spacing:1px; }
+.l1-role-tag { fill:rgba(255,255,255,0.65); font-size:11px; writing-mode:tb; glyph-orientation-vertical:0; }
+.l1-node rect, .l1-node polygon, .l1-node path { vector-effect:non-scaling-stroke; }
+.l1-step rect { fill:#5b85b8; stroke:#436c98; stroke-width:1.15; rx:3; ry:3; }
+.l1-action rect { fill:#eef2f7; stroke:#9aabbf; stroke-width:1.2; rx:5; ry:5; }
+.l1-start rect, .l1-end rect { fill:#6fa893; stroke:#558a78; stroke-width:1.15; }
+.l1-decision polygon { fill:#e8a96b; stroke:#c98948; stroke-width:1.15; }
+.l1-doc path { fill:#dbe7f1; stroke:#7da4c8; stroke-width:1.2; }
+.l1-action .l1-node-label { color:#2c4a6e; }
+.l1-doc .l1-node-label { color:#2c4a6e; }
+.l1-node-label { height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; font-size:9.6px; line-height:1.22; font-weight:500; padding:0 7px; box-sizing:border-box; }
+.l1-node-label.small { font-size:9px; }
+.l1-connector { fill:none; stroke:#8a95a3; stroke-width:1.15; marker-end:url(#l1-arrow); vector-effect:non-scaling-stroke; }
+.l1-connector.soft { stroke:#a8b1bf; stroke-dasharray:4 4; }
+.l1-branch-label-bg { stroke:none; opacity:.96; }
+.l1-branch-label { fill:#5a6477; font-size:11px; font-weight:700; text-anchor:middle; dominant-baseline:central; }
+.l1-note { display:none; }
+/* monolithic .l2bd-* / .scn-* / .pp-list .pp-item / .task-row-l2 已删除:
+   对应的 render_layout_2b_grid_detail / render_layout_2c_detail monolithic renderer 已下线;
+   组件化路径用 .grid-module / .scenario-card / .painpoint-item / .generic-list 等。
+   2026-05-28 起 .l2c-frame 也已删除:assemble_layout_2c_detail 不再包外壳,
+   layout-2c-detail 直接作 grid 容器,根除 issue 6 的双层 padding 把内容压向下方 + 底部裁切。 */
+.l2c-headline {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4);
+  line-height: 1.45;
+  text-align: left;
+}
+.l2c-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+  min-height: 0;  /* 让 1fr 子项可在 grid 内正确收缩 */
+}
+/* 2C 专题页 mockup 列 — 左列必须可收缩,否则 PNG 固有宽撑破 mockup-2 栅格 */
+.layout-2c-detail .l2c-col-mockup,
+.layout-2c-detail .l2c-col-analysis {
+  min-width: 0;
+  max-width: 100%;
+}
+.layout-2c-detail .l2c-col-mockup {
+  overflow: hidden;
+}
+.layout-2c-detail .mockup-list {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.layout-2c-detail .mockup-1 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.layout-2c-detail .mockup-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.layout-2c-detail .mockup-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.layout-2c-detail .mockup-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
+}
+/* 占位帧(无截图) — 与真图帧同高 */
+.layout-2c-detail .mockup-frame {
+  width: 100%;
+  height: var(--mockup-frame-height);
+  background: #f0ece0;
+  border: 1px solid #e0d8c0;
+  border-radius: 8px;
+  aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b8a878;
+  font-size: 13px;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+/* 真图帧: 固定高度 + 宽度随比例缩放(contain), mockup-2/3 同行对齐 */
+.layout-2c-detail .mockup-frame.mockup-frame--has-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  line-height: 0;
+}
+.layout-2c-detail .mockup-frame.mockup-frame--has-img .mockup-img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center center;
+  margin: 0;
+  border-radius: 0;
+}
+.mockup-caption { width:100%; margin-top:12px; font-size:13.5px; color:#777; text-align:center; line-height:1.55; padding:0; display:flex; align-items:center; justify-content:center; }
+.l2c-analysis-section { margin-bottom:28px; }
+.l2c-analysis-title { font-size:16.5px; font-weight:600; color: var(--color-accent); margin-bottom:10px; }
+.l2c-analysis-title::before { content:"▸ "; }
+.l2c-analysis-body { font-size:15px; color:#3a3a3a; line-height:1.82; }
+.l2c-analysis-body .accent,
+.l2c-analysis-body strong { color: var(--color-accent); font-weight:600; }
+.l2c-corner {
+  position:absolute; bottom:32px; right:48px;
+  width:90px; height:90px; border-radius:50%;
+  overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  display:flex; align-items:center; justify-content:center;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-accent) 55%, white) 0%,
+    var(--color-accent) 100%);
+  color:white; font-size:32px; font-weight:600;
+}
+
+/* L2 hybrid: UML workflow row + focus/pain row */
+.tob-l2-uml-hybrid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg-page);
+  overflow: hidden;
+}
+
+.layout-2b-journey.is-l2 .tob-l2-uml-hybrid .tob-body {
+  min-height: 0;
+}
+
+.tob-l2-uml-cell {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: #fafbfd;
+}
+
+.tob-l2-uml-cell .l1-frame {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.tob-l2-uml-cell .l1-flow-title,
+.tob-l2-uml-cell .l1-flow-subtitle,
+.tob-l2-uml-cell .l1-stage-board,
+.tob-l2-uml-cell .l1-note {
+  display: none;
+}
+
+.tob-l2-uml-cell .l1-uml-wrap {
+  padding: 8px 12px 10px;
+  background: transparent;
+}
+
+.tob-l2-uml-cell .l1-uml-svg {
+  border-radius: 4px;
+  max-height: 158px;
+}
+
+.tob-l2-uml-cell .l1-role-text {
+  font-size: 14px;
+}
+
+.tob-l2-uml-cell .l1-role-tag {
+  font-size: 9px;
+}
+
+.tob-l2-uml-hybrid .tob-focus-cell {
+  min-height: 96px;
+}
+
+/* L2 journey refinements */
+.tob-l2-uml-hybrid .tob-banner {
+  background: #fff;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.tob-l2-uml-hybrid .tob-banner-title,
+.tob-l2-uml-hybrid .tob-banner-subtitle {
+  color: var(--color-text-primary);
+}
+
+.tob-l2-uml-hybrid .tob-banner-title::before {
+  color: var(--color-warning);
+}
+
+.tob-l2-uml-cell .l1-uml-wrap {
+  padding: 10px 12px 10px;
+}
+
+.tob-l2-uml-cell .l1-uml-svg {
+  max-height: 170px;
+}
+
+.tob-l2-uml-cell .l1-role-bg,
+.tob-l2-uml-cell .l1-role-text,
+.tob-l2-uml-cell .l1-role-tag {
+  display: none;
+}
+
+.tob-l2-uml-hybrid .tob-focus-cell {
+  gap: 8px;
+  padding: 14px 10px;
+}
+
+.tob-l2-uml-hybrid .tob-focus-card {
+  padding: 10px 12px;
+}
+
+.tob-l2-uml-hybrid .tob-focus-card-title {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.tob-l2-uml-hybrid .tob-focus-card-body {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tob-focus-card-mock.is-reserved {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 35%, var(--color-border-subtle));
+  background: color-mix(in srgb, var(--color-primary-light) 50%, #fff);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* L2 workflow should sit directly on the journey background, without a framed white board. */
+.tob-l2-uml-cell .l1-uml-svg {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.tob-l2-uml-cell .l1-lane-bg,
+.tob-l2-uml-cell .l1-lane-bg.alt {
+  fill: transparent;
+}
+
+.tob-l2-uml-cell .l1-lane-line {
+  stroke: #dfe7f1;
+}
+
+/* L2 substage row should match L1 chevron strip. */
+.tob-l2-uml-hybrid .tob-substage-cell {
+  padding: 0;
+  gap: 0;
+  background: transparent;
+  border-bottom: 1px solid #d4dee9;
+  overflow: hidden;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow {
+  flex: 1 1 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 18px;
+  background: #e5edf6;
+  color: #24466f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow::before {
+  content: none;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  border-top: 21px solid transparent;
+  border-bottom: 21px solid transparent;
+  border-left: 12px solid #e5edf6;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow:not(:first-child) {
+  margin-left: 2px;
+}
+
+/* Blend L2 UML workflow row into the journey canvas. */
+.tob-l2-uml-cell {
+  background: var(--color-bg-canvas-right);
+  border-bottom-color: var(--color-bg-canvas-right);
+}
+
+.tob-l2-uml-cell .l1-uml-wrap {
+  background: var(--color-bg-canvas-right);
+}
+
+.tob-l2-uml-cell .l1-uml-svg {
+  background: var(--color-bg-canvas-right);
+}
+
+.tob-l2-uml-cell .l1-lane-line {
+  stroke: var(--color-bg-canvas-right);
+}
+
+/* L2 substage row final: one chevron strip per stage, matching L1. */
+.tob-l2-uml-hybrid .tob-substage-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 42px;
+  padding: 0 24px;
+  background: #e5edf6;
+  border-right: 4px solid #fff;
+  border-bottom: 1px solid #d4dee9;
+  overflow: visible;
+}
+
+.tob-l2-uml-hybrid .tob-substage-cell:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -14px;
+  top: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  border-top: 21px solid transparent;
+  border-bottom: 21px solid transparent;
+  border-left: 14px solid #e5edf6;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow {
+  flex: 0 0 auto;
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  color: #24466f;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow:not(:last-child)::after {
+  content: "›";
+  position: static;
+  display: inline-block;
+  margin-left: 18px;
+  border: 0;
+  color: #7aa0c8;
+  font-weight: 700;
+}
+
+.tob-l2-uml-hybrid .tob-substage-arrow:not(:first-child) {
+  margin-left: 0;
+}
+
+
+/* L2 UML final board blend: remove remaining SVG white plate. */
+.tob-l2-uml-cell .l1-frame {
+  background: var(--color-bg-canvas-right);
+}
+
+.tob-l2-uml-cell .l1-uml-svg > rect:first-of-type {
+  fill: var(--color-bg-canvas-right);
+}
+
+
+/* L2 substage row uses the same grouped chevron structure as L1. */
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 0;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 28px 0 20px;
+  background: #e3ecf6;
+  color: #2c4a6e;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  border-right: 4px solid #fff;
+  border-bottom: 1px solid #d4dee9;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  overflow: visible;
+}
+
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar:not(:last-child)::after {
+  content: none;
+}
+
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar .sep {
+  color: #7299c9;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tob-l2-uml-hybrid .tob-l2-uml-cell {
+  border-bottom: 1px solid #d4dee9;
+}
+
+
+/* Keep reused L1 substage bars constrained to one L2 stage column. */
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar {
+  grid-column: auto / span 1;
+}
+
+
+/* L2 substage chevrons: keep arrow tips visible between stage cells. */
+.tob-l2-uml-hybrid .tob-main {
+  overflow: visible;
+}
+
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar {
+  border-right: 0;
+  margin-right: 4px;
+  z-index: 1;
+}
+
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar:last-of-type {
+  margin-right: 0;
+}
+
+
+/* L2 substage chevrons final: full-width cells with unclipped tips. */
+.tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar {
+  margin-right: 0;
+}
+
+/* Distribution multi: show each variable level name next to the corresponding horizontal level. */
+.snake-level-name {
+  font-size: 10px;
+  fill: var(--color-text-tertiary);
+  font-weight: 400;
+  pointer-events: none;
+}

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "titled_list",
+  "title": "标题正文列表",
+  "description": "用于自定义字段的标题加正文条目列表。",
+  "type": "object",
+  "required": [
+    "module_title",
+    "items"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "module_title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 12,
+      "description": "模块标题(LLM 自由命名,如'体验目标'/'决策痛点'/'高频任务'),必填,因为 titled_list 无 default 标题"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "description": "标题正文条目",
+      "items": {
+        "type": "object",
+        "description": "标题正文条目",
+        "required": [
+          "title",
+          "detail"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 6,
+            "description": "条目标题"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 50,
+            "description": "条目正文"
+          },
+          "insight": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 100,
+            "description": "可选第三层洞察,用于'典型行为模式'等场景(行为=title / 关注点=detail / 洞察=insight)。出现时渲染为正文下方的灰色 italic 段"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4,
+            "description": "可选证据原话,会渲染成 li 的 data-evidence,悬停弹 tooltip",
+            "items": {
+              "type": "object",
+              "description": "证据原话",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 100,
+                  "description": "访谈原话或证据摘录"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 20,
+                  "description": "证据来源或受访者脱敏名"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

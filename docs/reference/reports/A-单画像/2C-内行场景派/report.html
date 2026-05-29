@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="2c" data-density="low">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>内行场景派 — 2C 单画像样例</title>
+  <link rel="stylesheet" href="_design-tokens.css">
+  <link rel="stylesheet" href="_components.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-7);
+    }
+    .report-meta-bar {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-3);
+      color: var(--color-text-secondary);
+      font-size: var(--text-lg);
+    }
+    .report-meta-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-primary);
+    }
+    .report-meta-info { font-size: var(--text-lg); color: var(--color-text-secondary); }
+    .persona-nav, .demo-nav-area {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      padding: var(--space-2) var(--space-7);
+      font-size: var(--text-lg);
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .nav-btn:hover {
+      background: var(--color-primary-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .persona-nav .nav-pair, .demo-nav-area .nav-pair, .demo-nav-area .nav-trio {
+      display: inline-flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .nav-btn-persona { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+    .nav-btn-journey, .nav-btn-detail {
+      border-left: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding-left: var(--space-4);
+      padding-right: var(--space-5);
+    }
+    .nav-btn.active {
+      background: var(--color-accent);
+      color: var(--color-text-inverse);
+      border-color: var(--color-accent);
+    }
+    .persona-slide {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      aspect-ratio: var(--canvas-aspect);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      background: var(--color-bg-canvas-right);
+      overflow: hidden;
+      position: relative;
+    }
+    .persona-slide:not(.active) { display: none; }
+    [data-evidence]:not([data-evidence=""]) { cursor: help; }
+    #global-tooltip {
+      position: fixed;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      line-height: var(--leading-relaxed);
+      max-width: 380px;
+      z-index: 9999;
+      box-shadow: var(--shadow-tooltip);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+    #global-tooltip.visible { display: block; opacity: 1; }
+    #global-tooltip .tip-quote {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-text { color: var(--tooltip-text); font-style: italic; }
+    #global-tooltip .tip-source { color: var(--tooltip-source); font-size: var(--text-sm); margin-top: var(--space-1); }
+    #global-tooltip::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--tooltip-bg);
+    }
+  </style>
+</head>
+<body>
+  <div id="global-tooltip"></div>
+  <div class="report-meta-bar">
+    <div class="report-meta-title">内行场景派（2C · 单画像合并）</div>
+    <div class="report-meta-info">字段 hover 可看原话</div>
+  </div>
+  <div class="demo-nav-area"><div class="nav-trio"><button class="nav-btn nav-btn-persona active" data-target="persona-1">内行场景派</button><button class="nav-btn nav-btn-detail" data-target="persona-1-detail">› 专题</button><button class="nav-btn nav-btn-journey" data-target="persona-1-journey">› 旅程</button></div></div>
+  <section class="persona-slide active layout-2c-portrait" id="persona-1" style="--color-accent: var(--accent-mist-blue);"><div class="identity-card"><img class="persona-illust" src="assets/画像头像素材/内行场景派.png" alt="内行场景派"><div><h1 class="persona-name-anchor">内行场景派</h1><p class="persona-subtitle">多维听感鉴别，场景歌单深度用户</p></div><div class="meta-tags-list"><div class="meta-tag-card"><span class="meta-tag-label">职业 / 年龄</span><span class="meta-tag-value">50+ · 华为粉丝</span></div><div class="meta-tag-card"><span class="meta-tag-label">付费倾向</span><span class="meta-tag-value">连续包月</span></div><div class="meta-tag-card"><span class="meta-tag-label">主用设备</span><span class="meta-tag-value">SoundX 立体声</span></div><div class="meta-tag-card"><span class="meta-tag-label">活跃场景</span><span class="meta-tag-value">居家夜晚</span></div><div class="meta-tag-card"><span class="meta-tag-label">价值锚点</span><span class="meta-tag-value">通透层次 · 场景歌单</span></div></div></div><div class="persona-quote-pull" data-evidence="&quot;听 Hi-res 听多了，听 HQ 那个也是高品质的，也觉得不太好。&quot;&#10;— 黄先生&#10;&#10;&quot;说不上来，就不通透，曲调、音符不通透。&quot;&#10;— 黄先生">听 Hi-Res 多了，再听 HQ 就觉得不通透。<span class="quote-source">— 黄先生（50+ · 华为粉丝）</span></div><div class="section-blocks-grid count-5"><div class="section-block"><div class="section-block-title">核心动机</div><div class="section-block-summary">为多维度音质差异买单</div><div class="section-block-body" data-evidence="&quot;听 Hi-res 听多了，听 HQ 也觉得不太好，听多了就觉得不太好。&quot;&#10;— 黄先生&#10;&#10;&quot;主要是考虑到音质好吧。&quot;&#10;— 黄先生">能对比 HQ 与 Hi-Res 的<strong>通透与层次</strong>；在家用 SoundX 认真听古典与场景歌单，把 Hi-Res 当作比外端更细腻的听感升级。</div></div><div class="section-block"><div class="section-block-title">使用习惯</div><div class="section-block-summary">场景歌单为主入口</div><div class="section-block-body" data-evidence="&quot;场景会用的多一点。最多听的就是睡觉之前，能够伴你入眠的那个。&quot;&#10;— 黄先生&#10;&#10;&quot;我只听这个旋律好听，也很少用搜索。&quot;&#10;— 黄先生">几乎不用搜索，偏爱<strong>伴你入眠、世界音乐精选</strong>等场景模块；睡前定时一小时，按放松/助眠场景选曲而非按作曲家深挖。</div></div><div class="section-block"><div class="section-block-title">产品态度</div><div class="section-block-summary">认可格调，要中文叙事</div><div class="section-block-body" data-evidence="&quot;华为音乐怎么没有电脑端呢？&quot;&#10;— 黄先生&#10;&#10;&quot;你通篇写这个奖那个奖，对于我这种非专业的人其实没什么用。&quot;&#10;— 黄先生">肯定 Hi-Res <strong>高品质与不迎合口水歌</strong>；强烈需要 PC 端、可下载、曲目中文名与听曲故事，认为介绍太偏演奏家奖项。</div></div><div class="section-block"><div class="section-block-title">关键痛点</div><div class="section-block-summary">外端缺口与连接稳定</div><div class="section-block-body" data-evidence="&quot;Hi-res 你不能下载，交这么多钱 90 块钱不能下载。&quot;&#10;— 黄先生&#10;&#10;&quot;拿着手机到客厅，音响在书房，音乐就断断续续的。&quot;&#10;— 黄先生">上班只能用<strong>网易云 PC</strong>；Hi-Res 不能下载；SoundX 跨房间蓝牙偶发卡顿；民族音乐与世界音乐偏少。</div></div><div class="section-block full-width"><div class="section-block-title">改版触点</div><div class="section-block-summary">内容叙事与终端补齐</div><div class="section-block-body" data-evidence="&quot;英雄交响曲你最好能写中文的，光写原文我又看不懂。&quot;&#10;— 黄先生&#10;&#10;&quot;希望不要把外面的都搞成专区一样，也没有他的特点了。&quot;&#10;— 黄先生">易被<strong>可听见的音质差</strong>触动；续费靠习惯与设备投入。改版应补中文曲名/听曲指南、民族与世界音乐、PC 端与儿童音乐启蒙。</div></div></div></section>
+<section class="persona-slide layout-2c-detail" id="persona-1-detail" style="--color-accent: var(--accent-mist-blue);"><h1 class="l2c-headline">内行场景派真正缺的不是更多参数:<br>而是听得懂的故事与场景入口</h1><div class="persona-quote-pull" data-evidence="&quot;英雄交响曲你最好能写中文的，光写原文我又看不懂。&quot;&#10;— 黄先生&#10;&#10;&quot;我更想知道马友友在音乐道路上有什么感人的故事，或者它对音乐的理解。&quot;&#10;— 黄先生">你通篇写这个奖那个奖，对我这种非专业的人其实没什么用。<span class="quote-source">— 黄先生</span></div><div class="l2c-body"><div class="l2c-col-mockup"><div class="mockup-list mockup-2"><div class="mockup-item"><div class="mockup-frame mockup-frame--has-img"><img class="mockup-img" src="assets/界面截图/hires-歌单详情.png" alt=""></div><div class="mockup-caption">场景歌单：伴你入眠、世界音乐精选</div></div><div class="mockup-item"><div class="mockup-frame mockup-frame--has-img"><img class="mockup-img" src="assets/界面截图/hires-播放页.png" alt=""></div><div class="mockup-caption">专辑介绍栏：演奏家奖项 vs 曲目故事</div></div></div></div><div class="l2c-col-analysis"><div class="l2c-analysis-section"><div class="l2c-analysis-title">曲目叙事</div><div class="l2c-analysis-body" data-evidence="&quot;你光介绍演奏家，没有介绍这个曲应该怎么听。&quot;&#10;— 黄先生&#10;&#10;&quot;听了半天噢以前听过，哦这个是四季，但原文我又看不懂。&quot;&#10;— 黄先生">黄先生能听出 Hi-Res 的<strong>通透与层次</strong>，但打开专辑介绍时更关心「这首曲想表达什么」而非演奏家获了多少奖。他希望曲名有中文或括号注释，并补充听曲指南，让非专业听众也能跟着故事进入古典乐。</div></div><div class="l2c-analysis-section"><div class="l2c-analysis-title">场景入口</div><div class="l2c-analysis-body" data-evidence="&quot;场景会用的多一点。最多听的就是睡觉之前，能够伴你入眠的那个。&quot;&#10;— 黄先生&#10;&#10;&quot;我比较喜欢听经典之声，伴你入眠。&quot;&#10;— 黄先生">他几乎不用搜索，<strong>场景分类与歌单策展</strong>是主路径：伴你入眠、经典之声、世界音乐精选。睡前用 SoundX 定时一小时，说明改版应把「按情绪选曲」放在比「按作曲家」更靠前的位置。</div></div><div class="l2c-analysis-section"><div class="l2c-analysis-title">终端缺口</div><div class="l2c-analysis-body" data-evidence="&quot;华为音乐怎么没有电脑端呢？&quot;&#10;— 黄先生&#10;&#10;&quot;咱们国家的东西少，民族的东西再多一点，世界的东西再多一点。&quot;&#10;— 黄先生">居家听感满意，但<strong>没有 PC 端</strong>导致上班只能开网易云；Hi-Res 不能下载、跨房间蓝牙卡顿、民族与世界音乐偏少，也削弱了他把专区当「唯一高品质入口」的意愿。</div></div></div></div></section>
+<section class="persona-slide layout-2c-journey" id="persona-1-journey" style="--color-accent: var(--accent-mist-blue);"><div class="journey-header"><img class="persona-illust" src="assets/画像头像素材/内行场景派.png" alt="内行场景派"><div><div class="journey-title">内行场景派 Hi-Res · 旅程</div><div class="journey-subtitle">SoundX 居家沉浸，场景歌单驱动（黄先生）</div></div></div><div class="journey-grid" style="--journey-stages: 5;"><div class="journey-cell journey-dimension-label">阶段</div><div class="journey-cell journey-stage-header"><span class="journey-stage-number">1</span>发现</div><div class="journey-cell journey-stage-header"><span class="journey-stage-number">2</span>试听</div><div class="journey-cell journey-stage-header"><span class="journey-stage-number">3</span>开通</div><div class="journey-cell journey-stage-header"><span class="journey-stage-number">4</span>日常听</div><div class="journey-cell journey-stage-header"><span class="journey-stage-number">5</span>续费</div><div class="journey-cell journey-dimension-label">思考</div><div class="journey-cell" data-evidence="&quot;听了听我的感觉是 Hi-res 比网易云的黑胶好。&quot;&#10;— 黄先生&#10;&#10;&quot;能听得出来，比较清晰，清晰度比较高。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">音质更好</span><div class="journey-cell-summary">觉得比黑胶/无损更通透</div></div><div class="journey-cell" data-evidence="&quot;试听了一下我觉得还可以，我就买了一年。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">先听再信</span><div class="journey-cell-summary">丁先生试听满意才买</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">试听模块</span></div></div><div class="journey-cell" data-evidence="&quot;看到这个模块我一点开，一看这个介绍以后就买了。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">认可即买</span><div class="journey-cell-summary">黄先生看介绍直接开通</div></div><div class="journey-cell" data-evidence="&quot;场景会用的多一点。最多听的就是伴你入眠。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">场景歌单</span><div class="journey-cell-summary">按伴你入眠等场景选曲</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">场景歌单</span><span class="touchpoint-tag">SoundX</span></div></div><div class="journey-cell" data-evidence="&quot;一直以来都是购买的连续包月会员。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">习惯续费</span><div class="journey-cell-summary">连续包月更划算</div></div><div class="journey-cell journey-dimension-label">行为</div><div class="journey-cell" data-evidence="&quot;偶尔翻翻翻就出来了，看到 Hi-res 我就买了。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">翻找专区</span><div class="journey-cell-summary">黄先生偶尔翻页看到</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">华为音乐首页</span></div></div><div class="journey-cell" data-evidence="&quot;那天我是看到你那里面有一个页面，我就进去试听了一下。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">点试听</span><div class="journey-cell-summary">丁先生会试听后决定</div></div><div class="journey-cell" data-evidence="&quot;买了一年，反正比较喜欢就听听。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">年付包月</span><div class="journey-cell-summary">丁先生年付，黄先生包月</div></div><div class="journey-cell" data-evidence="&quot;在家没事都会尽量听这种，华为音响放这种感觉好一点。&quot;&#10;— 黄先生&#10;&#10;&quot;开车的时候听听什么都蛮好的。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">音响车内</span><div class="journey-cell-summary">家用 SoundX 或开车听</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">SoundX</span><span class="touchpoint-tag">车载音响</span></div></div><div class="journey-cell" data-evidence="&quot;这个东西好的话，自然有人会去买嘛，买了听嘛。&quot;&#10;— 丁先生"><span class="journey-cell-keyword">持续开通</span><div class="journey-cell-summary">满意后长期保留会员</div></div><div class="journey-cell journey-dimension-label">痛点</div><div class="journey-cell" data-evidence="&quot;我看到是试听我就没有点开过它。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">试听隐蔽</span><div class="journey-cell-summary">黄先生未用底部试听</div></div><div class="journey-cell" data-evidence="&quot;华为音乐怎么没有电脑端呢？&quot;&#10;— 黄先生"><span class="journey-cell-keyword">缺 PC 端</span><div class="journey-cell-summary">上班只能网易云电脑端</div></div><div class="journey-cell" data-evidence="&quot;Hi-res 你不能下载，交这么多钱不能下载。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">不能下载</span><div class="journey-cell-summary">想离线收藏暂无入口</div></div><div class="journey-cell" data-evidence="&quot;你通篇写这个奖那个奖，对于我这种非专业的人其实没什么用。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">介绍偏奖项</span><div class="journey-cell-summary">想听曲子故事而非奖项</div></div><div class="journey-cell" data-evidence="&quot;拿着手机到客厅，音响在书房，音乐就断断续续的。&quot;&#10;— 黄先生"><span class="journey-cell-keyword">蓝牙卡顿</span><div class="journey-cell-summary">跨房间蓝牙偶发断续</div></div><div class="journey-cell journey-dimension-label">触点</div><div class="journey-cell"><span class="journey-cell-keyword">首页弹窗</span><div class="journey-cell-summary">点开 App 见 Hi-Res 介绍</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">华为音乐首页</span></div></div><div class="journey-cell"><span class="journey-cell-keyword">专区试听</span><div class="journey-cell-summary">底部免费试听（丁常用）</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">免费试听区</span></div></div><div class="journey-cell"><span class="journey-cell-keyword">会员页</span><div class="journey-cell-summary">连续包月/年付入口</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">Hi-Res 会员页</span></div></div><div class="journey-cell"><span class="journey-cell-keyword">分类专题</span><div class="journey-cell-summary">古典分类与维也纳专题</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">分类</span><span class="touchpoint-tag">专题</span></div></div><div class="journey-cell"><span class="journey-cell-keyword">自动续费</span><div class="journey-cell-summary">包月续费管理</div><div class="journey-cell-touchpoint"><span class="touchpoint-tag">订阅管理</span></div></div><div class="journey-cell journey-dimension-label">情绪</div><div class="journey-emotion-row"><svg class="journey-emotion-svg" viewBox="0 0 500 80" preserveAspectRatio="none"><path class="emotion-area" d="M 50.0 40.0 Q 100.0 40.0 150.0 40.0 T 250.0 20.0 T 350.0 20.0 T 450.0 40.0 L 450.0 80 L 50.0 80 Z"/><path d="M 50.0 40.0 Q 100.0 40.0 150.0 40.0 T 250.0 20.0 T 350.0 20.0 T 450.0 40.0"/></svg><div class="journey-emotion-points-overlay"><div class="journey-emotion-point" style="left:10.0%;top:50.0%"><span class="emotion-dot"></span><div class="emotion-label above"><span class="emoji" aria-label="thinking">🤔</span><span class="label-text">发现</span></div></div><div class="journey-emotion-point" style="left:30.0%;top:50.0%"><span class="emotion-dot"></span><div class="emotion-label above"><span class="emoji" aria-label="headphone">🎧</span><span class="label-text">试听</span></div></div><div class="journey-emotion-point" style="left:50.0%;top:25.0%"><span class="emotion-dot"></span><div class="emotion-label above"><span class="emoji" aria-label="smile">🙂</span><span class="label-text">开通</span></div></div><div class="journey-emotion-point" style="left:70.0%;top:25.0%"><span class="emotion-dot"></span><div class="emotion-label above"><span class="emoji" aria-label="relaxed">☺️</span><span class="label-text">日常听</span></div></div><div class="journey-emotion-point" style="left:90.0%;top:50.0%"><span class="emotion-dot"></span><div class="emotion-label above"><span class="emoji" aria-label="content">😌</span><span class="label-text">续费</span></div></div></div></div></div></section>
+
+  <script>
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+      function showTooltip(el) {
+        const raw = el.getAttribute('data-evidence');
+        if (!raw) return;
+        const quotes = raw.split(/\n\n/).map(block => {
+          const lines = block.split('\n');
+          const text = lines.slice(0, -1).join('\n').replace(/^"|"$/g, '');
+          const source = (lines[lines.length - 1] || '').replace(/^—\s*/, '');
+          return '<div class="tip-quote"><div class="tip-text">"' + text + '"</div><div class="tip-source">— ' + source + '</div></div>';
+        }).join('');
+        tooltip.innerHTML = quotes;
+        const rect = el.getBoundingClientRect();
+        tooltip.style.left = Math.min(rect.left, window.innerWidth - 400) + 'px';
+        tooltip.style.top = Math.max(rect.top - tooltip.offsetHeight - 12, 8) + 'px';
+        tooltip.classList.add('visible');
+      }
+      function hideTooltip() { tooltip.classList.remove('visible'); }
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        clearTimeout(hideTimer);
+        showTooltip(target);
+      });
+      document.body.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+      document.body.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.nav-btn[data-target]');
+        if (!trigger) return;
+        const targetId = trigger.getAttribute('data-target');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        trigger.classList.add('active');
+        document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
+        const slide = document.getElementById(targetId);
+        if (slide) slide.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>

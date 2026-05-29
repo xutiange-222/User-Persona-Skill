@@ -1,0 +1,309 @@
+/* ============================================================
+   user-persona-v8 Design Tokens (v1)
+   ------------------------------------------------------------
+   两套主题:
+     [data-theme="2b"] / [data-theme="2d"]  → 深蓝高密度(企业/开发者)
+     [data-theme="2c"]                       → 暖米黄低密度(消费者,清爽插画风)
+
+   三档密度(可与主题正交组合,直接覆盖具体 token,组件 CSS 不用关心密度):
+     [data-density="high"]  → 2B/2D 默认,信息密度最高
+     [data-density="mid"]   → 中间态(基准)
+     [data-density="low"]   → 2C 默认,留白最大
+
+   主题用法(在 <html> 或 .persona-slide 上):
+     <html data-theme="2b" data-density="high">
+     <html data-theme="2c" data-density="low" style="--color-accent: #9B7BC4">
+   ============================================================ */
+
+
+/* ============================================================
+   1. 基准 tokens(mid 密度,主题与密度无关的部分)
+   ============================================================ */
+:root {
+  /* ---- 字号(mid 基准) ---- */
+  --text-xs:   10px;  /* mention-badge / flow-cell-label */
+  --text-sm:   11px;  /* ring-label / system-scenario / pp-detail */
+  --text-base: 12px;  /* meta-row / painpoint-item / system-name */
+  --text-md:   13px;  /* identity-desc */
+  --text-lg:   14px;  /* one-sentence-need / module-title */
+  --text-xl:   16px;  /* ring-pct */
+  --text-2xl:  18px;  /* report-meta-title */
+  --text-3xl:  22px;  /* identity-name */
+  --text-4xl:  36px;  /* 2C 超大锚点名字 */
+  --text-5xl:  56px;  /* 2C 大插画头像 placeholder 字 */
+
+  /* ---- 字重 ---- */
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+
+  /* ---- 行高 ---- */
+  --leading-tight:   1.25;  /* 列表项 */
+  --leading-normal:  1.45;  /* 常规正文 */
+  --leading-relaxed: 1.65;  /* 留白舒展段落 */
+
+  /* ---- 间距(mid 基准) ---- */
+  --space-1:  4px;
+  --space-2:  6px;
+  --space-3:  8px;
+  --space-4:  10px;
+  --space-5:  12px;
+  --space-6:  14px;
+  --space-7:  16px;
+  --space-8:  20px;
+  --space-9:  24px;
+  --space-10: 28px;
+
+  /* ---- 圆角 ---- */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;  /* 画布外圆角 */
+  --radius-pill: 16px;  /* 胶囊型 module-title / tab */
+  --radius-full: 50%;   /* 头像 */
+
+  /* ---- 画布与网格 ---- */
+  --canvas-max-w:  1280px;
+  --canvas-aspect: 16 / 9;
+  --panel-ratio:   30% 70%;  /* 左身份卡 / 右模块网格 */
+  --grid-cols:     12;
+  --grid-rows:     3;
+  --grid-gap-x:    16px;
+
+  /* ---- 字体栈 ---- */
+  --font-family-sans:  -apple-system, BlinkMacSystemFont, "PingFang SC",
+                       "Microsoft YaHei", sans-serif;
+  --font-family-serif: Georgia, "Songti SC", "STZhongsong", serif;
+
+  /* ---- Tooltip(两主题共用,深色) ---- */
+  --tooltip-bg:     #1f2937;
+  --tooltip-text:   #ffffff;
+  --tooltip-source: #94a3b8;
+
+  /* ---- 浮层投影(与主题/密度无关,深色浮层用,需要强对比) ---- */
+  --shadow-tooltip: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+
+/* ============================================================
+   2. 密度档位(直接覆盖具体 token;组件 CSS 用 var() 即自动跟随)
+   ============================================================ */
+
+/* ---- 高密度(2B/2D 默认):字号-1档,间距 × 0.85 ---- */
+[data-density="high"] {
+  /* 字号微缩 */
+  --text-base: 11px;
+  --text-md:   12px;
+  --text-lg:   13px;
+  --text-xl:   15px;
+  --text-2xl:  17px;
+  --text-3xl:  21px;
+  --text-4xl:  32px;
+  --text-5xl:  50px;
+
+  /* 间距 × 0.85 */
+  --space-1:  3px;
+  --space-2:  5px;
+  --space-3:  7px;
+  --space-4:  9px;
+  --space-5:  10px;
+  --space-6:  12px;
+  --space-7:  14px;
+  --space-8:  17px;
+  --space-9:  20px;
+  --space-10: 24px;
+}
+
+/* ---- 中密度:mid 基准,值不变 ---- */
+[data-density="mid"] {
+  /* 沿用 :root 默认值,无需覆盖 */
+}
+
+/* ---- 低密度(2C 默认):字号+1档,间距 × 1.3 ---- */
+[data-density="low"] {
+  /* 字号微放 */
+  --text-base: 13px;
+  --text-md:   14px;
+  --text-lg:   15px;
+  --text-xl:   17px;
+  --text-2xl:  20px;
+  --text-3xl:  24px;
+  --text-4xl:  40px;
+  --text-5xl:  60px;
+
+  /* 间距 × 1.3 */
+  --space-1:  5px;
+  --space-2:  8px;
+  --space-3:  10px;
+  --space-4:  13px;
+  --space-5:  16px;
+  --space-6:  18px;
+  --space-7:  21px;
+  --space-8:  26px;
+  --space-9:  31px;
+  --space-10: 36px;
+}
+
+
+/* ============================================================
+   3. 主题:2B / 2D —— 深蓝高密度
+   ============================================================ */
+[data-theme="2b"],
+[data-theme="2d"] {
+  /* 品牌色四级 */
+  --color-primary:       #1e40af;
+  --color-primary-dark:  #1e3a8a;
+  --color-primary-light: #dbeafe;
+  --color-primary-soft:  #eff6ff;
+
+  /* 强调色(2B/2D 等同 primary,不暴露 LLM 覆盖) */
+  --color-accent:      var(--color-primary);
+  --color-accent-soft: var(--color-primary-soft);
+
+  /* 警告色(故障场景) */
+  --color-warning:      #f59e0b;
+  --color-warning-soft: #fef7f0;
+
+  /* 文字色 */
+  --color-text-primary:   #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary:  #9ca3af;
+  --color-text-inverse:   #ffffff;
+
+  /* 背景层 */
+  --color-bg-page:         #f5f4f0;
+  --color-bg-canvas-left:  #f5f4f0;  /* 身份卡 */
+  --color-bg-canvas-right: #ffffff;  /* 模块网格 */
+  --color-bg-card:         #ffffff;
+  --color-bg-card-soft:    #fafafa;  /* system-card / task-freq-item */
+
+  /* 边框 */
+  --color-border-subtle: #e5e7eb;
+
+  /* 阴影(蓝色系,与品牌色和谐) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(30, 64, 175, 0.08);
+  --shadow-lg: 0 8px 28px rgba(30, 64, 175, 0.14);
+
+  /* 字体:中性专业 */
+  --font-family-base: var(--font-family-sans);
+
+  /* 头像占位渐变(柔和蓝,沿用 v2 原值) */
+  --gradient-avatar-from: #93c5fd;  /* blue-300 */
+  --gradient-avatar-to:   #60a5fa;  /* blue-400 */
+}
+
+
+/* ============================================================
+   4. 主题:2C —— 暖米黄低密度,清爽插画风
+   ------------------------------------------------------------
+   强调色选择规则(写给 LLM 看):
+
+     Step 1. 判断画像是否"AI 相关"
+       触发条件:画像核心场景涉及 AI 工具/AI 决策/AI 辅助/大模型/智能助手等
+       是 → 强制使用 --accent-purple(雾紫 #9B7BC4)
+       否 → 进 Step 2
+
+     Step 2. 单画像:对画像中文名字做哈希,从 5 个非紫色候选中取一个
+       规则:画像名所有中文字 unicode 求和 % 5,索引下表:
+         0 → --accent-mist-blue   (雾蓝)
+         1 → --accent-moss-green  (苔绿)
+         2 → --accent-warm-orange (暖橙)
+         3 → --accent-clay-red    (陶红)
+         4 → --accent-mustard     (芥末)
+       哈希让同一画像名永远是同一色,可复现
+
+     Step 3. 多画像并存(tab/矩阵/多维分布):按顺序循环,避免相邻同色
+       第 1 个画像:用 Step 2 哈希结果作为起点
+       第 2-N 个画像:在 5 色环上顺时针取下一色,跳过紫色(留给 AI 类)
+       色环顺序:雾蓝 → 苔绿 → 暖橙 → 陶红 → 芥末 →(回到雾蓝)
+       如果某画像是 AI 类,强制紫,不参与循环计数
+
+   禁忌:高饱和、明亮刺眼。色相必须莫兰迪、低饱和、温和。
+   ============================================================ */
+[data-theme="2c"] {
+  /* 6 色候选板(LLM 按上面规则选用) */
+  --accent-purple:      #9B7BC4;  /* AI 相关画像 - 强制 */
+  --accent-mist-blue:   #7BA8C9;  /* 哈希索引 0 / 循环起点 */
+  --accent-moss-green:  #6B8E5A;  /* 哈希索引 1 */
+  --accent-warm-orange: #D97757;  /* 哈希索引 2 */
+  --accent-clay-red:    #B8665C;  /* 哈希索引 3 */
+  --accent-mustard:     #C9A55A;  /* 哈希索引 4 */
+
+  /* 默认值:留空让 LLM 必须在渲染时显式设置;
+     LLM 渲染时通过 <html style="--color-accent: var(--accent-XXX)"> 注入 */
+  --color-accent:      var(--accent-purple);  /* fallback,不应被使用 */
+  --color-accent-soft: rgba(155, 123, 196, 0.12);
+
+  /* 品牌色(2C 不强调品牌,弱化为标题/文字色) */
+  --color-primary:       #3A2E2A;  /* 深棕橄榄,作为标题主色 */
+  --color-primary-dark:  #2A1F1C;
+  --color-primary-light: #E8DDD0;  /* hover 浅底 */
+  --color-primary-soft:  #F0E8DA;  /* 轻强调底 */
+
+  /* 警告色(2C 也可能有故障/痛点场景) */
+  --color-warning:      #C97A4F;  /* 暖橙偏赤,匹配低饱和基调 */
+  --color-warning-soft: #F5E5D8;
+
+  /* 文字色(全部偏暖) */
+  --color-text-primary:   #3A2E2A;  /* 深棕橄榄 */
+  --color-text-secondary: #7A6B62;  /* 中棕灰 */
+  --color-text-tertiary:  #B0A498;  /* 浅棕灰 */
+  --color-text-inverse:   #ffffff;
+
+  /* 背景层(白底为主,米黄只作辅助色块底)
+     参考图 image002/005:主背景是极浅米/白,米黄只用在身份卡/装饰区 */
+  --color-bg-page:         #FCFAF5;  /* 主背景:近白(极浅米),不再铺满米黄 */
+  --color-bg-canvas-left:  #FCFAF5;  /* 与主背景一致 */
+  --color-bg-canvas-right: #FCFAF5;  /* 与主背景一致 */
+  --color-bg-card:         #FFFFFF;  /* 纯白卡片 */
+  --color-bg-card-soft:    #F4EDDF;  /* 米黄软底,用作"温暖色块" */
+
+  /* 边框(低对比,不抢戏) */
+  --color-border-subtle: #E5DDCF;
+
+  /* 阴影(暖色调,柔和) */
+  --shadow-sm: 0 1px 2px rgba(58, 46, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(58, 46, 42, 0.08);
+  --shadow-lg: 0 8px 28px rgba(58, 46, 42, 0.12);
+
+  /* 字体:标题可选衬线(参考里"私房菜""唱片店"有手写/书法感) */
+  --font-family-base:    var(--font-family-sans);
+  --font-family-display: var(--font-family-serif);  /* 超大锚点名字用 */
+
+  /* 头像占位渐变(暖色柔和:米黄软底 → 主题强调色) */
+  --gradient-avatar-from: #F0E8DA;
+  --gradient-avatar-to:   var(--color-accent);
+
+  /* 画像专属色块(illust-panel 背景)
+     用 color-mix 实现:accent 色 15% 叠在主背景上,
+     accent 变化时色块自动跟随(雾蓝→米黄+蓝,暖橙→米黄+橙) */
+  --color-bg-illust: color-mix(in srgb, var(--color-accent) 15%, var(--color-bg-page));
+  /* section 标题胶囊 hover/active 强调色块 */
+  --color-bg-accent-block: color-mix(in srgb, var(--color-accent) 90%, var(--color-text-inverse));
+  /* 代表原话区底色(比 illust-panel 更柔和) */
+  --color-bg-quote-pull: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg-canvas-right));
+}
+
+
+/* ============================================================
+   5. 全局 body(浏览器自动绑定主题色)
+   ============================================================ */
+body {
+  font-family: var(--font-family-base);
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  line-height: var(--leading-normal);
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ============================================================
+   6. 黑色系预留(未来扩展)
+   ------------------------------------------------------------
+   后续追加:
+     [data-theme="2b"][data-mode="dark"]
+     [data-theme="2c"][data-mode="dark"]
+   原则:不直接 invert,需要重新调色板保留品牌识别度。
+   ============================================================ */

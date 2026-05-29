@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "generic_text",
+  "title": "兜底纯文本块",
+  "description": "用于无法归入其他结构的一段短文本。",
+  "type": "object",
+  "required": [
+    "module_title",
+    "text"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "module_title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 12,
+      "description": "模块标题(LLM 自由命名,如'补充说明'/'其它观察');兜底组件无 default 标题,必填"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 200,
+      "description": "纯文本内容"
+    }
+  }
+}

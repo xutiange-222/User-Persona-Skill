@@ -1,0 +1,57 @@
+{
+  "version": "v8",
+  "metadata": {
+    "report_title": "电力调度员画像",
+    "source_count": 2
+  },
+  "personas": [
+    {
+      "name": "电力调度员",
+      "description": "负责实时监盘、异常判断和跨部门协同的一线角色。",
+      "user_count": 2,
+      "basic_profile": {
+        "role": "调度员",
+        "work_years": "5年以上"
+      },
+      "responsibilities": [
+        {
+          "task": "实时监盘",
+          "percentage": 60,
+          "mention_count": 2,
+          "mentioned_by": ["邓老师", "孔老师"],
+          "evidence_quotes": [
+            {"source": "邓老师", "quote": "我们每天都要盯着实时负荷。"},
+            {"source": "孔老师", "quote": "监盘是我最主要的工作。"}
+          ]
+        },
+        {
+          "task": "异常处置",
+          "percentage": 40,
+          "mention_count": 2,
+          "mentioned_by": ["邓老师", "孔老师"],
+          "evidence_quotes": [
+            {"source": "邓老师", "quote": "告警来了要先判断影响范围。"},
+            {"source": "孔老师", "quote": "异常时要马上联系现场。"}
+          ]
+        }
+      ],
+      "pain_points": [
+        {
+          "title": "多屏负担",
+          "detail": "同时查看多个系统，容易漏掉告警。",
+          "mention_count": 2,
+          "mentioned_by": ["邓老师", "孔老师"],
+          "evidence_quotes": [
+            {"source": "邓老师", "quote": "屏幕太多的时候确实会看不过来。"},
+            {"source": "孔老师", "quote": "多个系统来回切换很累。"}
+          ]
+        }
+      ],
+      "one_sentence_need": "[来源:邓老师]: \"希望系统能提前告诉我哪里可能出问题。\"",
+      "representative_quotes": [
+        "[来源:邓老师]: \"希望系统能提前告诉我哪里可能出问题。\"",
+        "[来源:孔老师]: \"多个系统来回切换很累。\""
+      ]
+    }
+  ]
+}

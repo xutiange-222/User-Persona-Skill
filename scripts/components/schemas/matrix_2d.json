@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "matrix_2d",
+  "title": "二维画像矩阵",
+  "description": "R4 2D 矩阵容器,含轴标签、象限和受访者点。",
+  "type": "object",
+  "required": [
+    "axis_labels",
+    "quadrants",
+    "respondents"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "axis_labels": {
+      "type": "object",
+      "description": "四端轴标签",
+      "required": [
+        "top",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "top": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8,
+          "description": "上方轴标签"
+        },
+        "bottom": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8,
+          "description": "下方轴标签"
+        },
+        "left": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8,
+          "description": "左侧轴标签"
+        },
+        "right": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8,
+          "description": "右侧轴标签"
+        }
+      }
+    },
+    "quadrants": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "四个象限定义",
+      "items": {
+        "type": "object",
+        "description": "象限定义",
+        "required": [
+          "id",
+          "label",
+          "position"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "关联画像 id 或空象限 id",
+            "pattern": "^persona-(q[1-4]|\\d+)$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5,
+            "description": "象限画像标签"
+          },
+          "position": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "象限位置",
+            "enum": [
+              "q1",
+              "q2",
+              "q3",
+              "q4"
+            ]
+          },
+          "is_empty": {
+            "type": "boolean",
+            "description": "是否为空象限"
+          }
+        }
+      }
+    },
+    "respondents": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 200,
+      "description": "受访者点列表",
+      "items": {
+        "type": "object",
+        "description": "受访者点",
+        "required": [
+          "x",
+          "y",
+          "display_name",
+          "quadrant_persona",
+          "evidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "横轴百分比坐标"
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "纵轴百分比坐标"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "受访者脱敏显示名,禁止受访者1这类默认名",
+            "pattern": "^(?!受访者\\d+).*$"
+          },
+          "quadrant_persona": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "所属画像名"
+          },
+          "label_direction": {
+            "type": "string",
+            "description": "可选标签方向;不填时 renderer 按 (x,y) 所在象限自动选指向矩阵中心的安全方向,避免遮挡角落象限按钮(2026-05-28 修订)。",
+            "enum": [
+              "label-right",
+              "label-left",
+              "label-top",
+              "label-bottom",
+              "label-top-right",
+              "label-bottom-right",
+              "label-bottom-left",
+              "label-top-left"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "严格 2 条原声,各自最能体现该用户在 X 轴 / Y 轴 上的特征(可 1 条 X 轴 + 1 条 Y 轴,或 2 条都能兼顾双轴)。hover 显示。",
+            "items": {
+              "type": "object",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 4,
+                  "maxLength": 80,
+                  "description": "受访者原声短句"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 12,
+                  "description": "受访者脱敏名"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

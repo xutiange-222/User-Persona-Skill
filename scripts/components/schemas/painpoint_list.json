@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "painpoint_list",
+  "title": "核心痛点列表",
+  "description": "展示核心痛点、细节、提及标记和可选证据。",
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "description": "痛点条目",
+      "items": {
+        "type": "object",
+        "description": "痛点条目",
+        "required": [
+          "title",
+          "detail"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 12,
+            "description": "痛点标题"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 25,
+            "maxLength": 140,
+            "pattern": "^(?!(本阶段|无额外|按团队|暂无|无明显|无特殊)).+",
+            "description": "痛点细节,必须 ≥ 25 字且含具体场景/动作/程度词。禁止以「本阶段/无额外/按团队/暂无/无明显/无特殊」开头的填充语 — 若某阶段确实无痛点,应跳过该卡片(整张 painpoint_list 不输出),不要写填充句。"
+          },
+          "mention_badge": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "提及人数或强度标记"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4,
+            "description": "可选证据原话",
+            "items": {
+              "type": "object",
+              "description": "证据原话",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 100,
+                  "description": "访谈原话或证据摘录"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 20,
+                  "description": "证据来源或受访者脱敏名"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

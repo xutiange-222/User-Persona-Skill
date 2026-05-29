@@ -1,0 +1,2055 @@
+{
+  "2b": {
+    "title": "user-persona-v8 组件画廊 - toB 主题",
+    "theme": "2b",
+    "density": "high",
+    "items": [
+      {
+        "type": "identity_panel",
+        "label": "identity_panel case 1",
+        "wrap_class": "",
+        "props": {
+          "persona_avatar": {},
+          "identity_name": {
+            "name": "研究负责人",
+            "alias": "Lead"
+          },
+          "identity_desc": "负责复杂项目中的用户研究与跨团队协同。",
+          "identity_meta_rows": [
+            {
+              "key": "角色",
+              "value": "研究员"
+            },
+            {
+              "key": "年限",
+              "value": "三年"
+            }
+          ],
+          "one_sentence_need": {
+            "text": "希望更快把洞察转成产品决策。",
+            "source": "项目访谈"
+          }
+        }
+      },
+      {
+        "type": "identity_panel",
+        "label": "identity_panel case 2",
+        "wrap_class": "",
+        "props": {
+          "persona_avatar": {
+            "alt": "头像"
+          },
+          "identity_name": {
+            "name": "<script>"
+          },
+          "identity_desc": "需要在多方约束里保持判断清晰。",
+          "identity_meta_rows": [
+            {
+              "key": "角色",
+              "value": "<script>"
+            },
+            {
+              "key": "年限",
+              "value": "五年"
+            }
+          ],
+          "one_sentence_need": {
+            "text": "希望减少重复整理材料的时间。",
+            "source": "访谈记录"
+          }
+        }
+      },
+      {
+        "type": "resp_rings",
+        "label": "resp_rings case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "rings": [
+            {
+              "label": "调度",
+              "percentage": 40
+            },
+            {
+              "label": "协调",
+              "percentage": 35
+            },
+            {
+              "label": "上报",
+              "percentage": 25
+            }
+          ]
+        }
+      },
+      {
+        "type": "resp_rings",
+        "label": "resp_rings case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "rings": [
+            {
+              "label": "<script>",
+              "percentage": 50
+            },
+            {
+              "label": "执行",
+              "percentage": 50
+            }
+          ]
+        }
+      },
+      {
+        "type": "collab_flow",
+        "label": "collab_flow case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "demand_source": "业务需求",
+          "deliverables": "研究分析",
+          "downstream_flow": "产品决策",
+          "kpi": {
+            "title": "效率",
+            "value": "提升50%"
+          }
+        }
+      },
+      {
+        "type": "collab_flow",
+        "label": "collab_flow case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "demand_source": "<script>",
+          "deliverables": "研究分析",
+          "downstream_flow": "产品决策",
+          "kpi": {
+            "title": "效率",
+            "value": "提升50%"
+          }
+        }
+      },
+      {
+        "type": "scenario_grid",
+        "label": "scenario_grid case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "scenes": [
+            {
+              "tools": [
+                "Excel",
+                "看板"
+              ],
+              "title": "调度排班"
+            },
+            {
+              "tools": [
+                "会议"
+              ],
+              "title": "风险同步"
+            }
+          ]
+        }
+      },
+      {
+        "type": "scenario_grid",
+        "label": "scenario_grid case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "scenes": [
+            {
+              "tools": [
+                "Excel"
+              ],
+              "title": "<script>"
+            }
+          ]
+        }
+      },
+      {
+        "type": "ai_scenario_grid",
+        "label": "ai_scenario_grid case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "scenes": [
+            {
+              "tools": [
+                "Agent"
+              ],
+              "title": "AI 摘要"
+            },
+            {
+              "tools": [
+                "LLM"
+              ],
+              "title": "洞察聚类"
+            }
+          ]
+        }
+      },
+      {
+        "type": "ai_scenario_grid",
+        "label": "ai_scenario_grid case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "scenes": [
+            {
+              "tools": [
+                "Agent"
+              ],
+              "title": "<script>"
+            }
+          ]
+        }
+      },
+      {
+        "type": "painpoint_list",
+        "label": "painpoint_list case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "items": [
+            {
+              "title": "链路长",
+              "detail": "信息在多个工具之间流转，追踪成本很高。",
+              "mention_badge": "3/5",
+              "evidence_quotes": [
+                {
+                  "quote": "经常找不到最新版本",
+                  "source": "用户A"
+                }
+              ]
+            },
+            {
+              "title": "反馈慢",
+              "detail": "结果需要多轮等待，影响当天推进节奏。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "painpoint_list",
+        "label": "painpoint_list case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "items": [
+            {
+              "title": "<script>",
+              "detail": "信息在多个工具之间流转，追踪成本很高。"
+            },
+            {
+              "title": "反馈慢",
+              "detail": "结果需要多轮等待，影响当天推进节奏。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "titled_list",
+        "label": "titled_list case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "体验目标",
+          "items": [
+            {
+              "title": "目标",
+              "detail": "把关键风险尽早暴露给产品团队。",
+              "insight": "早期暴露风险比后期补救成本低 10 倍以上,这是该角色的核心驱动力。"
+            },
+            {
+              "title": "习惯",
+              "detail": "先搭结构再补充访谈中的细节。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "titled_list",
+        "label": "titled_list case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "体验目标",
+          "items": [
+            {
+              "title": "<script>",
+              "detail": "把关键风险尽早暴露给产品团队。",
+              "insight": "<script>alert(1)</script>"
+            },
+            {
+              "title": "习惯",
+              "detail": "先搭结构再补充访谈中的细节。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "generic_text",
+        "label": "generic_text case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "补充说明",
+          "text": "这是一段用于兜底展示的文本内容。"
+        }
+      },
+      {
+        "type": "generic_text",
+        "label": "generic_text case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "补充说明",
+          "text": "<script>alert(1)</script>"
+        }
+      },
+      {
+        "type": "generic_bullet",
+        "label": "generic_bullet case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "其它观察",
+          "items": [
+            "先确认目标再行动",
+            "需要保留证据链"
+          ]
+        }
+      },
+      {
+        "type": "generic_bullet",
+        "label": "generic_bullet case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "其它观察",
+          "items": [
+            "<script>alert(1)</script>",
+            "需要保留证据链"
+          ]
+        }
+      },
+      {
+        "type": "generic_kv",
+        "label": "generic_kv case 1",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "常用设备",
+          "headers": [
+            "维度",
+            "数值"
+          ],
+          "rows": [
+            {
+              "key": "设备",
+              "value": "手机"
+            },
+            {
+              "key": "场景",
+              "value": "通勤"
+            }
+          ]
+        }
+      },
+      {
+        "type": "generic_kv",
+        "label": "generic_kv case 2",
+        "wrap_class": "grid-module",
+        "props": {
+          "module_title": "常用设备",
+          "headers": [
+            "<script>",
+            "值"
+          ],
+          "rows": [
+            {
+              "key": "<script>",
+              "value": "手机"
+            },
+            {
+              "key": "场景",
+              "value": "通勤"
+            }
+          ]
+        }
+      },
+      {
+        "type": "tob_journey_l1",
+        "props": {
+          "banner_title": "2B L1 多角色端到端协同流程",
+          "banner_subtitle": "同一角色的任务按主线箭头阅读。跨角色交接用正交连线表达，判断节点保留是/否分支。",
+          "stages": [
+            {
+              "id": "prepare",
+              "name": "准备",
+              "subStages": [
+                "接需求",
+                "范围对齐",
+                "立项"
+              ]
+            },
+            {
+              "id": "execute",
+              "name": "执行",
+              "subStages": [
+                "招募",
+                "访谈",
+                "同步进度"
+              ]
+            },
+            {
+              "id": "review",
+              "name": "复盘",
+              "subStages": [
+                "归纳",
+                "沉淀",
+                "复用"
+              ]
+            }
+          ],
+          "lanes": [
+            {
+              "id": "l1",
+              "name": "研究员",
+              "tag": "用户洞察"
+            },
+            {
+              "id": "l2",
+              "name": "产品经理",
+              "tag": "方向决策"
+            },
+            {
+              "id": "l3",
+              "name": "设计师",
+              "tag": "体验落地"
+            },
+            {
+              "id": "l4",
+              "name": "团队资产",
+              "tag": "沉淀复用"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "n1",
+              "lane": "l1",
+              "stage": "prepare",
+              "type": "start",
+              "label": "接需求与业务方对齐",
+              "slot": 0
+            },
+            {
+              "id": "n2",
+              "lane": "l2",
+              "stage": "prepare",
+              "type": "decision",
+              "label": "范围明确?",
+              "slot": 0
+            },
+            {
+              "id": "n3",
+              "lane": "l2",
+              "stage": "prepare",
+              "type": "action",
+              "label": "接洞察并确认产品边界",
+              "slot": 1
+            },
+            {
+              "id": "n4",
+              "lane": "l1",
+              "stage": "execute",
+              "type": "step",
+              "label": "招募并推进访谈",
+              "slot": 0
+            },
+            {
+              "id": "n5",
+              "lane": "l1",
+              "stage": "review",
+              "type": "step",
+              "label": "归纳画像与关键主题",
+              "slot": 0
+            },
+            {
+              "id": "n6",
+              "lane": "l2",
+              "stage": "review",
+              "type": "action",
+              "label": "制定迭代计划",
+              "slot": 0
+            },
+            {
+              "id": "n7",
+              "lane": "l3",
+              "stage": "review",
+              "type": "action",
+              "label": "对齐开发与评审细节",
+              "slot": 1
+            },
+            {
+              "id": "n8",
+              "lane": "l3",
+              "stage": "review",
+              "type": "decision",
+              "label": "方案可落地?",
+              "slot": 0
+            },
+            {
+              "id": "n9",
+              "lane": "l3",
+              "stage": "prepare",
+              "type": "step",
+              "label": "梳理流程",
+              "slot": 0
+            },
+            {
+              "id": "n10",
+              "lane": "l3",
+              "stage": "execute",
+              "type": "action",
+              "label": "原型走查",
+              "slot": 0
+            },
+            {
+              "id": "n11",
+              "lane": "l4",
+              "stage": "prepare",
+              "type": "doc",
+              "label": "体验地图",
+              "slot": 0
+            },
+            {
+              "id": "n12",
+              "lane": "l4",
+              "stage": "execute",
+              "type": "step",
+              "label": "技术分析",
+              "slot": 0
+            },
+            {
+              "id": "n13",
+              "lane": "l4",
+              "stage": "review",
+              "type": "action",
+              "label": "复盘上线数据",
+              "slot": 0
+            },
+            {
+              "id": "n14",
+              "lane": "l4",
+              "stage": "review",
+              "type": "end",
+              "label": "完成复用",
+              "slot": 1
+            },
+            {
+              "id": "n15",
+              "lane": "l2",
+              "stage": "execute",
+              "type": "action",
+              "slot": 0,
+              "label": "补充任务 15"
+            },
+            {
+              "id": "n16",
+              "lane": "l1",
+              "stage": "prepare",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 16"
+            },
+            {
+              "id": "n17",
+              "lane": "l1",
+              "stage": "execute",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 17"
+            },
+            {
+              "id": "n18",
+              "lane": "l1",
+              "stage": "review",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 18"
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2"
+            },
+            {
+              "from": "n2",
+              "to": "n3"
+            },
+            {
+              "from": "n2",
+              "to": "n9",
+              "style": "dashed"
+            },
+            {
+              "from": "n3",
+              "to": "n4"
+            },
+            {
+              "from": "n4",
+              "to": "n5"
+            },
+            {
+              "from": "n5",
+              "to": "n6"
+            },
+            {
+              "from": "n6",
+              "to": "n5"
+            },
+            {
+              "from": "n6",
+              "to": "n7"
+            },
+            {
+              "from": "n7",
+              "to": "n13"
+            },
+            {
+              "from": "n13",
+              "to": "n14"
+            },
+            {
+              "from": "n13",
+              "to": "n12"
+            },
+            {
+              "from": "n12",
+              "to": "n11"
+            },
+            {
+              "from": "n11",
+              "to": "n9"
+            },
+            {
+              "from": "n9",
+              "to": "n10"
+            },
+            {
+              "from": "n10",
+              "to": "n8"
+            },
+            {
+              "from": "n8",
+              "to": "n6",
+              "style": "dashed"
+            },
+            {
+              "from": "n8",
+              "to": "n7"
+            }
+          ],
+          "note": "这一版按跨职能流程图处理:角色是横向泳道，任务节点按流程连线流转。矩形表示行动，菱形表示判断，波浪底表示文档产物，圆角胶囊表示开始或完成。主线表达顺序，少量分支表达是否继续补充、评审或复盘。"
+        }
+      },
+      {
+        "type": "tob_journey_l1",
+        "props": {
+          "banner_title": "产品迭代全流程 — 跨职能密集协同",
+          "banner_subtitle": "同色主步骤,判断节点,起止节点,压力测试25+节点/18+连线",
+          "stages": [
+            {
+              "id": "discover",
+              "name": "发现",
+              "subStages": [
+                "立项",
+                "访谈",
+                "归纳"
+              ]
+            },
+            {
+              "id": "plan",
+              "name": "规划",
+              "subStages": [
+                "评估",
+                "拆分",
+                "排期"
+              ]
+            },
+            {
+              "id": "build",
+              "name": "开发",
+              "subStages": [
+                "编码",
+                "联调",
+                "自测"
+              ]
+            },
+            {
+              "id": "launch",
+              "name": "上线",
+              "subStages": [
+                "发布",
+                "监控",
+                "复盘"
+              ]
+            }
+          ],
+          "lanes": [
+            {
+              "id": "l1",
+              "name": "研究员",
+              "tag": "用户洞察"
+            },
+            {
+              "id": "l2",
+              "name": "产品经理",
+              "tag": "方向决策"
+            },
+            {
+              "id": "l3",
+              "name": "设计师",
+              "tag": "体验落地"
+            },
+            {
+              "id": "l4",
+              "name": "前端",
+              "tag": "技术实现"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "n1",
+              "lane": "l1",
+              "stage": "discover",
+              "type": "start",
+              "label": "接需求",
+              "slot": 0
+            },
+            {
+              "id": "n2",
+              "lane": "l1",
+              "stage": "discover",
+              "type": "step",
+              "label": "招募访谈",
+              "slot": 1
+            },
+            {
+              "id": "n3",
+              "lane": "l1",
+              "stage": "plan",
+              "type": "decision",
+              "label": "假设验证?",
+              "slot": 0
+            },
+            {
+              "id": "n4",
+              "lane": "l1",
+              "stage": "build",
+              "type": "step",
+              "label": "跟踪走查",
+              "slot": 0
+            },
+            {
+              "id": "n5",
+              "lane": "l1",
+              "stage": "launch",
+              "type": "end",
+              "label": "上线 NPS",
+              "slot": 0
+            },
+            {
+              "id": "n6",
+              "lane": "l2",
+              "stage": "discover",
+              "type": "action",
+              "label": "业务对齐",
+              "slot": 0
+            },
+            {
+              "id": "n7",
+              "lane": "l2",
+              "stage": "plan",
+              "type": "decision",
+              "label": "方向可行?",
+              "slot": 0
+            },
+            {
+              "id": "n8",
+              "lane": "l2",
+              "stage": "build",
+              "type": "step",
+              "label": "制定迭代计划",
+              "slot": 0
+            },
+            {
+              "id": "n9",
+              "lane": "l2",
+              "stage": "build",
+              "type": "step",
+              "label": "推进开发",
+              "slot": 1
+            },
+            {
+              "id": "n10",
+              "lane": "l2",
+              "stage": "launch",
+              "type": "doc",
+              "label": "复盘报告",
+              "slot": 0
+            },
+            {
+              "id": "n11",
+              "lane": "l3",
+              "stage": "plan",
+              "type": "step",
+              "label": "梳理流程",
+              "slot": 0
+            },
+            {
+              "id": "n12",
+              "lane": "l3",
+              "stage": "plan",
+              "type": "action",
+              "label": "出原型",
+              "slot": 1
+            },
+            {
+              "id": "n13",
+              "lane": "l3",
+              "stage": "build",
+              "type": "step",
+              "label": "高保真",
+              "slot": 0
+            },
+            {
+              "id": "n14",
+              "lane": "l3",
+              "stage": "build",
+              "type": "action",
+              "label": "评审切图",
+              "slot": 1
+            },
+            {
+              "id": "n15",
+              "lane": "l3",
+              "stage": "launch",
+              "type": "doc",
+              "label": "体验复盘",
+              "slot": 0
+            },
+            {
+              "id": "n16",
+              "lane": "l4",
+              "stage": "plan",
+              "type": "action",
+              "label": "评估技术",
+              "slot": 0
+            },
+            {
+              "id": "n17",
+              "lane": "l4",
+              "stage": "plan",
+              "type": "step",
+              "label": "搭骨架",
+              "slot": 1
+            },
+            {
+              "id": "n18",
+              "lane": "l4",
+              "stage": "build",
+              "type": "decision",
+              "label": "联调通过?",
+              "slot": 0
+            },
+            {
+              "id": "n19",
+              "lane": "l4",
+              "stage": "build",
+              "type": "step",
+              "label": "修 Bug",
+              "slot": 1
+            },
+            {
+              "id": "n20",
+              "lane": "l4",
+              "stage": "launch",
+              "type": "end",
+              "label": "发布",
+              "slot": 0
+            },
+            {
+              "id": "n21",
+              "lane": "l3",
+              "stage": "discover",
+              "type": "action",
+              "slot": 0,
+              "label": "补充任务 21"
+            },
+            {
+              "id": "n22",
+              "lane": "l4",
+              "stage": "discover",
+              "type": "action",
+              "slot": 0,
+              "label": "补充任务 22"
+            },
+            {
+              "id": "n23",
+              "lane": "l1",
+              "stage": "plan",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 23"
+            },
+            {
+              "id": "n24",
+              "lane": "l1",
+              "stage": "build",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 24"
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2"
+            },
+            {
+              "from": "n2",
+              "to": "n3"
+            },
+            {
+              "from": "n3",
+              "to": "n4"
+            },
+            {
+              "from": "n4",
+              "to": "n5"
+            },
+            {
+              "from": "n3",
+              "to": "n7",
+              "style": "dashed"
+            },
+            {
+              "from": "n1",
+              "to": "n6"
+            },
+            {
+              "from": "n6",
+              "to": "n7"
+            },
+            {
+              "from": "n7",
+              "to": "n8"
+            },
+            {
+              "from": "n8",
+              "to": "n9"
+            },
+            {
+              "from": "n9",
+              "to": "n10"
+            },
+            {
+              "from": "n8",
+              "to": "n12"
+            },
+            {
+              "from": "n11",
+              "to": "n12"
+            },
+            {
+              "from": "n12",
+              "to": "n13"
+            },
+            {
+              "from": "n13",
+              "to": "n14"
+            },
+            {
+              "from": "n14",
+              "to": "n15"
+            },
+            {
+              "from": "n13",
+              "to": "n18"
+            },
+            {
+              "from": "n16",
+              "to": "n17"
+            },
+            {
+              "from": "n17",
+              "to": "n18"
+            },
+            {
+              "from": "n18",
+              "to": "n19"
+            },
+            {
+              "from": "n19",
+              "to": "n20",
+              "style": "dashed"
+            }
+          ]
+        }
+      },
+      {
+        "type": "tob_journey_l2",
+        "props": {
+          "banner_title": "研究员单角色旅程",
+          "banner_subtitle": "从需求输入到洞察复用的单角色主流程",
+          "stages": [
+            {
+              "id": "discover",
+              "name": "发现",
+              "subStages": [
+                "立项",
+                "访谈",
+                "归纳"
+              ]
+            },
+            {
+              "id": "plan",
+              "name": "规划",
+              "subStages": [
+                "评估",
+                "拆分",
+                "排期"
+              ]
+            },
+            {
+              "id": "build",
+              "name": "开发",
+              "subStages": [
+                "编码",
+                "联调",
+                "自测"
+              ]
+            },
+            {
+              "id": "launch",
+              "name": "上线",
+              "subStages": [
+                "发布",
+                "监控",
+                "复盘"
+              ]
+            }
+          ],
+          "lanes": [
+            {
+              "id": "researcher",
+              "name": "研究员",
+              "tag": "洞察"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "n1",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "start",
+              "slot": 0,
+              "label": "接收需求"
+            },
+            {
+              "id": "n2",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "decision",
+              "slot": 0,
+              "label": "范围清晰?"
+            },
+            {
+              "id": "n3",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "step",
+              "slot": 0,
+              "label": "访谈归纳"
+            },
+            {
+              "id": "n4",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "doc",
+              "slot": 0,
+              "label": "洞察报告"
+            },
+            {
+              "id": "n5",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "end",
+              "slot": 1,
+              "label": "复用模板"
+            },
+            {
+              "id": "n6",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 6"
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "branch": "yes"
+            },
+            {
+              "from": "n3",
+              "to": "n4"
+            },
+            {
+              "from": "n4",
+              "to": "n5"
+            }
+          ]
+        }
+      },
+      {
+        "type": "tob_journey_l2",
+        "props": {
+          "banner_title": "研究员单角色旅程",
+          "banner_subtitle": "从需求输入到洞察复用的单角色主流程",
+          "stages": [
+            {
+              "id": "discover",
+              "name": "发现",
+              "subStages": [
+                "立项",
+                "访谈",
+                "归纳"
+              ]
+            },
+            {
+              "id": "plan",
+              "name": "规划",
+              "subStages": [
+                "评估",
+                "拆分",
+                "排期"
+              ]
+            },
+            {
+              "id": "build",
+              "name": "开发",
+              "subStages": [
+                "编码",
+                "联调",
+                "自测"
+              ]
+            },
+            {
+              "id": "launch",
+              "name": "上线",
+              "subStages": [
+                "发布",
+                "监控",
+                "复盘"
+              ]
+            }
+          ],
+          "lanes": [
+            {
+              "id": "researcher",
+              "name": "研究员",
+              "tag": "洞察"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "n1",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "start",
+              "slot": 0,
+              "label": "接收需求"
+            },
+            {
+              "id": "n2",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "decision",
+              "slot": 0,
+              "label": "范围清晰?"
+            },
+            {
+              "id": "n3",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "step",
+              "slot": 0,
+              "label": "访谈归纳"
+            },
+            {
+              "id": "n4",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "doc",
+              "slot": 0,
+              "label": "洞察报告"
+            },
+            {
+              "id": "n5",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "end",
+              "slot": 1,
+              "label": "复用模板"
+            },
+            {
+              "id": "n6",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "action",
+              "slot": 1,
+              "label": "补充任务 6"
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "branch": "yes"
+            },
+            {
+              "from": "n3",
+              "to": "n4"
+            },
+            {
+              "from": "n4",
+              "to": "n5"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "2c": {
+    "title": "user-persona-v8 组件画廊 - toC 主题",
+    "theme": "2c",
+    "density": "high",
+    "items": [
+      {
+        "type": "identity_card",
+        "label": "identity_card case 1",
+        "wrap_class": "",
+        "props": {
+          "name": "深听场景派",
+          "subtitle": "重视使用场景和稳定体验的人群",
+          "meta_tags": [
+            {
+              "label": "职业",
+              "value": "医生"
+            },
+            {
+              "label": "指纹",
+              "value": "内容 场景 高端"
+            }
+          ]
+        }
+      },
+      {
+        "type": "identity_card",
+        "label": "identity_card case 2",
+        "wrap_class": "",
+        "props": {
+          "name": "<script>",
+          "subtitle": "重视使用场景和稳定体验的人群",
+          "meta_tags": [
+            {
+              "label": "职业",
+              "value": "医生"
+            },
+            {
+              "label": "指纹",
+              "value": "内容 场景 高端"
+            }
+          ]
+        }
+      },
+      {
+        "type": "persona_quote_pull",
+        "label": "persona_quote_pull case 1",
+        "wrap_class": "",
+        "props": {
+          "quote": "我更关心它能不能融入日常。",
+          "source": "黄医生"
+        }
+      },
+      {
+        "type": "persona_quote_pull",
+        "label": "persona_quote_pull case 2",
+        "wrap_class": "",
+        "props": {
+          "quote": "<script>",
+          "source": "黄医生"
+        }
+      },
+      {
+        "type": "section_blocks_grid",
+        "label": "section_blocks_grid case 1",
+        "wrap_class": "",
+        "props": {
+          "blocks": [
+            {
+              "title": "使用动机",
+              "summary": "为了稳定完成关键任务",
+              "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+              "evidence_quotes": [
+                {
+                  "quote": "我会先确认流程再动手",
+                  "source": "黄医生"
+                },
+                {
+                  "quote": "这样比较放心",
+                  "source": "丁先生"
+                }
+              ]
+            },
+            {
+              "title": "使用动机",
+              "summary": "为了稳定完成关键任务",
+              "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+              "evidence_quotes": [
+                {
+                  "quote": "我会先确认流程再动手",
+                  "source": "黄医生"
+                },
+                {
+                  "quote": "这样比较放心",
+                  "source": "丁先生"
+                }
+              ]
+            }
+          ],
+          "full_width_index": 1
+        }
+      },
+      {
+        "type": "section_blocks_grid",
+        "label": "section_blocks_grid case 2",
+        "wrap_class": "",
+        "props": {
+          "blocks": [
+            {
+              "title": "<script>",
+              "summary": "为了稳定完成关键任务",
+              "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+              "evidence_quotes": [
+                {
+                  "quote": "<script>",
+                  "source": "黄医生"
+                },
+                {
+                  "quote": "这样比较放心",
+                  "source": "丁先生"
+                }
+              ]
+            },
+            {
+              "title": "使用动机",
+              "summary": "为了稳定完成关键任务",
+              "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+              "evidence_quotes": [
+                {
+                  "quote": "我会先确认流程再动手",
+                  "source": "黄医生"
+                },
+                {
+                  "quote": "这样比较放心",
+                  "source": "丁先生"
+                }
+              ]
+            }
+          ],
+          "full_width_index": 0
+        }
+      },
+      {
+        "type": "section_block",
+        "label": "section_block case 1",
+        "wrap_class": "",
+        "props": {
+          "title": "使用动机",
+          "summary": "为了稳定完成关键任务",
+          "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+          "evidence_quotes": [
+            {
+              "quote": "我会先确认流程再动手",
+              "source": "黄医生"
+            },
+            {
+              "quote": "这样比较放心",
+              "source": "丁先生"
+            }
+          ]
+        }
+      },
+      {
+        "type": "section_block",
+        "label": "section_block case 2",
+        "wrap_class": "",
+        "props": {
+          "title": "<script>",
+          "summary": "为了稳定完成关键任务",
+          "body": "在关键场景里反复出现这个行为，说明它已经成为用户判断体验好坏的重要依据。",
+          "evidence_quotes": [
+            {
+              "quote": "<script>",
+              "source": "黄医生"
+            },
+            {
+              "quote": "这样比较放心",
+              "source": "丁先生"
+            }
+          ]
+        }
+      },
+      {
+        "type": "detail_headline",
+        "label": "detail_headline case 1",
+        "wrap_class": "",
+        "props": {
+          "headline": "为什么这个场景值得深入分析"
+        }
+      },
+      {
+        "type": "detail_headline",
+        "label": "detail_headline case 2",
+        "wrap_class": "",
+        "props": {
+          "headline": "<script>"
+        }
+      },
+      {
+        "type": "mockup_list",
+        "label": "mockup_list case 1",
+        "wrap_class": "",
+        "props": {
+          "mockups": [
+            {
+              "caption": "首页状态"
+            },
+            {
+              "caption": "详情状态"
+            }
+          ]
+        }
+      },
+      {
+        "type": "mockup_list",
+        "label": "mockup_list case 2",
+        "wrap_class": "",
+        "props": {
+          "mockups": [
+            {
+              "caption": "<script>"
+            }
+          ]
+        }
+      },
+      {
+        "type": "detail_analysis",
+        "label": "detail_analysis case 1",
+        "wrap_class": "",
+        "props": {
+          "sections": [
+            {
+              "title": "现象",
+              "body": "用户先看整体状态，再决定是否继续投入。"
+            },
+            {
+              "title": "机会",
+              "body": "把关键反馈提前呈现可以减少等待。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "detail_analysis",
+        "label": "detail_analysis case 2",
+        "wrap_class": "",
+        "props": {
+          "sections": [
+            {
+              "title": "<script>",
+              "body": "用户先看整体状态，再决定是否继续投入。"
+            }
+          ]
+        }
+      },
+      {
+        "type": "detail_illust_corner",
+        "label": "detail_illust_corner case 1",
+        "wrap_class": "",
+        "props": {}
+      },
+      {
+        "type": "detail_illust_corner",
+        "label": "detail_illust_corner case 2",
+        "wrap_class": "",
+        "props": {
+          "corner_image_hint": "<script>"
+        }
+      },
+      {
+        "type": "journey_2c",
+        "label": "journey_2c case 1",
+        "wrap_class": "",
+        "props": {
+          "title": "用户体验旅程",
+          "subtitle": "从发现到复盘的完整链路",
+          "stages": [
+            "发现",
+            "判断",
+            "使用",
+            "复盘"
+          ],
+          "dimensions": [
+            "思考",
+            "行为",
+            "痛点"
+          ],
+          "cells": [
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ],
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ],
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ]
+          ],
+          "emotion": [
+            {
+              "stage_label": "好奇",
+              "level": "high",
+              "emoji": "thinking"
+            },
+            {
+              "stage_label": "困惑",
+              "level": "low",
+              "emoji": "confused"
+            },
+            {
+              "stage_label": "稳定",
+              "level": "middle",
+              "emoji": "neutral"
+            },
+            {
+              "stage_label": "满意",
+              "level": "high",
+              "emoji": "content"
+            }
+          ]
+        }
+      },
+      {
+        "type": "journey_2c",
+        "label": "journey_2c case 2",
+        "wrap_class": "",
+        "props": {
+          "title": "<script>",
+          "subtitle": "从发现到复盘的完整链路",
+          "stages": [
+            "发现",
+            "判断",
+            "使用",
+            "复盘"
+          ],
+          "dimensions": [
+            "思考",
+            "行为",
+            "痛点"
+          ],
+          "cells": [
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ],
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ],
+            [
+              {
+                "keyword": "确认",
+                "summary": "先确认目标和资源",
+                "frequency": "3/5"
+              },
+              {
+                "keyword": "执行",
+                "summary": "持续比较不同方案",
+                "frequency": "4/5"
+              },
+              {
+                "keyword": "调整",
+                "summary": "遇到阻塞会寻求帮助",
+                "frequency": "5/5"
+              },
+              {
+                "keyword": "沉淀",
+                "summary": "把经验写成方法",
+                "frequency": "2/5"
+              }
+            ]
+          ],
+          "emotion": [
+            {
+              "stage_label": "好奇",
+              "level": "high",
+              "emoji": "thinking"
+            },
+            {
+              "stage_label": "困惑",
+              "level": "low",
+              "emoji": "confused"
+            },
+            {
+              "stage_label": "稳定",
+              "level": "middle",
+              "emoji": "neutral"
+            },
+            {
+              "stage_label": "满意",
+              "level": "high",
+              "emoji": "content"
+            }
+          ]
+        }
+      },
+      {
+        "type": "matrix_guidance_strip",
+        "label": "matrix_guidance_strip case 1",
+        "wrap_class": "",
+        "props": {
+          "items": [
+            {
+              "question": "如何区分画像",
+              "points": [
+                "看目标",
+                "看行为"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "matrix_guidance_strip",
+        "label": "matrix_guidance_strip case 2",
+        "wrap_class": "",
+        "props": {
+          "items": [
+            {
+              "question": "<script>",
+              "points": [
+                "看目标"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "matrix_2d",
+        "label": "matrix_2d case 1",
+        "wrap_class": "",
+        "props": {
+          "axis_labels": {
+            "top": "场景触发",
+            "bottom": "目标驱动",
+            "left": "价值模糊",
+            "right": "价值清晰"
+          },
+          "quadrants": [
+            {
+              "id": "persona-1",
+              "label": "深听",
+              "position": "q1"
+            },
+            {
+              "id": "persona-2",
+              "label": "探索",
+              "position": "q2"
+            },
+            {
+              "id": "persona-q3",
+              "label": "空",
+              "position": "q3",
+              "is_empty": true
+            },
+            {
+              "id": "persona-4",
+              "label": "效率",
+              "position": "q4"
+            }
+          ],
+          "respondents": [
+            {
+              "x": 82,
+              "y": 25,
+              "display_name": "黄医生",
+              "quadrant_persona": "深听",
+              "evidence": "每天都会听"
+            },
+            {
+              "x": 76,
+              "y": 32,
+              "display_name": "丁先生",
+              "quadrant_persona": "深听",
+              "evidence": "很在意清晰度"
+            }
+          ]
+        }
+      },
+      {
+        "type": "matrix_2d",
+        "label": "matrix_2d case 2",
+        "wrap_class": "",
+        "props": {
+          "axis_labels": {
+            "top": "<script>",
+            "bottom": "目标驱动",
+            "left": "价值模糊",
+            "right": "价值清晰"
+          },
+          "quadrants": [
+            {
+              "id": "persona-1",
+              "label": "深听",
+              "position": "q1"
+            },
+            {
+              "id": "persona-2",
+              "label": "探索",
+              "position": "q2"
+            },
+            {
+              "id": "persona-q3",
+              "label": "空",
+              "position": "q3",
+              "is_empty": true
+            },
+            {
+              "id": "persona-4",
+              "label": "效率",
+              "position": "q4"
+            }
+          ],
+          "respondents": []
+        }
+      },
+      {
+        "type": "distribution_multi",
+        "label": "distribution_multi case 1",
+        "wrap_class": "",
+        "props": {
+          "title": "多维分布图",
+          "subtitle": "不同画像在区分点上的位置",
+          "footer_hint": "点位可查看证据",
+          "value_variables": [
+            {
+              "name": "清晰度",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "很清晰"
+                },
+                {
+                  "level": "middle",
+                  "name": "较清晰"
+                },
+                {
+                  "level": "low",
+                  "name": "不清晰"
+                }
+              ]
+            },
+            {
+              "name": "主动性",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "主动"
+                },
+                {
+                  "level": "middle",
+                  "name": "跟随"
+                },
+                {
+                  "level": "low",
+                  "name": "被动"
+                }
+              ]
+            },
+            {
+              "name": "工具感",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "强依赖"
+                },
+                {
+                  "level": "middle",
+                  "name": "会使用"
+                },
+                {
+                  "level": "low",
+                  "name": "少使用"
+                }
+              ]
+            }
+          ],
+          "personas": [
+            {
+              "id": "persona-1",
+              "name": "深听",
+              "color": "#7BA8C9",
+              "positions": [
+                {
+                  "variable_idx": 0,
+                  "level": "high"
+                },
+                {
+                  "variable_idx": 1,
+                  "level": "middle"
+                },
+                {
+                  "variable_idx": 2,
+                  "level": "high"
+                }
+              ],
+              "respondents": [
+                "黄医生"
+              ]
+            },
+            {
+              "id": "persona-2",
+              "name": "探索",
+              "color": "#D8795F",
+              "positions": [
+                {
+                  "variable_idx": 0,
+                  "level": "middle"
+                },
+                {
+                  "variable_idx": 1,
+                  "level": "high"
+                },
+                {
+                  "variable_idx": 2,
+                  "level": "middle"
+                }
+              ],
+              "respondents": [
+                "丁先生"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "distribution_multi",
+        "label": "distribution_multi case 2",
+        "wrap_class": "",
+        "props": {
+          "title": "<script>",
+          "subtitle": "不同画像在区分点上的位置",
+          "value_variables": [
+            {
+              "name": "清晰度",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "很清晰"
+                },
+                {
+                  "level": "middle",
+                  "name": "较清晰"
+                },
+                {
+                  "level": "low",
+                  "name": "不清晰"
+                }
+              ]
+            },
+            {
+              "name": "主动性",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "主动"
+                },
+                {
+                  "level": "middle",
+                  "name": "跟随"
+                },
+                {
+                  "level": "low",
+                  "name": "被动"
+                }
+              ]
+            },
+            {
+              "name": "工具感",
+              "levels": [
+                {
+                  "level": "high",
+                  "name": "强依赖"
+                },
+                {
+                  "level": "middle",
+                  "name": "会使用"
+                },
+                {
+                  "level": "low",
+                  "name": "少使用"
+                }
+              ]
+            }
+          ],
+          "personas": [
+            {
+              "id": "persona-1",
+              "name": "深听",
+              "color": "#7BA8C9",
+              "positions": [
+                {
+                  "variable_idx": 0,
+                  "level": "high"
+                },
+                {
+                  "variable_idx": 1,
+                  "level": "middle"
+                },
+                {
+                  "variable_idx": 2,
+                  "level": "high"
+                }
+              ],
+              "respondents": []
+            },
+            {
+              "id": "persona-2",
+              "name": "探索",
+              "color": "#D8795F",
+              "positions": [
+                {
+                  "variable_idx": 0,
+                  "level": "middle"
+                },
+                {
+                  "variable_idx": 1,
+                  "level": "high"
+                },
+                {
+                  "variable_idx": 2,
+                  "level": "middle"
+                }
+              ],
+              "respondents": []
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

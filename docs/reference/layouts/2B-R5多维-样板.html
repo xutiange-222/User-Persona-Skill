@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<!--
+  user-persona-v8 共享骨架(v1)
+  ------------------------------------------------------------
+  职责:HTML 文档框架 + meta-bar + persona-nav + tooltip + JS。
+  不负责:任何画像主体内容(单页/双页/tab/矩阵/旅程图)。
+        各种呈现方式通过 [slot] slot 注入。
+
+  Slot 占位符(render_html.py 用 string replace 填充):
+    [slot]            — "2b" / "2c" / "2d"
+    [slot]          — "high" / "mid" / "low"
+    [slot]    — 2C 时填 "--color-accent: var(--accent-XXX)";其他主题填空字符串
+    [slot]            — <title> 标签内容
+    [slot]     — 顶部主标题
+    [slot] — 顶部右侧元信息("X 个画像 · 来源 Y 份访谈 · 日期")
+    [slot]      — 多画像 tab,单画像时填空字符串
+    [slot]     — 主体内容,具体子模板渲染产物
+
+  发布期:render_html.py 把 _design-tokens.css 和 _components.css 内联到 <style> 块,
+        产出单文件 HTML,可邮件分发/归档。
+-->
+<html lang="zh-CN" data-theme="2b" data-density="high" style="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>toB R5 多维分布样板</title>
+
+  <!-- 开发期外链;发布期会被 render_html.py 内联进 <style> 块 -->
+  <link rel="stylesheet" href="_design-tokens.css">
+  <link rel="stylesheet" href="_components.css">
+
+  <style>
+    /* ============ _base 自己的样式(全局布局 + 共享外壳) ============ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-7);
+    }
+
+    /* ---- 顶部元信息条 ---- */
+    .report-meta-bar {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-3);
+      color: var(--color-text-secondary);
+      font-size: var(--text-lg);
+    }
+
+    .report-meta-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .report-meta-info {
+      font-size: var(--text-lg);
+      color: var(--color-text-secondary);
+    }
+
+    /* ---- 多画像导航 tab(单画像时容器不渲染) ---- */
+    .persona-nav {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: var(--space-2) var(--space-7);
+      font-size: var(--text-lg);
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-primary-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+
+    .persona-nav .nav-pair {
+      display: inline-flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .persona-nav .nav-pair .nav-btn-persona {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-right: 0;
+    }
+
+    .persona-nav .nav-pair .nav-btn-journey {
+      border-left: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding-left: var(--space-4);
+      padding-right: var(--space-5);
+    }
+    .nav-btn.active {
+      background: var(--color-accent);
+      color: var(--color-text-inverse);
+      border-color: var(--color-accent);
+    }
+
+    /* ---- 共享外壳:16:9 画布(内部布局由 _components.css 按主题定义) ---- */
+    .persona-slide {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      aspect-ratio: var(--canvas-aspect);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      background: var(--color-bg-canvas-right);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 多画像时:除当前 active 外,其他 slide 隐藏 */
+    .persona-slide:not(.active) {
+      display: none;
+    }
+
+    /* ============ 全局 Tooltip(hover 显示原话证据) ============ */
+    [data-evidence]:not([data-evidence=""]) {
+      cursor: help;
+    }
+
+    #global-tooltip {
+      position: fixed;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      line-height: var(--leading-relaxed);
+      max-width: 380px;
+      z-index: 9999;
+      box-shadow: var(--shadow-tooltip);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+
+    #global-tooltip.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    #global-tooltip .tip-quote {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-quote:first-child { padding-top: 0; }
+
+    #global-tooltip .tip-text {
+      color: var(--tooltip-text);
+      font-style: italic;
+    }
+
+    #global-tooltip .tip-source {
+      color: var(--tooltip-source);
+      font-size: var(--text-sm);
+      margin-top: var(--space-1);
+    }
+
+    #global-tooltip::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--tooltip-bg);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 全局 tooltip 容器(JS 控制内容与位置) -->
+  <div id="global-tooltip"></div>
+
+  <!-- 顶部元信息条 -->
+  <div class="report-meta-bar">
+    <div class="report-meta-title">toB R5 最小样板</div>
+    <div class="report-meta-info">2 个画像 · 来源 1 份访谈 · 2026-05-29</div>
+  </div>
+
+  <!-- 多画像导航 tab;单画像时此 slot 填空字符串 -->
+  <div class="demo-nav-area"><button class="nav-btn single active" data-target="distribution">多维分布</button><div class="nav-pair"><button class="nav-btn nav-btn-persona" data-target="persona-1">演算优先派</button><button class="nav-btn nav-btn-journey" data-target="persona-1-journey">› 旅程</button></div><div class="nav-pair"><button class="nav-btn nav-btn-persona" data-target="persona-2">研判协同派</button><button class="nav-btn nav-btn-journey" data-target="persona-2-journey">› 旅程</button></div></div>
+
+  <!-- 主体内容:由子模板填充
+       单画像单页 → 一个 .persona-slide.active
+       多画像 tab  → 多个 .persona-slide,首个带 .active,其余隐藏
+       矩阵图     → 一个 .persona-slide 含 2x2 + 弹出层
+       旅程图     → 一个 .persona-slide 含横纵坐标 + 单画像头像 -->
+  <section class="persona-slide active layout-distribution-multi" id="distribution"><div class="distribution-header"><div class="distribution-title">toB R5 多维分布样板</div><div class="distribution-subtitle">总览页结构共用，配色随 theme=2b</div><div class="distribution-legend"><button class="distribution-legend-btn active" data-target="persona-1" style="color: #4A6FA5;"><span class="distribution-legend-swatch" style="background: #4A6FA5;"></span><span class="distribution-legend-name">演算优先派</span><span class="distribution-legend-count">1 人</span></button><button class="distribution-legend-btn active" data-target="persona-2" style="color: #6B8E6B;"><span class="distribution-legend-swatch" style="background: #6B8E6B;"></span><span class="distribution-legend-name">研判协同派</span><span class="distribution-legend-count">1 人</span></button></div></div><div class="distribution-chart"><svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><line class="snake-grid-line" x1="100" y1="90" x2="980" y2="90"/><line class="snake-grid-line" x1="100" y1="235" x2="980" y2="235"/><line class="snake-grid-line" x1="100" y1="380" x2="980" y2="380"/><line class="snake-grid-col" x1="225" y1="70" x2="225" y2="410"/><line class="snake-grid-col" x1="540" y1="70" x2="540" y2="410"/><line class="snake-grid-col" x1="855" y1="70" x2="855" y2="410"/><text class="snake-axis-y-label" x="86" y="95">高</text><text class="snake-axis-y-label" x="86" y="240">中</text><text class="snake-axis-y-label" x="86" y="385">低</text><text class="snake-point-level-label snake-level-name" x="225" y="114">高档表现</text><text class="snake-point-level-label snake-level-name" x="225" y="259">中档表现</text><text class="snake-point-level-label snake-level-name" x="225" y="402">低档表现</text><text class="snake-axis-x-label" x="225" y="452">决策方式</text><text class="snake-point-level-label snake-level-name" x="540" y="114">高档表现</text><text class="snake-point-level-label snake-level-name" x="540" y="259">中档表现</text><text class="snake-point-level-label snake-level-name" x="540" y="402">低档表现</text><text class="snake-axis-x-label" x="540" y="452">协同深度</text><text class="snake-point-level-label snake-level-name" x="855" y="114">高档表现</text><text class="snake-point-level-label snake-level-name" x="855" y="259">中档表现</text><text class="snake-point-level-label snake-level-name" x="855" y="402">低档表现</text><text class="snake-axis-x-label" x="855" y="452">工具依赖</text><polyline class="snake-line" points="225,90 540,235 855,90" stroke="#4A6FA5" data-target="persona-1"/><polyline class="snake-line" points="225,235 540,90 855,235" stroke="#6B8E6B" data-target="persona-2"/><circle class="snake-point" cx="225.0" cy="90.0" r="7" fill="#4A6FA5" data-target="persona-1" data-evidence="演算优先派 / 刘老师&#10;&quot;决策方式: 高档表现&quot;"/><circle class="snake-point" cx="540.0" cy="235.0" r="7" fill="#4A6FA5" data-target="persona-1" data-evidence="演算优先派 / 刘老师&#10;&quot;协同深度: 中档表现&quot;"/><circle class="snake-point" cx="855.0" cy="90.0" r="7" fill="#4A6FA5" data-target="persona-1" data-evidence="演算优先派 / 刘老师&#10;&quot;工具依赖: 高档表现&quot;"/><circle class="snake-point" cx="225.0" cy="235.0" r="7" fill="#6B8E6B" data-target="persona-2" data-evidence="研判协同派 / 刘老师&#10;&quot;决策方式: 中档表现&quot;"/><circle class="snake-point" cx="540.0" cy="90.0" r="7" fill="#6B8E6B" data-target="persona-2" data-evidence="研判协同派 / 刘老师&#10;&quot;协同深度: 高档表现&quot;"/><circle class="snake-point" cx="855.0" cy="235.0" r="7" fill="#6B8E6B" data-target="persona-2" data-evidence="研判协同派 / 刘老师&#10;&quot;工具依赖: 中档表现&quot;"/></svg></div><div class="distribution-footer"><div><strong>读图方式</strong>：点击图例切换类别画像</div><div class="distribution-footer-hint">悬停节点查看原话 · 点击图例或蛇形线切到对应画像</div></div></section>
+<section class="persona-slide layout-2b-grid" id="persona-1"><div class="identity-panel"><div class="avatar-wrap"><div class="persona-avatar placeholder">演</div></div><div class="identity-name"><div class="name-line">演算优先派</div></div><div class="identity-desc">演算优先派 — toB R5 类别画像样板</div><div class="identity-meta"><div class="meta-row"><div class="meta-label">研究类型</div><div class="meta-value">toB</div></div><div class="meta-row"><div class="meta-label">范式</div><div class="meta-value">R5 多维分布</div></div></div><div class="one-sentence-need"><div class="osn-text">辅助分析须可解释，关键决策仍由人确认</div><div class="osn-source">— 样板</div></div></div><div class="modules-panel"><div class="grid-module grid-module-resp-rings grid-anchor-start" style="grid-column: 1 / span 6;"><div class="module-title"><span class="module-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" rx="1" fill="white"/><rect x="9" y="2" width="5" height="5" rx="1" fill="white"/><rect x="2" y="9" width="5" height="5" rx="1" fill="white"/><rect x="9" y="9" width="5" height="5" rx="1" fill="white"/></svg></span>工作职责</div><div class="module-body"><div class="resp-rings"><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="82.9"/><text class="ring-pct" x="32" y="38" text-anchor="middle">45%</text></svg><div class="ring-label">日常监控与响应</div></div><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="98.0"/><text class="ring-pct" x="32" y="38" text-anchor="middle">35%</text></svg><div class="ring-label">方案分析与协同</div></div><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="120.6"/><text class="ring-pct" x="32" y="38" text-anchor="middle">20%</text></svg><div class="ring-label">复盘与优化</div></div></div></div></div><div class="grid-module grid-module-painpoint-list grid-anchor-end" style="grid-column: 7 / span 6;"><div class="module-title"><span class="module-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" fill="none" stroke="white" stroke-width="1.5"/><circle cx="8" cy="8" r="2.5" fill="white"/></svg></span>核心痛点</div><div class="module-body"><ul class="painpoints-list"><li class="painpoint-item has-inline-metric"><span class="pp-title">多源数据汇总慢</span><span class="mention-badge">1/1</span><span class="pp-sep"> | </span><span class="pp-detail">跨平台导出再人工对齐字段口径，研判前数据准备往往耗去半个班次（样板）</span></li><li class="painpoint-item has-inline-metric"><span class="pp-title">协同确认链条长</span><span class="mention-badge">1/1</span><span class="pp-sep"> | </span><span class="pp-detail">跨部门电话邮件来回确认方案细节，推进周期拉长且难以预估（样板）</span></li></ul></div></div></div></section>
+<section class="persona-slide layout-2b-journey is-l2" id="persona-1-journey"><div class="tob-l2-uml-hybrid" style="--stages:3;--rail-rows:42px 42px 180px 1fr;--main-rows:42px 42px 180px 1fr;"><div class="tob-banner"><div class="tob-banner-main"><div class="tob-banner-title">演算优先派 · 工作流程</div><div class="tob-banner-subtitle">toB R5 样板旅程（最小数据）</div></div></div><div class="tob-body"><div class="tob-rail"><div class="tob-rail-cell tob-rail-stages">阶段</div><div class="tob-rail-cell tob-rail-substages">子阶段</div><div class="tob-rail-cell tob-rail-dim">工作流程</div><div class="tob-rail-cell tob-rail-dim">关注点 / 痛点</div></div><div class="tob-main"><div class="tob-stage-tag"><span class="tob-stage-number">1</span>发现</div><div class="tob-stage-tag"><span class="tob-stage-number">2</span>研判</div><div class="tob-stage-tag"><span class="tob-stage-number">3</span>执行</div><div class="tob-substage-cell l1-substage-bar"><span>发现</span></div><div class="tob-substage-cell l1-substage-bar"><span>研判</span></div><div class="tob-substage-cell l1-substage-bar"><span>执行</span></div><div class="tob-l2-uml-cell"><div class="l1-frame"><div class="l1-flow-title">演算优先派 · 工作流程</div><div class="l1-flow-subtitle">toB R5 样板旅程（最小数据）</div><div class="l1-stage-board"><div class="l1-row stage-row"><div class="l1-rail-cell head">阶段</div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">1</span>发现</div></div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">2</span>研判</div></div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">3</span>执行</div></div></div><div class="l1-row substage-row"><div class="l1-rail-cell head">子阶段</div><div class="l1-substage-bar"><span>发现</span></div><div class="l1-substage-bar"><span>研判</span></div><div class="l1-substage-bar"><span>执行</span></div></div></div><div class="l1-uml-wrap"><svg class="l1-uml-svg" viewBox="0 0 1180 120" role="img"><defs><marker id="l1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a95a3"/></marker></defs><rect x="0" y="0" width="1180" height="120" fill="#fff"/><rect class="l1-lane-bg" x="0" y="0" width="1180" height="120"/><line class="l1-lane-line" x1="0" y1="0" x2="1180" y2="0"/><line class="l1-lane-line" x1="0" y1="120" x2="1180" y2="120"/><line class="l1-lane-line" x1="393" y1="0" x2="393" y2="120" stroke-dasharray="3 3"/><line class="l1-lane-line" x1="787" y1="0" x2="787" y2="120" stroke-dasharray="3 3"/><path class="l1-connector" d="M 250 60 H 557" marker-end="url(#l1-arrow)"/><path class="l1-connector" d="M 623 60 H 930" marker-end="url(#l1-arrow)"/><g class="l1-node l1-step" transform="translate(184 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">接收需求</div></foreignObject></g><g class="l1-node l1-step" transform="translate(557 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">分析方案</div></foreignObject></g><g class="l1-node l1-step" transform="translate(930 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">落地执行</div></foreignObject></g></svg></div></div></div><div class="tob-focus-cell"><div class="tob-focus-card is-pain" data-evidence="&quot;不同平台需要分别导出再汇总。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">信息分散</div><div class="tob-focus-card-body">多系统取数需人工汇总，影响研判时效（样板）</div></div></div><div class="tob-focus-cell"><div class="tob-focus-card is-pain" data-evidence="&quot;电话确认和邮件来回较多。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">协同成本</div><div class="tob-focus-card-body">跨部门确认环节多，方案推进周期拉长（样板）</div></div></div><div class="tob-focus-cell"><div class="tob-focus-card" data-evidence="&quot;每次都会记录耗时和结果。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">闭环复盘</div><div class="tob-focus-card-body">执行后需归档经验，便于下次同类场景复用（样板）</div></div></div></div></div></div></section>
+<section class="persona-slide layout-2b-grid" id="persona-2"><div class="identity-panel"><div class="avatar-wrap"><div class="persona-avatar placeholder">研</div></div><div class="identity-name"><div class="name-line">研判协同派</div></div><div class="identity-desc">研判协同派 — toB R5 类别画像样板</div><div class="identity-meta"><div class="meta-row"><div class="meta-label">研究类型</div><div class="meta-value">toB</div></div><div class="meta-row"><div class="meta-label">范式</div><div class="meta-value">R5 多维分布</div></div></div><div class="one-sentence-need"><div class="osn-text">辅助分析须可解释，关键决策仍由人确认</div><div class="osn-source">— 样板</div></div></div><div class="modules-panel"><div class="grid-module grid-module-resp-rings grid-anchor-start" style="grid-column: 1 / span 6;"><div class="module-title"><span class="module-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="5" height="5" rx="1" fill="white"/><rect x="9" y="2" width="5" height="5" rx="1" fill="white"/><rect x="2" y="9" width="5" height="5" rx="1" fill="white"/><rect x="9" y="9" width="5" height="5" rx="1" fill="white"/></svg></span>工作职责</div><div class="module-body"><div class="resp-rings"><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="82.9"/><text class="ring-pct" x="32" y="38" text-anchor="middle">45%</text></svg><div class="ring-label">日常监控与响应</div></div><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="98.0"/><text class="ring-pct" x="32" y="38" text-anchor="middle">35%</text></svg><div class="ring-label">方案分析与协同</div></div><div class="ring-item"><svg class="ring-svg" viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="24"/><circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="120.6"/><text class="ring-pct" x="32" y="38" text-anchor="middle">20%</text></svg><div class="ring-label">复盘与优化</div></div></div></div></div><div class="grid-module grid-module-painpoint-list grid-anchor-end" style="grid-column: 7 / span 6;"><div class="module-title"><span class="module-icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" fill="none" stroke="white" stroke-width="1.5"/><circle cx="8" cy="8" r="2.5" fill="white"/></svg></span>核心痛点</div><div class="module-body"><ul class="painpoints-list"><li class="painpoint-item has-inline-metric"><span class="pp-title">多源数据汇总慢</span><span class="mention-badge">1/1</span><span class="pp-sep"> | </span><span class="pp-detail">跨平台导出再人工对齐字段口径，研判前数据准备往往耗去半个班次（样板）</span></li><li class="painpoint-item has-inline-metric"><span class="pp-title">协同确认链条长</span><span class="mention-badge">1/1</span><span class="pp-sep"> | </span><span class="pp-detail">跨部门电话邮件来回确认方案细节，推进周期拉长且难以预估（样板）</span></li></ul></div></div></div></section>
+<section class="persona-slide layout-2b-journey is-l2" id="persona-2-journey"><div class="tob-l2-uml-hybrid" style="--stages:3;--rail-rows:42px 42px 180px 1fr;--main-rows:42px 42px 180px 1fr;"><div class="tob-banner"><div class="tob-banner-main"><div class="tob-banner-title">研判协同派 · 工作流程</div><div class="tob-banner-subtitle">toB R5 样板旅程（最小数据）</div></div></div><div class="tob-body"><div class="tob-rail"><div class="tob-rail-cell tob-rail-stages">阶段</div><div class="tob-rail-cell tob-rail-substages">子阶段</div><div class="tob-rail-cell tob-rail-dim">工作流程</div><div class="tob-rail-cell tob-rail-dim">关注点 / 痛点</div></div><div class="tob-main"><div class="tob-stage-tag"><span class="tob-stage-number">1</span>发现</div><div class="tob-stage-tag"><span class="tob-stage-number">2</span>研判</div><div class="tob-stage-tag"><span class="tob-stage-number">3</span>执行</div><div class="tob-substage-cell l1-substage-bar"><span>发现</span></div><div class="tob-substage-cell l1-substage-bar"><span>研判</span></div><div class="tob-substage-cell l1-substage-bar"><span>执行</span></div><div class="tob-l2-uml-cell"><div class="l1-frame"><div class="l1-flow-title">研判协同派 · 工作流程</div><div class="l1-flow-subtitle">toB R5 样板旅程（最小数据）</div><div class="l1-stage-board"><div class="l1-row stage-row"><div class="l1-rail-cell head">阶段</div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">1</span>发现</div></div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">2</span>研判</div></div><div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">3</span>执行</div></div></div><div class="l1-row substage-row"><div class="l1-rail-cell head">子阶段</div><div class="l1-substage-bar"><span>发现</span></div><div class="l1-substage-bar"><span>研判</span></div><div class="l1-substage-bar"><span>执行</span></div></div></div><div class="l1-uml-wrap"><svg class="l1-uml-svg" viewBox="0 0 1180 120" role="img"><defs><marker id="l1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a95a3"/></marker></defs><rect x="0" y="0" width="1180" height="120" fill="#fff"/><rect class="l1-lane-bg" x="0" y="0" width="1180" height="120"/><line class="l1-lane-line" x1="0" y1="0" x2="1180" y2="0"/><line class="l1-lane-line" x1="0" y1="120" x2="1180" y2="120"/><line class="l1-lane-line" x1="393" y1="0" x2="393" y2="120" stroke-dasharray="3 3"/><line class="l1-lane-line" x1="787" y1="0" x2="787" y2="120" stroke-dasharray="3 3"/><path class="l1-connector" d="M 250 60 H 557" marker-end="url(#l1-arrow)"/><path class="l1-connector" d="M 623 60 H 930" marker-end="url(#l1-arrow)"/><g class="l1-node l1-step" transform="translate(184 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">接收需求</div></foreignObject></g><g class="l1-node l1-step" transform="translate(557 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">分析方案</div></foreignObject></g><g class="l1-node l1-step" transform="translate(930 46)"><rect width="66" height="28" rx="3"/><foreignObject width="66" height="28"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">落地执行</div></foreignObject></g></svg></div></div></div><div class="tob-focus-cell"><div class="tob-focus-card is-pain" data-evidence="&quot;不同平台需要分别导出再汇总。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">信息分散</div><div class="tob-focus-card-body">多系统取数需人工汇总，影响研判时效（样板）</div></div></div><div class="tob-focus-cell"><div class="tob-focus-card is-pain" data-evidence="&quot;电话确认和邮件来回较多。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">协同成本</div><div class="tob-focus-card-body">跨部门确认环节多，方案推进周期拉长（样板）</div></div></div><div class="tob-focus-cell"><div class="tob-focus-card" data-evidence="&quot;每次都会记录耗时和结果。&quot; — 样板"><div class="tob-focus-card-mock is-empty">无截图</div><div class="tob-focus-card-title">闭环复盘</div><div class="tob-focus-card-body">执行后需归档经验，便于下次同类场景复用（样板）</div></div></div></div></div></div></section>
+
+  <!-- ============ Tooltip JS(委托事件,与 v2.html 一致) ============ -->
+  <script>
+    // 关键:JS 加载成功就把 body 标记上,关闭 CSS-only tooltip 兜底,避免重叠
+    // 若本 script 因任何原因没跑(LLM 漏写、cdn 失败、SyntaxError),body 不带这个类,
+    // _components.css 的 [data-evidence]:hover::after 兜底自动生效
+    document.body.classList.add('has-tooltip-js');
+
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+
+      function showTooltip(target) {
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+
+        // 解析多条原话。两种格式兼容:
+        //   格式 A(主流):'"原话"\n— 来源',条间 \n\n 分隔
+        //   格式 B(矩阵点位):'画像名 / 受访者名\n"原话"',首行带斜线
+        const blocks = evidence.split('\n\n').map(b => b.trim()).filter(Boolean);
+        const html = blocks.map(block => {
+          const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+          let text = '';
+          let source = '';
+
+          // 格式 B 检测:第一行不带引号但含 / 或 ｜,且后面有引号原话
+          const firstHasSlash = lines[0] && /[\/｜|]/.test(lines[0]) && !/[""""]/.test(lines[0]);
+          const hasQuotedLater = lines.slice(1).some(l => /["""]/.test(l));
+          if (firstHasSlash && hasQuotedLater) {
+            source = lines[0];
+            // 把剩余所有带引号的行拼成 text
+            text = lines.slice(1).filter(l => /["""]/.test(l)).join(' ');
+          } else {
+            // 格式 A:首行为 text,首个 — 行为 source
+            text = lines[0] || '';
+            for (let i = 1; i < lines.length; i++) {
+              if (lines[i].startsWith('—') || lines[i].startsWith('-')) {
+                source = lines[i].replace(/^[—-]\s*/, '');
+                break;
+              }
+            }
+          }
+          const safe = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="tip-quote"><div class="tip-text">${safe(text)}</div>${source ? `<div class="tip-source">— ${safe(source)}</div>` : ''}</div>`;
+        }).join('');
+
+        tooltip.innerHTML = html;
+        tooltip.classList.add('visible');
+
+        const rect = target.getBoundingClientRect();
+        const tipRect = tooltip.getBoundingClientRect();
+
+        let left = rect.left + rect.width / 2 - tipRect.width / 2;
+        let top = rect.top - tipRect.height - 12;
+
+        const margin = 8;
+        if (left < margin) left = margin;
+        if (left + tipRect.width > window.innerWidth - margin) {
+          left = window.innerWidth - tipRect.width - margin;
+        }
+        if (top < margin) {
+          top = rect.bottom + 12;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove('visible');
+      }
+
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        clearTimeout(hideTimer);
+        showTooltip(target);
+      });
+
+      document.body.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+
+      // ---- Tab 切换:多画像导航 + 矩阵象限跳转 ----
+      document.body.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.nav-btn[data-target], .matrix-quadrant-label[data-target], .matrix-quadrant[data-target], [data-nav-target]');
+        if (!trigger) return;
+        const targetId = trigger.getAttribute('data-target') || trigger.getAttribute('data-nav-target');
+        if (!targetId) return;
+
+        // 切换按钮。矩阵象限触发时,同步点亮对应 nav。
+        const navTarget = document.querySelector('.nav-btn[data-target="' + targetId + '"]');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if (trigger.classList.contains('nav-btn')) {
+          trigger.classList.add('active');
+        } else if (navTarget) {
+          navTarget.classList.add('active');
+        }
+
+        // 切换 slide
+        document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
+        const slide = document.getElementById(targetId);
+        if (slide) slide.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>

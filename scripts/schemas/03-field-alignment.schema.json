@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "03-field-alignment",
+  "title": "字段对齐产物 schema(2026-05-28 加固)",
+  "description": "防止模型在聚类确认后静默写一份 recommended_by_goal 假象 JSON 就进入抽取/渲染。所有必填字段必须含用户确认锚点。toB/toD 多角色另含 L1 组织同构判定字段(约束 14)。",
+  "type": "object",
+  "required": [
+    "version",
+    "fields_per_persona",
+    "fields_display_names",
+    "field_pool_presented",
+    "user_confirmed",
+    "confirmation_message_summary",
+    "add_on_pages",
+    "visual_assets"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "skill 版本,如 v8"
+    },
+    "field_pool_presented": {
+      "type": "boolean",
+      "const": true,
+      "description": "必须为 true:聚类/分类确认后已向用户展示完整字段池(★/□)并等待回复,才能写本文件。"
+    },
+    "fields_display_names": {
+      "type": "object",
+      "minProperties": 3,
+      "description": "向用户展示的中文字段名。key=schema 字段 key,value=画像页展示名。",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "per_persona_modules": {
+      "type": "object",
+      "description": "可选;每个画像启用的模块中文名列表,与 fields_per_persona 对齐。",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string", "minLength": 1}
+      }
+    },
+    "fields_per_persona": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "每个画像的字段列表。key=画像 key 或 '默认',value=字段 key 数组。",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {"type": "string", "minLength": 1}
+      }
+    },
+    "user_confirmed": {
+      "type": "boolean",
+      "const": true,
+      "description": "必须为 true,表示用户已实际看过字段池并回复。模型自己写 true 但无对应对话回合也不允许 — 配合 confirmation_message_summary 检查。"
+    },
+    "confirmation_message_summary": {
+      "type": "string",
+      "minLength": 10,
+      "description": "用户对字段对齐的原话摘要锚点,≥ 10 字。例:'用户说按推荐来,加上消费观'。"
+    },
+    "persona_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "可选;画像数量。≥2 且 toB/toD 时 add_on_pages 须含 journey_scope 等 L1 判定字段。"
+    },
+    "persona_type": {
+      "type": "string",
+      "enum": ["toB", "toD", "toC"],
+      "description": "可选;对象类型,用于校验 L1 字段是否齐全。"
+    },
+    "add_on_pages": {
+      "type": "object",
+      "required": ["journey"],
+      "additionalProperties": true,
+      "properties": {
+        "journey": {
+          "type": "boolean",
+          "description": "是否加旅程页。toB/toD 多角色 + toC 多画像 场景必填。"
+        },
+        "journey_scope": {
+          "type": "string",
+          "enum": ["L1_and_L2", "L2_only", "none"],
+          "description": "旅程范围。journey=false 时必须为 none;同组织且含 L1 时为 L1_and_L2;完全独立或仅单角色 L2 时为 L2_only。"
+        },
+        "journey_l1_eligible": {
+          "type": "boolean",
+          "description": "是否允许输出 L1 整体旅程(toB/toD 多角色)。independent 时必须 false。"
+        },
+        "organizational_cohesion": {
+          "type": "string",
+          "enum": ["same_org", "independent", "uncertain"],
+          "description": "组织同构判定。uncertain 不应直接写 JSON,须先问用户并改为 same_org 或 independent。"
+        },
+        "journey_l1_reason": {
+          "type": "string",
+          "minLength": 8,
+          "description": "L1 判定理由(1-2 句)。journey_l1_eligible=true 时建议必填。"
+        },
+        "journey_reason": {
+          "type": "string",
+          "description": "可选;若 journey=true 记录用户为何要加;若 false 可空。"
+        }
+      }
+    },
+    "custom_fields": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "visual_assets": {
+      "type": "object",
+      "description": "用户视觉素材确认记录。assets_asked 必须为 true 才能进入抽取。见 steps/visual-assets.md",
+      "required": ["assets_asked"],
+      "properties": {
+        "assets_asked": {"type": "boolean", "const": true},
+        "avatar_expected": {"type": "array", "items": {"type": "string"}},
+        "avatar_assets_dir": {"type": "string"},
+        "default_avatar_dir": {"type": "string", "const": "assets/default-avatars/"},
+        "avatar_use_default": {"type": "boolean"},
+        "avatar_provided": {"type": "boolean"},
+        "avatar_deferred": {"type": "boolean"},
+        "scenario_screenshots_enabled": {"type": "boolean"},
+        "scenario_screenshot_mapping": {"type": "object"},
+        "screenshots_enabled": {"type": "boolean"},
+        "screenshot_mapping": {"type": "object"}
+      }
+    },
+    "layout_estimate": {"type": "object"},
+    "alignment_mode": {
+      "type": "string",
+      "description": "若使用 'recommended_by_goal' 必须同时有 user_confirmed: true + confirmation_message_summary。"
+    },
+    "notes": {"type": "string"}
+  }
+}

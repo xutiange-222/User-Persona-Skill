@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "generic_kv",
+  "title": "兜底键值表",
+  "description": "用于设备清单等 key-value 信息。",
+  "type": "object",
+  "required": [
+    "module_title",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "module_title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 12,
+      "description": "模块标题(LLM 自由命名);兜底组件无 default 标题,必填"
+    },
+    "headers": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "可选两列表头(如['场景','工具']/['维度','数值']);出现时在 kv 表顶部渲染加粗灰色表头行",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 6
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "description": "键值行",
+      "items": {
+        "type": "object",
+        "description": "键值行",
+        "required": [
+          "key",
+          "value"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "键名"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "description": "键值"
+          }
+        }
+      }
+    }
+  }
+}

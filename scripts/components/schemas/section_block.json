@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "section_block",
+  "title": "toC 画像段卡",
+  "description": "三层结构段卡,用于 section_blocks_grid 内部或单独校验。",
+  "type": "object",
+  "required": [
+    "title",
+    "summary",
+    "body",
+    "evidence_quotes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 6,
+      "description": "段卡标题,自由文本,贴合画像特征"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 25,
+      "description": "一句话总结"
+    },
+    "body": {
+      "type": "string",
+      "minLength": 30,
+      "maxLength": 200,
+      "description": "展开正文,必须有具体动作、场景或程度信息。允许用「<strong>关键短语</strong>」标记 3-6 处高亮(其它 HTML 标签会被转义)。strong 标签字符也算入 maxLength。"
+    },
+    "evidence_quotes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 4,
+      "description": "至少 2 条证据原话",
+      "items": {
+        "type": "object",
+        "description": "证据原话",
+        "required": [
+          "quote",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "quote": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "description": "访谈原话或证据摘录"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "证据来源或受访者脱敏名"
+          }
+        }
+      }
+    },
+    "full_width": {
+      "type": "boolean",
+      "description": "是否跨整宽显示"
+    }
+  }
+}

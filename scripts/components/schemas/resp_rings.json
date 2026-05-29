@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resp_rings",
+  "title": "职责占比环图",
+  "description": "展示核心工作职责的占比结构。",
+  "type": "object",
+  "required": [
+    "rings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "rings": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "description": "职责占比项,percentage 总和应为 100",
+      "items": {
+        "type": "object",
+        "description": "职责占比",
+        "required": [
+          "label",
+          "percentage"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "职责标签;P7 真值平均 10-17 字(如'推动跨项目需求、测试点和发布信息对齐')"
+          },
+          "percentage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "职责占比百分数"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4,
+            "description": "支撑该职责的访谈原话(可选)。渲染为 ring-item 的 data-evidence,hover 显示 tooltip",
+            "items": {
+              "type": "object",
+              "required": ["quote", "source"],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {"type": "string", "minLength": 2, "maxLength": 120},
+                "source": {"type": "string", "minLength": 2, "maxLength": 20}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

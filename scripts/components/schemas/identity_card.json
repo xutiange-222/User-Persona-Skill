@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "identity_card",
+  "title": "toC 身份卡",
+  "description": "toC 画像左栏身份卡,含灵活 meta_tags。",
+  "type": "object",
+  "required": [
+    "name",
+    "subtitle",
+    "meta_tags"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 6,
+      "description": "画像名"
+    },
+    "subtitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30,
+      "description": "画像副标"
+    },
+    "illust_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "可选插画文件名;未指定或文件不存在时按 name 匹配用户目录或 assets/default-avatars/,仍无则占位"
+    },
+    "meta_tags": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "description": "灵活元信息标签",
+      "items": {
+        "type": "object",
+        "description": "身份元信息标签",
+        "required": [
+          "label",
+          "value"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 8,
+            "description": "灵活元信息标签的 label。由 LLM 按研究目标自由命名,优先复用稳定示例,避免起「触发」「指纹」这类抽象短词。简单人口学维度可二合一(如「职业 / 年龄」: 医生 · 50+)。示例池(按语义类型):人口学: 年龄段 / 职业 / 月收入 / 城市 / 家庭 / 学历;角色定位: 身份 / 代表 / 人群占比;行为频次: 日均听 / 使用频率 / 活跃时段 / 活跃场景 / 付费倾向;设备工具: 主用设备 / 常用 APP / 订阅产品;心理价值: 音乐角色 / 核心动机 / 核心顾虑 / 价值锚点;分层签: 画像指纹(如「氛围 · 内容 · 榜单 · 高端」)。",
+            "examples": [
+              "年龄段",
+              "职业",
+              "月收入",
+              "城市",
+              "家庭",
+              "学历",
+              "职业 / 年龄",
+              "身份",
+              "代表",
+              "人群占比",
+              "日均听",
+              "使用频率",
+              "活跃时段",
+              "活跃场景",
+              "付费倾向",
+              "主用设备",
+              "常用 APP",
+              "订阅产品",
+              "音乐角色",
+              "核心动机",
+              "核心顾虑",
+              "价值锚点",
+              "画像指纹"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "标签值,可用分隔符拼接多值"
+          }
+        }
+      }
+    }
+  }
+}

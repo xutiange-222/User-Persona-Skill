@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!--
+  user-persona-v8 共享骨架(v1)
+  ------------------------------------------------------------
+  职责:HTML 文档框架 + meta-bar + persona-nav + tooltip + JS。
+  不负责:任何画像主体内容(单页/双页/tab/矩阵/旅程图)。
+        各种呈现方式通过 {{main_content}} slot 注入。
+
+  Slot 占位符(render_html.py 用 string replace 填充):
+    {{theme}}            — "2b" / "2c" / "2d"
+    {{density}}          — "high" / "mid" / "low"
+    {{accent_inline}}    — 2C 时填 "--color-accent: var(--accent-XXX)";其他主题填空字符串
+    {{title}}            — <title> 标签内容
+    {{report_title}}     — 顶部主标题
+    {{report_meta_info}} — 顶部右侧元信息("X 个画像 · 来源 Y 份访谈 · 日期")
+    {{persona_nav}}      — 多画像 tab,单画像时填空字符串
+    {{main_content}}     — 主体内容,具体子模板渲染产物
+
+  发布期:render_html.py 把 _design-tokens.css 和 _components.css 内联到 <style> 块,
+        产出单文件 HTML,可邮件分发/归档。
+-->
+<html lang="zh-CN" data-theme="{{theme}}" data-density="{{density}}" style="{{accent_inline}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+
+  <!-- 开发期外链;发布期会被 render_html.py 内联进 <style> 块 -->
+  <link rel="stylesheet" href="_design-tokens.css">
+  <link rel="stylesheet" href="_components.css">
+
+  <style>
+    /* ============ _base 自己的样式(全局布局 + 共享外壳) ============ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-7);
+    }
+
+    /* ---- 顶部元信息条 ---- */
+    .report-meta-bar {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-3);
+      color: var(--color-text-secondary);
+      font-size: var(--text-lg);
+    }
+
+    .report-meta-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .report-meta-info {
+      font-size: var(--text-lg);
+      color: var(--color-text-secondary);
+    }
+
+    /* ---- 多画像导航 tab(单画像时容器不渲染) ---- */
+    .persona-nav {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: var(--space-2) var(--space-7);
+      font-size: var(--text-lg);
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-primary-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+
+    .persona-nav .nav-pair {
+      display: inline-flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .persona-nav .nav-pair .nav-btn-persona {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-right: 0;
+    }
+
+    .persona-nav .nav-pair .nav-btn-journey {
+      border-left: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      padding-left: var(--space-4);
+      padding-right: var(--space-5);
+    }
+    .nav-btn.active {
+      background: var(--color-accent);
+      color: var(--color-text-inverse);
+      border-color: var(--color-accent);
+    }
+
+    /* ---- 共享外壳:16:9 画布(内部布局由 _components.css 按主题定义) ---- */
+    .persona-slide {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      aspect-ratio: var(--canvas-aspect);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      background: var(--color-bg-canvas-right);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 多画像时:除当前 active 外,其他 slide 隐藏 */
+    .persona-slide:not(.active) {
+      display: none;
+    }
+
+    /* ============ 全局 Tooltip(hover 显示原话证据) ============ */
+    [data-evidence]:not([data-evidence=""]) {
+      cursor: help;
+    }
+
+    #global-tooltip {
+      position: fixed;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      line-height: var(--leading-relaxed);
+      max-width: 380px;
+      z-index: 9999;
+      box-shadow: var(--shadow-tooltip);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+
+    #global-tooltip.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    #global-tooltip .tip-quote {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-quote:first-child { padding-top: 0; }
+
+    #global-tooltip .tip-text {
+      color: var(--tooltip-text);
+      font-style: italic;
+    }
+
+    #global-tooltip .tip-source {
+      color: var(--tooltip-source);
+      font-size: var(--text-sm);
+      margin-top: var(--space-1);
+    }
+
+    #global-tooltip::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--tooltip-bg);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 全局 tooltip 容器(JS 控制内容与位置) -->
+  <div id="global-tooltip"></div>
+
+  <!-- 顶部元信息条 -->
+  <div class="report-meta-bar">
+    <div class="report-meta-title">{{report_title}}</div>
+    <div class="report-meta-info">{{report_meta_info}}</div>
+  </div>
+
+  <!-- 多画像导航 tab;单画像时此 slot 填空字符串 -->
+  {{persona_nav}}
+
+  <!-- 主体内容:由子模板填充
+       单画像单页 → 一个 .persona-slide.active
+       多画像 tab  → 多个 .persona-slide,首个带 .active,其余隐藏
+       矩阵图     → 一个 .persona-slide 含 2x2 + 弹出层
+       旅程图     → 一个 .persona-slide 含横纵坐标 + 单画像头像 -->
+  {{main_content}}
+
+  <!-- ============ Tooltip JS(委托事件,与 v2.html 一致) ============ -->
+  <script>
+    // 关键:JS 加载成功就把 body 标记上,关闭 CSS-only tooltip 兜底,避免重叠
+    // 若本 script 因任何原因没跑(LLM 漏写、cdn 失败、SyntaxError),body 不带这个类,
+    // _components.css 的 [data-evidence]:hover::after 兜底自动生效
+    document.body.classList.add('has-tooltip-js');
+
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+
+      function showTooltip(target) {
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+
+        // 解析多条原话。两种格式兼容:
+        //   格式 A(主流):'"原话"\n— 来源',条间 \n\n 分隔
+        //   格式 B(矩阵点位):'画像名 / 受访者名\n"原话"',首行带斜线
+        const blocks = evidence.split('\n\n').map(b => b.trim()).filter(Boolean);
+        const html = blocks.map(block => {
+          const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+          let text = '';
+          let source = '';
+
+          // 格式 B 检测:第一行不带引号但含 / 或 ｜,且后面有引号原话
+          const firstHasSlash = lines[0] && /[\/｜|]/.test(lines[0]) && !/[""""]/.test(lines[0]);
+          const hasQuotedLater = lines.slice(1).some(l => /["""]/.test(l));
+          if (firstHasSlash && hasQuotedLater) {
+            source = lines[0];
+            // 把剩余所有带引号的行拼成 text
+            text = lines.slice(1).filter(l => /["""]/.test(l)).join(' ');
+          } else {
+            // 格式 A:首行为 text,首个 — 行为 source
+            text = lines[0] || '';
+            for (let i = 1; i < lines.length; i++) {
+              if (lines[i].startsWith('—') || lines[i].startsWith('-')) {
+                source = lines[i].replace(/^[—-]\s*/, '');
+                break;
+              }
+            }
+          }
+          const safe = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="tip-quote"><div class="tip-text">${safe(text)}</div>${source ? `<div class="tip-source">— ${safe(source)}</div>` : ''}</div>`;
+        }).join('');
+
+        tooltip.innerHTML = html;
+        tooltip.classList.add('visible');
+
+        const rect = target.getBoundingClientRect();
+        const tipRect = tooltip.getBoundingClientRect();
+
+        let left = rect.left + rect.width / 2 - tipRect.width / 2;
+        let top = rect.top - tipRect.height - 12;
+
+        const margin = 8;
+        if (left < margin) left = margin;
+        if (left + tipRect.width > window.innerWidth - margin) {
+          left = window.innerWidth - tipRect.width - margin;
+        }
+        if (top < margin) {
+          top = rect.bottom + 12;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove('visible');
+      }
+
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        clearTimeout(hideTimer);
+        showTooltip(target);
+      });
+
+      document.body.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+
+      // ---- Tab 切换:多画像导航 + 矩阵象限跳转 ----
+      document.body.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.nav-btn[data-target], .matrix-quadrant-label[data-target], .matrix-quadrant[data-target], [data-nav-target]');
+        if (!trigger) return;
+        const targetId = trigger.getAttribute('data-target') || trigger.getAttribute('data-nav-target');
+        if (!targetId) return;
+
+        // 切换按钮。矩阵象限触发时,同步点亮对应 nav。
+        const navTarget = document.querySelector('.nav-btn[data-target="' + targetId + '"]');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if (trigger.classList.contains('nav-btn')) {
+          trigger.classList.add('active');
+        } else if (navTarget) {
+          navTarget.classList.add('active');
+        }
+
+        // 切换 slide
+        document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
+        const slide = document.getElementById(targetId);
+        if (slide) slide.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>

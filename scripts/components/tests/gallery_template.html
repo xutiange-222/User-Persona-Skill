@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="{{ theme }}" data-density="{{ density }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="../../../assets/templates/_design-tokens.css">
+  <link rel="stylesheet" href="../../../assets/templates/_components.css">
+  <style>
+    body { padding: 32px; font-family: -apple-system, sans-serif; background: #f5f5f5; }
+    h1 { margin-bottom: 24px; }
+    .gallery-item { background: white; padding: 24px; margin-bottom: 24px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .gallery-item-label { margin-bottom: 12px; color: #444; font-size: 16px; }
+    .gallery-item-label code { background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+    .gallery-render { padding: 16px; border: 1px dashed #ccc; border-radius: 4px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>{{ title }}</h1>
+  {{ body }}
+</body>
+</html>

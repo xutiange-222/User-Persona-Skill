@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!--
+  toC 双页样板:品质聆听者(P4 补充)
+  ------------------------------------------------------------
+  按 visual-system.md 3.1 节"2C 双页切分"做:
+    - 第 1 页:画像基本盘(身份卡完整版 + 代表原话 + 核心需求 + 听歌时刻)
+    - 第 2 页:深度场景(身份卡简化 + 内容偏好 + 设备生态 + 核心痛点 + 期望改进)
+  ------------------------------------------------------------
+  nav 命名按 visual-system.md 3.2 节:
+    id="persona-1-core"  → "画像基本盘"
+    id="persona-1-detail" → "深度场景"
+-->
+<html lang="zh-CN" data-theme="2c" data-density="low" style="--color-accent: #7BA8C9; --color-accent-soft: rgba(123, 168, 201, 0.12);">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>品质聆听者 — 双页样板</title>
+  <link rel="stylesheet" href="_design-tokens.css?v=4">
+  <link rel="stylesheet" href="_components.css?v=4">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; padding: var(--space-8); display: flex; flex-direction: column; align-items: center; gap: var(--space-7); }
+    .report-meta-bar { width: 100%; max-width: var(--canvas-max-w); display: flex; justify-content: space-between; align-items: center; padding: 0 var(--space-3); color: var(--color-text-secondary); font-size: var(--text-lg); }
+    .report-meta-title { font-size: var(--text-2xl); font-weight: var(--font-semibold); color: var(--color-text-primary); }
+    .report-meta-info { font-size: var(--text-lg); color: var(--color-text-secondary); }
+    .persona-nav { width: 100%; max-width: var(--canvas-max-w); display: flex; gap: var(--space-3); flex-wrap: wrap; }
+    .nav-btn { padding: var(--space-2) var(--space-7); font-size: var(--text-lg); border: 1px solid var(--color-border-subtle); background: var(--color-bg-card); color: var(--color-text-primary); border-radius: var(--radius-pill); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .nav-btn:hover { background: var(--color-primary-light); border-color: var(--color-accent); color: var(--color-accent); }
+    .nav-btn.active { background: var(--color-accent); color: var(--color-text-inverse); border-color: var(--color-accent); }
+    .persona-slide { width: 100%; max-width: var(--canvas-max-w); aspect-ratio: var(--canvas-aspect); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); background: var(--color-bg-canvas-right); overflow: hidden; position: relative; }
+    .persona-slide:not(.active) { display: none; }
+    [data-evidence]:not([data-evidence=""]) { cursor: help; }
+    #global-tooltip { position: fixed; background: var(--tooltip-bg); color: var(--tooltip-text); padding: var(--space-5) var(--space-6); border-radius: var(--radius-lg); font-size: var(--text-base); line-height: var(--leading-relaxed); max-width: 380px; z-index: 9999; box-shadow: var(--shadow-tooltip); pointer-events: none; display: none; opacity: 0; transition: opacity 0.12s; }
+    #global-tooltip.visible { display: block; opacity: 1; }
+    #global-tooltip .tip-quote { padding: var(--space-2) 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-quote:first-child { padding-top: 0; }
+    #global-tooltip .tip-text { color: var(--tooltip-text); font-style: italic; }
+    #global-tooltip .tip-source { color: var(--tooltip-source); font-size: var(--text-sm); margin-top: var(--space-1); }
+    #global-tooltip::after { content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--tooltip-bg); }
+    .section-block.full-width { grid-column: 1 / -1; }
+    /* 第 2 页身份卡简化 */
+    .identity-card.compact { padding: var(--space-5) var(--space-4); gap: var(--space-3); }
+    .identity-card.compact .persona-illust-placeholder { max-width: 140px; font-size: 80px; }
+    .identity-card.compact .meta-tags-list { display: none; }
+    .identity-card.compact .persona-subtitle { display: none; }
+  </style>
+</head>
+
+<body>
+  <div id="global-tooltip"></div>
+
+  <div class="report-meta-bar">
+    <div class="report-meta-title">Hi-res 音乐专区会员画像研究</div>
+    <div class="report-meta-info">1 个画像 · 双页呈现 · 来源 5 份访谈 · 2026-05-17</div>
+  </div>
+
+  <div class="persona-nav">
+    <button class="nav-btn active" data-target="persona-1-core">品质聆听者</button>
+    <button class="nav-btn" data-target="persona-1-detail">专题:更爱听经典,不要被神曲冲淡</button>
+  </div>
+
+
+  <!-- ============ 第 1 页:画像基本盘 ============ -->
+  <section class="persona-slide layout-2c-portrait active" id="persona-1-core">
+    <div class="identity-card">
+      <div class="persona-illust-placeholder">聆</div>
+      <div>
+        <h1 class="persona-name-anchor">品质聆听者</h1>
+        <p class="persona-subtitle">为放松、助眠、沉思而追求 Hi-res 的中高知音乐爱好者</p>
+      </div>
+      <div class="meta-tags-list">
+        <div class="meta-tag-card"><span class="meta-tag-label">年龄段</span><span class="meta-tag-value">25-55 岁,跨度大</span></div>
+        <div class="meta-tag-card"><span class="meta-tag-label">职业</span><span class="meta-tag-value">医生 / 商务 / 学生</span></div>
+        <div class="meta-tag-card"><span class="meta-tag-label">月收入</span><span class="meta-tag-value">3K - 5W+ 分层</span></div>
+        <div class="meta-tag-card"><span class="meta-tag-label">日均听</span><span class="meta-tag-value">睡前 1 小时</span></div>
+      </div>
+    </div>
+
+    <div class="persona-quote-pull" data-evidence="&quot;音乐在自己的生活中是倾听者的角色,并不是我去倾听音乐表达的含义,反而是音乐作为倾听者来倾听我的内心,我的心情和感受,有一种情感和灵魂的共鸣的感觉&quot;
+— U1 黄捷">
+      音乐作为倾听者来倾听我的内心,有一种情感和灵魂共鸣的感觉
+      <span class="quote-source">— U1 黄捷(医生 · 50+)</span>
+    </div>
+
+    <div class="section-blocks-grid">
+      <div class="section-block">
+        <div class="section-block-title">核心需求</div>
+        <div class="section-block-summary">音乐不是被听,而是来陪伴生活的安静时刻</div>
+        <div class="section-block-body">关键词:<strong>放松、助眠、沉思、专注</strong>。<strong>5/5 共识</strong>把 Hi-res 当作营造氛围的工具,而非"鉴赏对象"。</div>
+      </div>
+      <div class="section-block">
+        <div class="section-block-title">听歌时刻</div>
+        <div class="section-block-summary">临睡前 1 小时是 5/5 共识场景</div>
+        <div class="section-block-body">通勤、开车、健身房是个人差异化场景。<strong>工作时间不听 Hi-res</strong>,改换流行/古风作背景。</div>
+      </div>
+      <div class="section-block">
+        <div class="section-block-title">内容偏好</div>
+        <div class="section-block-summary">主轴是古典,明确拒绝抖音神曲</div>
+        <div class="section-block-body">梁祝、四季、月光、小提琴/钢琴是主轴;经典流行、欧美、民族是副轴。<strong>"专区要保持自己的特点"(3/5)</strong>。</div>
+      </div>
+      <div class="section-block">
+        <div class="section-block-title">设备生态</div>
+        <div class="section-block-summary">家用音响、出门用耳机,会验证全链路</div>
+        <div class="section-block-body">华为粉用全套华为(SoundX / FreeBuds);跨品牌玩家选索尼降噪、博士、雅马哈。</div>
+      </div>
+      <div class="section-block full-width">
+        <div class="section-block-title">核心痛点</div>
+        <div class="section-block-summary">试听入口太隐蔽是最大共识(5/5)</div>
+        <div class="section-block-body"><strong>试听入口太隐蔽 5/5</strong>(都不知道有免费试听)、<strong>不能下载 2/5</strong>(出差/飞机刚需)、<strong>无 PC 端 2/5</strong>(工作时只能用网易/酷狗)、<strong>资源同步索尼慢、流行曲库有限 3/5</strong>。</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 第 2 页:专题详情(layout-2c-detail) ============ -->
+  <section class="persona-slide layout-2c-detail" id="persona-1-detail">
+
+    <h1 class="l2c-headline">
+      专区内更爱听熟悉的经典,希望增添更多高品质老歌、民族音乐,但不希望被抖音神曲冲淡专区特色
+    </h1>
+
+    <div class="l2c-body">
+
+      <!-- 左侧:产品 mockup(用户提供 PNG 时替换 .mockup-frame 为 <img class="mockup-img">) -->
+      <div>
+        <div class="mockup-list mockup-2">
+          <div class="mockup-item">
+            <div class="mockup-frame">📱<br>Hi-res 现状</div>
+            <div class="mockup-caption">流行榜 / 抖音热单</div>
+          </div>
+          <div class="mockup-item">
+            <div class="mockup-frame">📱<br>期望</div>
+            <div class="mockup-caption">经典精选 / 民族</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧:访谈解读 2-3 段 -->
+      <div>
+
+        <div class="l2c-analysis-section">
+          <div class="l2c-analysis-title">想要的"经典"是什么?</div>
+          <div class="l2c-analysis-body" data-evidence="&quot;我觉得需要一些经典的,因为我觉得抖音神曲那些火起来,他就是一小段时间而已,然后过去了,然后那些歌就不怎么有人听他&quot;
+— U5 张汝">
+            梁祝、四季、月光奏鸣曲这种<strong>经过时间筛选的曲目</strong>;周华健、周传雄的<strong>有年代感的老歌</strong>;还有<strong>中国民族音乐</strong>(梁祝、二泉映月、黄河大合唱)——"我们国家也有很多优美的音乐"。
+          </div>
+        </div>
+
+        <div class="l2c-analysis-section">
+          <div class="l2c-analysis-title">为什么拒绝神曲?</div>
+          <div class="l2c-analysis-body" data-evidence="&quot;Hi-res 是特别的一个专区,要是你把它搞成像华为音乐外面那种大的专区,然后就...没有他的特点了&quot;
+— U3 韦智">
+            <strong>"专区要保持自己的特点"(3/5 共识)</strong>。神曲是快消歌,过几周就没人听;Hi-res 用户为高音质付费,期待的是<strong>反复回味的高品质内容</strong>,不是"什么火什么进来"。
+          </div>
+        </div>
+
+        <div class="l2c-analysis-section">
+          <div class="l2c-analysis-title">改进建议</div>
+          <div class="l2c-analysis-body">
+            <strong>精选机制</strong>:对流行音乐做品质筛选(品质好、传唱度高、不快消),分批进 Hi-res。<strong>不要全集</strong>:同一歌手不需要全部专辑,精选 1-2 张代表作即可。
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 右下角小插画呼应:仅在用户提供 illust_path 文件时渲染 <img class="l2c-corner" src="...">;无图时不渲染。 -->
+
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+      function showTooltip(target) {
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        const blocks = evidence.split('\n\n').map(b => b.trim()).filter(Boolean);
+        const html = blocks.map(block => {
+          const lines = block.split('\n');
+          const text = lines[0] || '';
+          let source = '';
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].startsWith('—') || lines[i].startsWith('-')) { source = lines[i].replace(/^[—-]\s*/, ''); break; }
+          }
+          const safe = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="tip-quote"><div class="tip-text">${safe(text)}</div>${source ? `<div class="tip-source">— ${safe(source)}</div>` : ''}</div>`;
+        }).join('');
+        tooltip.innerHTML = html;
+        tooltip.classList.add('visible');
+        const rect = target.getBoundingClientRect();
+        const tipRect = tooltip.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - tipRect.width / 2;
+        let top = rect.top - tipRect.height - 12;
+        const margin = 8;
+        if (left < margin) left = margin;
+        if (left + tipRect.width > window.innerWidth - margin) left = window.innerWidth - tipRect.width - margin;
+        if (top < margin) top = rect.bottom + 12;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+      function hideTooltip() { tooltip.classList.remove('visible'); }
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target || !target.getAttribute('data-evidence')) return;
+        clearTimeout(hideTimer); showTooltip(target);
+      });
+      document.body.addEventListener('mouseout', function(e) {
+        if (!e.target.closest('[data-evidence]')) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+      document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.nav-btn[data-target]');
+        if (!btn) return;
+        const targetId = btn.getAttribute('data-target');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
+        const slide = document.getElementById(targetId);
+        if (slide) slide.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>

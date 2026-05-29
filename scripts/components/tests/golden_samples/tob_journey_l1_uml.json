@@ -1,0 +1,277 @@
+{
+  "type": "tob_journey_l1",
+  "props": {
+    "banner_title": "2B L1 多角色端到端协同流程",
+    "banner_subtitle": "同一角色的任务按主线箭头阅读。跨角色交接用正交连线表达，判断节点保留是/否分支。",
+    "stages": [
+      {
+        "id": "prepare",
+        "name": "准备",
+        "subStages": [
+          "接需求",
+          "范围对齐",
+          "立项"
+        ]
+      },
+      {
+        "id": "execute",
+        "name": "执行",
+        "subStages": [
+          "招募",
+          "访谈",
+          "同步进度"
+        ]
+      },
+      {
+        "id": "review",
+        "name": "复盘",
+        "subStages": [
+          "归纳",
+          "沉淀",
+          "复用"
+        ]
+      }
+    ],
+    "lanes": [
+      {
+        "id": "l1",
+        "name": "研究员",
+        "tag": "用户洞察"
+      },
+      {
+        "id": "l2",
+        "name": "产品经理",
+        "tag": "方向决策"
+      },
+      {
+        "id": "l3",
+        "name": "设计师",
+        "tag": "体验落地"
+      },
+      {
+        "id": "l4",
+        "name": "团队资产",
+        "tag": "沉淀复用"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "lane": "l1",
+        "stage": "prepare",
+        "type": "start",
+        "label": "接需求与业务方对齐",
+        "slot": 0
+      },
+      {
+        "id": "n2",
+        "lane": "l2",
+        "stage": "prepare",
+        "type": "decision",
+        "label": "范围明确?",
+        "slot": 0
+      },
+      {
+        "id": "n3",
+        "lane": "l2",
+        "stage": "prepare",
+        "type": "action",
+        "label": "接洞察并确认产品边界",
+        "slot": 1
+      },
+      {
+        "id": "n4",
+        "lane": "l1",
+        "stage": "execute",
+        "type": "step",
+        "label": "招募并推进访谈",
+        "slot": 0
+      },
+      {
+        "id": "n5",
+        "lane": "l1",
+        "stage": "review",
+        "type": "step",
+        "label": "归纳画像与关键主题",
+        "slot": 0
+      },
+      {
+        "id": "n6",
+        "lane": "l2",
+        "stage": "review",
+        "type": "action",
+        "label": "制定迭代计划",
+        "slot": 0
+      },
+      {
+        "id": "n7",
+        "lane": "l3",
+        "stage": "review",
+        "type": "action",
+        "label": "对齐开发与评审细节",
+        "slot": 1
+      },
+      {
+        "id": "n8",
+        "lane": "l3",
+        "stage": "review",
+        "type": "decision",
+        "label": "方案可落地?",
+        "slot": 0
+      },
+      {
+        "id": "n9",
+        "lane": "l3",
+        "stage": "prepare",
+        "type": "step",
+        "label": "梳理流程",
+        "slot": 0
+      },
+      {
+        "id": "n10",
+        "lane": "l3",
+        "stage": "execute",
+        "type": "action",
+        "label": "原型走查",
+        "slot": 0
+      },
+      {
+        "id": "n11",
+        "lane": "l4",
+        "stage": "prepare",
+        "type": "doc",
+        "label": "体验地图",
+        "slot": 0
+      },
+      {
+        "id": "n12",
+        "lane": "l4",
+        "stage": "execute",
+        "type": "step",
+        "label": "技术分析",
+        "slot": 0
+      },
+      {
+        "id": "n13",
+        "lane": "l4",
+        "stage": "review",
+        "type": "action",
+        "label": "复盘上线数据",
+        "slot": 0
+      },
+      {
+        "id": "n14",
+        "lane": "l4",
+        "stage": "review",
+        "type": "end",
+        "label": "完成复用",
+        "slot": 1
+      },
+      {
+        "id": "n15",
+        "lane": "l2",
+        "stage": "execute",
+        "type": "action",
+        "slot": 0,
+        "label": "补充任务 15"
+      },
+      {
+        "id": "n16",
+        "lane": "l1",
+        "stage": "prepare",
+        "type": "action",
+        "slot": 1,
+        "label": "补充任务 16"
+      },
+      {
+        "id": "n17",
+        "lane": "l1",
+        "stage": "execute",
+        "type": "action",
+        "slot": 1,
+        "label": "补充任务 17"
+      },
+      {
+        "id": "n18",
+        "lane": "l1",
+        "stage": "review",
+        "type": "action",
+        "slot": 1,
+        "label": "补充任务 18"
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3"
+      },
+      {
+        "from": "n2",
+        "to": "n9",
+        "style": "dashed"
+      },
+      {
+        "from": "n3",
+        "to": "n4"
+      },
+      {
+        "from": "n4",
+        "to": "n5"
+      },
+      {
+        "from": "n5",
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "to": "n5"
+      },
+      {
+        "from": "n6",
+        "to": "n7"
+      },
+      {
+        "from": "n7",
+        "to": "n13"
+      },
+      {
+        "from": "n13",
+        "to": "n14"
+      },
+      {
+        "from": "n13",
+        "to": "n12"
+      },
+      {
+        "from": "n12",
+        "to": "n11"
+      },
+      {
+        "from": "n11",
+        "to": "n9"
+      },
+      {
+        "from": "n9",
+        "to": "n10"
+      },
+      {
+        "from": "n10",
+        "to": "n8"
+      },
+      {
+        "from": "n8",
+        "to": "n6",
+        "style": "dashed"
+      },
+      {
+        "from": "n8",
+        "to": "n7"
+      }
+    ],
+    "note": "这一版按跨职能流程图处理:角色是横向泳道，任务节点按流程连线流转。矩形表示行动，菱形表示判断，波浪底表示文档产物，圆角胶囊表示开始或完成。主线表达顺序，少量分支表达是否继续补充、评审或复盘。"
+  }
+}

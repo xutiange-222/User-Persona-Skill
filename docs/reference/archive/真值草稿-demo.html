@@ -1,0 +1,726 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" data-theme="2b" data-density="high">
+<head>
+<meta charset="UTF-8">
+<title>P8 真值草稿 v5</title>
+<link rel="stylesheet" href="./assets/templates/_design-tokens.css">
+<link rel="stylesheet" href="./assets/templates/_components.css">
+<style>
+body { font-family:'HarmonyOS Sans','PingFang SC',-apple-system,BlinkMacSystemFont,'Microsoft YaHei',sans-serif; background:#f5f5f5; padding:24px; }
+.demo-banner { max-width:1280px; margin:0 auto 24px; padding:16px 24px; background:#1a2a4a; color:#fff; border-radius:8px; font-size:14px; line-height:1.6; }
+.demo-banner h1 { font-size:18px; margin-bottom:8px; }
+.demo-section { max-width:1280px; margin:0 auto 40px; background:white; border-radius:12px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+.demo-section-label { display:inline-block; background:#1a2a4a; color:white; padding:4px 12px; border-radius:4px; font-size:14px; margin-bottom:16px; }
+.demo-note { background:#fff8e7; border-left:3px solid #d4a017; padding:12px 16px; margin:16px 0; font-size:13.5px; color:#555; line-height:1.6; }
+
+/* ===== Layout 4 ===== */
+.demo-nav-area { display:flex; gap:12px; flex-wrap:wrap; padding:16px; background:#fafafa; border-radius:8px; }
+.nav-trio,.nav-pair { display:inline-flex; align-items:stretch; }
+.nav-btn { padding:8px 18px; border:1px solid #c8d2dd; background:white; color:#2c3e50; cursor:pointer; font-family:inherit; font-size:14px; }
+.nav-btn:hover { background:#eaf2fa; color:#1a72b8; }
+.nav-btn.active { background:#1a72b8; color:white; border-color:#1a72b8; }
+.nav-btn.single { border-radius:999px; }
+.nav-pair .nav-btn-persona { border-radius:999px 0 0 999px; padding-right:14px; }
+.nav-pair .nav-btn-journey { border-radius:0 999px 999px 0; border-left:0; padding-left:14px; padding-right:18px; }
+.nav-trio .nav-btn-persona { border-radius:999px 0 0 999px; padding-right:14px; }
+.nav-trio .nav-btn-detail { border-radius:0; border-left:0; padding-left:14px; padding-right:14px; }
+.nav-trio .nav-btn-journey { border-radius:0 999px 999px 0; border-left:0; padding-left:14px; padding-right:18px; }
+
+/* ===== Layout 1 v7:UML 泳道 — 低饱和度专业配色 ===== */
+/* 配色系统:深海军蓝 #1e3a5f(主)+ 雾蓝 #5b85b8(step)+ 灰蓝 #9aabbf(action)
+   + 雾绿 #6fa893(start/end)+ 暖橙 #e8a96b(decision 强调)+ 浅蓝 #7da4c8(doc) */
+.l1-frame { background:#fff; border-radius:8px; overflow:hidden; border:1px solid #dde5ef; position:relative; }
+.l1-flow-title { background:#1e3a5f; color:#fff; text-align:center; padding:11px 18px; font-size:17px; font-weight:600; letter-spacing:0.5px; }
+.l1-flow-subtitle { background:#f7f9fc; color:#62728a; padding:8px 20px; border-bottom:1px solid #dde5ef; font-size:12px; }
+.l1-stage-board { margin:12px 14px 0; border:1px solid #dde5ef; border-bottom:0; overflow:hidden; border-radius:4px 4px 0 0; }
+.l1-row.stage-row .l1-rail-cell.head { border-right:1px solid rgba(255,255,255,0.28); }
+.l1-row { display:grid; grid-template-columns:92px repeat(9, 1fr); align-items:stretch; }
+.l1-rail-cell { background:#1e3a5f; color:white; padding:9px 7px; text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.l1-rail-cell.head { font-weight:600; }
+.l1-row.stage-row { background:#1e3a5f; padding:0; }
+.l1-stage-cell { grid-column:span 3; padding:0; position:relative; }
+.l1-stage-cell:not(:last-of-type)::after { content:""; position:absolute; right:0; top:7px; bottom:7px; width:1px; background:rgba(255,255,255,0.22); }
+.l1-stage-tag { background:#1e3a5f; color:white; padding:9px 14px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:14px; font-weight:600; clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
+.l1-stage-num { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,0.20); display:inline-flex; align-items:center; justify-content:center; font-size:11.5px; }
+.l1-row.substage-row { background:#fff; padding:5px 0; border-top:1px solid #dde5ef; }
+.l1-substage-bar { grid-column:span 3; background:#e3ecf6; color:#2c4a6e; padding:5px 20px 5px 12px; display:flex; align-items:center; justify-content:space-evenly; font-size:12px; line-height:1.3; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); }
+.l1-substage-bar .sep { color:#7299c9; font-weight:600; font-size:13px; line-height:1; }
+.l1-uml-wrap { padding:0 14px 14px; overflow:hidden; background:#fafbfd; }
+.l1-uml-svg { display:block; width:100%; max-width:100%; height:auto; background:#fff; border:1px solid #d4dee9; border-radius:0 0 4px 4px; }
+.l1-lane-bg { fill:#ffffff; }
+.l1-lane-bg.alt { fill:#f4f7fb; }
+.l1-lane-line { stroke:#dde5ef; stroke-width:1; }
+.l1-role-bg { fill:#1e3a5f; }
+.l1-role-text { fill:#fff; font-size:15px; font-weight:700; writing-mode:tb; glyph-orientation-vertical:0; letter-spacing:1px; }
+.l1-role-tag { fill:rgba(255,255,255,0.65); font-size:11px; writing-mode:tb; glyph-orientation-vertical:0; }
+.l1-node rect, .l1-node polygon, .l1-node path { vector-effect:non-scaling-stroke; }
+/* 节点配色:5 级语义化,低饱和度专业风 */
+.l1-step rect { fill:#5b85b8; stroke:#436c98; stroke-width:1.15; rx:3; ry:3; }
+.l1-action rect { fill:#eef2f7; stroke:#9aabbf; stroke-width:1.2; rx:5; ry:5; }   /* 辅助:浅白底+蓝边,圆角更柔 */
+.l1-start rect, .l1-end rect { fill:#6fa893; stroke:#558a78; stroke-width:1.15; }
+.l1-decision polygon { fill:#e8a96b; stroke:#c98948; stroke-width:1.15; }
+.l1-doc path { fill:#dbe7f1; stroke:#7da4c8; stroke-width:1.2; }                  /* 文档:浅蓝白底+蓝边,更柔 */
+.l1-action .l1-node-label { color:#2c4a6e; }                                       /* action 文字深蓝(浅底所以) */
+.l1-doc .l1-node-label { color:#2c4a6e; }                                          /* doc 文字深蓝 */
+.l1-node-label { height:100%; display:flex; align-items:center; justify-content:center; text-align:center; color:#fff; font-size:11.5px; line-height:1.32; font-weight:500; padding:0 7px; box-sizing:border-box; }
+.l1-node-label.small { font-size:10.5px; }
+.l1-doc foreignObject { /* foreignObject 默认尺寸由 SVG 指定;CSS scoped */ }
+.l1-connector { fill:none; stroke:#8a95a3; stroke-width:1.4; marker-end:url(#l1-arrow); vector-effect:non-scaling-stroke; }
+.l1-connector.soft { stroke:#a8b1bf; stroke-dasharray:5 4; }
+.l1-branch-label { fill:#5a6477; font-size:11px; font-weight:700; }
+.l1-note { display:none; }
+/* ===== Layout 2 v5(字号放大 + 行距拉大 + badge 右对齐)===== */
+.l2bd-frame { background:white; border-radius:8px; overflow:hidden; }
+.l2bd-banner { background:#f0f4fa; color:#2c3e50; padding:12px 28px; font-size:15px; border-bottom:1px solid #d4dce8; }
+.l2bd-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto auto; gap:48px 28px; padding:28px; } /* ★ row-gap 48px */
+.l2bd-cell { display:flex; flex-direction:column; }
+.l2bd-cell h3 { font-size:16px; color:#2c3e50; margin-bottom:14px; font-weight:600; }
+.l2bd-cell h3 .ai-mark { color:#9B7BC4; margin-right:4px; }
+
+.scn-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.scn-card { background:#f8f6f0; padding:12px; border-radius:6px; display:flex; flex-direction:column; gap:5px; }
+.scn-card .name { font-weight:600; font-size:14px; color:#2c3e50; } /* ★ 字号上调 */
+.scn-card .desc { font-size:12.5px; color:#5a6478; line-height:1.5; }
+.scn-card .tools { display:flex; gap:5px; flex-wrap:wrap; margin-top:3px; }
+.scn-card .tool { background:#eaf2fa; color:#1a72b8; padding:2px 8px; border-radius:10px; font-size:11.5px; }
+.scn-card.is-ai { background:#f4f0ff; border-left:3px solid #9B7BC4; }
+.scn-card.is-ai .tool { background:#ede5ff; color:#7757b3; }
+
+.pp-list { display:flex; flex-direction:column; gap:10px; }
+/* ★ 用 grid 让 badge 严格右对齐 */
+.pp-item { padding:11px 14px; border-left:3px solid #2589d5; background:#eaf2fa; border-radius:4px; }
+.pp-item .pp-title {
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:10px;
+  font-weight:600; color:#1a4a85; font-size:14.5px;
+}
+.pp-item .pp-badge { background:#1a72b8; color:white; padding:2px 9px; border-radius:10px; font-size:12px; font-weight:normal; justify-self:end; }
+.pp-item .pp-detail { font-size:13px; color:#5a6478; margin-top:6px; line-height:1.55; }
+
+.task-list { display:flex; flex-direction:column; gap:8px; }
+.task-row-l2 { display:grid; grid-template-columns:1fr 70px 1.6fr; padding:10px 12px; background:#f7f9fb; border-radius:4px; align-items:center; gap:10px; }
+.task-row-l2 .t-name { font-weight:600; font-size:14px; color:#2c3e50; }
+.task-row-l2 .t-freq { font-size:12px; color:#1a72b8; background:#eaf2fa; padding:3px 9px; border-radius:10px; text-align:center; }
+.task-row-l2 .t-process { font-size:13px; color:#5a6478; line-height:1.5; }
+
+/* ===== Layout 3 v5(caption 居中 + 字号放大)===== */
+.demo-2c-detail { font-family:'HarmonyOS Sans','PingFang SC',-apple-system,sans-serif; }
+.l2c-frame { background:#fcfaf5; border-radius:12px; padding:48px 64px; position:relative; }
+.l2c-headline { font-size:28px; font-weight:600; color:#2c3e50; margin:20px 0 40px; line-height:1.5; text-align:left; }
+.l2c-body { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; }
+.mockup-1 { display:grid; grid-template-columns:1fr; gap:14px; }
+.mockup-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+/* ★ mockup-item 整体居中:flex column + center;frame 和 caption 都 100% 宽,文字 center */
+.mockup-item { display:flex; flex-direction:column; align-items:center; width:100%; }
+.mockup-frame { width:100%; background:#f0ece0; border:1px solid #e0d8c0; border-radius:8px; aspect-ratio:9/14; display:flex; align-items:center; justify-content:center; color:#b8a878; font-size:13px; flex-direction:column; gap:6px; text-align:center; }
+.mockup-caption { width:100%; margin-top:12px; font-size:13.5px; color:#777; text-align:center; line-height:1.55; padding:0; display:flex; align-items:center; justify-content:center; }
+
+.l2c-analysis-section { margin-bottom:28px; }
+.l2c-analysis-title { font-size:16.5px; font-weight:600; color:#7BA8C9; margin-bottom:10px; }
+.l2c-analysis-title::before { content:"▸ "; }
+.l2c-analysis-body { font-size:15px; color:#3a3a3a; line-height:1.82; }
+.l2c-analysis-body .accent { color:#7BA8C9; font-weight:600; }
+
+.l2c-corner { position:absolute; bottom:32px; right:48px; width:90px; height:90px; border-radius:50%; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.12); display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#9bb4cd 0%,#7ba8c9 100%); color:white; font-size:32px; font-weight:600; }
+
+/* ===== Tooltip 越界示意 ===== */
+.tip-demo-row { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; padding:48px 24px 32px; background:#fafafa; border-radius:8px; }
+.tip-demo-card { background:white; border:1px solid #d8d8d8; border-radius:6px; padding:60px 16px 36px; text-align:center; position:relative; display:flex; flex-direction:column; align-items:center; }
+.tip-demo-card.edge-right { align-items:flex-end; padding-right:16px; }
+.tip-demo-card .trigger { padding:8px 14px; background:#eaf2fa; color:#1a72b8; border-radius:4px; display:inline-block; font-size:13px; }
+.tip-demo-card .tip { position:absolute; bottom:calc(100% - 4px); background:#1a2a4a; color:white; padding:8px 14px; border-radius:6px; font-size:12px; white-space:nowrap; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+.tip-demo-card:hover .tip { opacity:0.95; }
+.tip-demo-card .tip::after { content:""; position:absolute; top:100%; border:6px solid transparent; border-top-color:#1a2a4a; }
+.tip-demo-card .tip { left:50%; transform:translateX(-50%); }
+.tip-demo-card .tip::after { left:50%; transform:translateX(-50%); }
+.tip-demo-card.edge-right .tip { left:auto; right:16px; transform:none; }
+.tip-demo-card.edge-right .tip::after { left:auto; right:32px; transform:none; }
+.tip-demo-card.edge-top .tip { bottom:auto; top:calc(100% + 12px); }
+.tip-demo-card.edge-top .tip::after { top:auto; bottom:100%; border-top-color:transparent; border-bottom-color:#1a2a4a; }
+.tip-label { position:absolute; top:8px; left:12px; font-size:11px; color:#999; background:#fff; padding:2px 6px; border-radius:3px; border:1px solid #e0e0e0; }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  <h1>P8 真值草稿 v5</h1>
+  Layout 1:改为跨职能泳道 UML 流程图,用矩形/菱形/文档节点和正交连线表达多角色协作 ;
+  Layout 2:row-gap 32→48 + 字号整体放大 + badge 严格右对齐(grid 强制) ;
+  Layout 3:caption width:100% + text-align:center + 字号放大。
+</div>
+
+<!-- Layout 4 -->
+<div class="demo-section">
+  <div class="demo-section-label">Layout 4 · nav-trio</div>
+  <div class="demo-nav-area">
+    <div class="nav-trio">
+      <button class="nav-btn nav-btn-persona active">深听场景派</button>
+      <button class="nav-btn nav-btn-detail">› 细节</button>
+      <button class="nav-btn nav-btn-journey">› 旅程</button>
+    </div>
+    <div class="nav-pair">
+      <button class="nav-btn nav-btn-persona">随听场景派</button>
+      <button class="nav-btn nav-btn-journey">› 旅程</button>
+    </div>
+    <button class="nav-btn single">挑歌升级派</button>
+    <div class="nav-trio">
+      <button class="nav-btn nav-btn-persona">权益观望派</button>
+      <button class="nav-btn nav-btn-detail">› 细节</button>
+      <button class="nav-btn nav-btn-journey">› 旅程</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Layout 1 v6 ============ -->
+<div class="demo-section">
+  <div class="demo-section-label">Layout 1 · 2B L1 整体旅程 v6 UML泳道版</div>
+  <div class="l1-frame">
+    <div class="l1-flow-title">2B L1 多角色端到端协同流程</div>
+    <div class="l1-flow-subtitle">同一角色的任务按主线箭头阅读。跨角色交接用正交连线表达，判断节点保留是/否分支。</div>
+
+    <div class="l1-stage-board">
+      <div class="l1-row stage-row">
+        <div class="l1-rail-cell head">阶段</div>
+        <div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">1</span>准备</div></div>
+        <div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">2</span>执行</div></div>
+        <div class="l1-stage-cell"><div class="l1-stage-tag"><span class="l1-stage-num">3</span>复盘</div></div>
+      </div>
+      <div class="l1-row substage-row">
+        <div class="l1-rail-cell head">子阶段</div>
+        <div class="l1-substage-bar"><span>接需求</span><span class="sep">›</span><span>范围对齐</span><span class="sep">›</span><span>立项</span></div>
+        <div class="l1-substage-bar"><span>招募</span><span class="sep">›</span><span>访谈</span><span class="sep">›</span><span>同步进度</span></div>
+        <div class="l1-substage-bar"><span>归纳</span><span class="sep">›</span><span>沉淀</span><span class="sep">›</span><span>复用</span></div>
+      </div>
+    </div>
+    <div class="l1-uml-wrap">
+            <svg class="l1-uml-svg" viewBox="0 48 1180 452" role="img" aria-label="2B L1 多角色泳道流程图">
+        <defs>
+          <marker id="l1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a95a3"></path>
+          </marker>
+        </defs>
+
+        <rect x="0" y="48" width="1180" height="452" fill="#fff"></rect>
+        <rect class="l1-role-bg" x="0" y="48" width="82" height="104"></rect>
+        <rect class="l1-lane-bg" x="82" y="48" width="1098" height="104"></rect>
+        <rect class="l1-role-bg" x="0" y="152" width="82" height="104"></rect>
+        <rect class="l1-lane-bg alt" x="82" y="152" width="1098" height="104"></rect>
+        <rect class="l1-role-bg" x="0" y="256" width="82" height="104"></rect>
+        <rect class="l1-lane-bg" x="82" y="256" width="1098" height="104"></rect>
+        <rect class="l1-role-bg" x="0" y="360" width="82" height="140"></rect>
+        <rect class="l1-lane-bg alt" x="82" y="360" width="1098" height="140"></rect>
+        <line class="l1-lane-line" x1="0" y1="48" x2="1180" y2="48"></line>
+        <line class="l1-lane-line" x1="0" y1="152" x2="1180" y2="152"></line>
+        <line class="l1-lane-line" x1="0" y1="256" x2="1180" y2="256"></line>
+        <line class="l1-lane-line" x1="0" y1="360" x2="1180" y2="360"></line>
+        <line class="l1-lane-line" x1="0" y1="500" x2="1180" y2="500"></line>
+        <line class="l1-lane-line" x1="82" y1="48" x2="82" y2="500"></line>
+
+        <text class="l1-role-text" x="31" y="70">研究员</text>
+        <text class="l1-role-tag" x="54" y="76">用户洞察</text>
+        <text class="l1-role-text" x="31" y="173">产品经理</text>
+        <text class="l1-role-tag" x="54" y="180">方向决策</text>
+        <text class="l1-role-text" x="31" y="282">设计师</text>
+        <text class="l1-role-tag" x="54" y="288">体验落地</text>
+        <text class="l1-role-text" x="31" y="392">团队资产</text>
+        <text class="l1-role-tag" x="54" y="404">沉淀复用</text>
+
+        <path class="l1-connector" d="M 220 90 V 176"></path>
+        <path class="l1-connector" d="M 278 202 H 365"></path>
+        <path class="l1-connector soft" d="M 220 232 V 312 H 340"></path>
+        <path class="l1-connector" d="M 500 202 H 585 V 90 H 630"></path>
+        <path class="l1-connector" d="M 790 90 H 875"></path>
+        <path class="l1-connector" d="M 1015 90 V 176"></path>
+        <path class="l1-connector" d="M 955 202 H 875 V 90"></path>
+        <path class="l1-connector" d="M 1015 232 V 292"></path>
+        <path class="l1-connector" d="M 1015 348 V 398"></path>
+        <path class="l1-connector" d="M 1015 452 V 462"></path>
+        <path class="l1-connector" d="M 950 425 H 750"></path>
+        <path class="l1-connector" d="M 650 425 H 510"></path>
+        <path class="l1-connector" d="M 435 384 V 344"></path>
+        <path class="l1-connector" d="M 445 318 H 600"></path>
+        <path class="l1-connector" d="M 700 318 H 842"></path>
+        <path class="l1-connector soft" d="M 900 286 V 202 H 955"></path>
+        <path class="l1-connector" d="M 958 318 H 990"></path>
+
+        <text class="l1-branch-label" x="292" y="195">否</text>
+        <text class="l1-branch-label" x="206" y="251">是</text>
+        <text class="l1-branch-label" x="912" y="258">否</text>
+        <text class="l1-branch-label" x="1020" y="371">是</text>
+
+        <g class="l1-node l1-start" transform="translate(135 64)">
+          <rect width="170" height="52" rx="26"></rect>
+          <foreignObject width="170" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">接需求与业务方对齐</div></foreignObject>
+        </g>
+        <g class="l1-node l1-decision" transform="translate(162 176)">
+          <polygon points="58,0 116,32 58,64 0,32"></polygon>
+          <foreignObject width="116" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">范围明确?</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(365 174)">
+          <rect width="135" height="56"></rect>
+          <foreignObject width="135" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">接洞察并确认产品边界</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(630 64)">
+          <rect width="160" height="52"></rect>
+          <foreignObject width="160" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">招募并推进访谈</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(875 64)">
+          <rect width="155" height="52"></rect>
+          <foreignObject width="155" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">归纳画像与关键主题</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(955 174)">
+          <rect width="120" height="56"></rect>
+          <foreignObject width="120" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">制定迭代计划</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(990 292)">
+          <rect width="120" height="56"></rect>
+          <foreignObject width="120" height="56"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">对齐开发与评审细节</div></foreignObject>
+        </g>
+        <g class="l1-node l1-decision" transform="translate(842 286)">
+          <polygon points="58,0 116,32 58,64 0,32"></polygon>
+          <foreignObject width="116" height="64"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">方案可落地?</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(340 292)">
+          <rect width="105" height="52"></rect>
+          <foreignObject width="105" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">梳理流程</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(600 292)">
+          <rect width="100" height="52"></rect>
+          <foreignObject width="100" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">原型走查</div></foreignObject>
+        </g>
+        <g class="l1-node l1-doc" transform="translate(360 384)">
+          <path d="M0,0 H150 V40 Q112,52 75,44 Q37,36 0,44 Z"></path>
+          <foreignObject width="150" height="40"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label">体验地图</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(650 399)">
+          <rect width="100" height="52"></rect>
+          <foreignObject width="100" height="52"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">技术分析</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(950 398)">
+          <rect width="130" height="54"></rect>
+          <foreignObject width="130" height="54"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">复盘上线数据</div></foreignObject>
+        </g>
+        <g class="l1-node l1-end" transform="translate(956 462)">
+          <rect width="118" height="36" rx="18"></rect>
+          <foreignObject width="118" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">完成复用</div></foreignObject>
+        </g>
+      </svg>
+    </div>
+
+    <div class="l1-note">
+      这一版按跨职能流程图处理:角色是横向泳道，任务节点按流程连线流转。矩形表示行动，菱形表示判断，波浪底表示文档产物，圆角胶囊表示开始或完成。主线表达顺序，少量分支表达是否继续补充、评审或复盘。
+    </div>
+  </div>
+</div>
+
+<!-- ============ Layout 1 stress test:密集任务场景 ============ -->
+<div class="demo-section">
+  <div class="demo-section-label">Layout 1 stress test · 密集任务场景(4 阶段 × 4 角色,20+ 节点)</div>
+  <div class="l1-frame">
+    <div class="l1-flow-title">产品迭代全流程 — 跨职能密集协同</div>
+    <div class="l1-flow-subtitle">同色蓝调主步骤,暖橙判断节点,雾绿起止,浅白行动 — 压力测试节点 25+ / 连线 18+ 的稳定性</div>
+    <div class="l1-stage-board">
+      <div class="l1-row stage-row" style="grid-template-columns:92px repeat(4, 1fr);">
+        <div class="l1-rail-cell head">阶段</div>
+        <div class="l1-stage-cell" style="grid-column:span 1;"><div class="l1-stage-tag"><span class="l1-stage-num">1</span>发现</div></div>
+        <div class="l1-stage-cell" style="grid-column:span 1;"><div class="l1-stage-tag"><span class="l1-stage-num">2</span>规划</div></div>
+        <div class="l1-stage-cell" style="grid-column:span 1;"><div class="l1-stage-tag"><span class="l1-stage-num">3</span>开发</div></div>
+        <div class="l1-stage-cell" style="grid-column:span 1;"><div class="l1-stage-tag"><span class="l1-stage-num">4</span>上线</div></div>
+      </div>
+      <div class="l1-row substage-row" style="grid-template-columns:92px repeat(4, 1fr);">
+        <div class="l1-rail-cell head">子阶段</div>
+        <div class="l1-substage-bar" style="grid-column:span 1;"><span>立项</span><span class="sep">›</span><span>访谈</span><span class="sep">›</span><span>归纳</span></div>
+        <div class="l1-substage-bar" style="grid-column:span 1;"><span>评估</span><span class="sep">›</span><span>拆分</span><span class="sep">›</span><span>排期</span></div>
+        <div class="l1-substage-bar" style="grid-column:span 1;"><span>编码</span><span class="sep">›</span><span>联调</span><span class="sep">›</span><span>自测</span></div>
+        <div class="l1-substage-bar" style="grid-column:span 1;"><span>发布</span><span class="sep">›</span><span>监控</span><span class="sep">›</span><span>复盘</span></div>
+      </div>
+    </div>
+    <div class="l1-uml-wrap">
+      <svg class="l1-uml-svg" viewBox="0 0 1180 480" role="img" aria-label="密集流程压力测试">
+        <defs>
+          <marker id="l1-arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a95a3"/>
+          </marker>
+        </defs>
+        <!-- 泳道背景 -->
+        <rect x="0" y="0" width="1180" height="480" fill="#fff"/>
+        <rect class="l1-role-bg" x="0" y="0" width="82" height="120"/>
+        <rect class="l1-lane-bg" x="82" y="0" width="1098" height="120"/>
+        <rect class="l1-role-bg" x="0" y="120" width="82" height="120"/>
+        <rect class="l1-lane-bg alt" x="82" y="120" width="1098" height="120"/>
+        <rect class="l1-role-bg" x="0" y="240" width="82" height="120"/>
+        <rect class="l1-lane-bg" x="82" y="240" width="1098" height="120"/>
+        <rect class="l1-role-bg" x="0" y="360" width="82" height="120"/>
+        <rect class="l1-lane-bg alt" x="82" y="360" width="1098" height="120"/>
+        <!-- 泳道分割线 -->
+        <line class="l1-lane-line" x1="0" y1="0" x2="1180" y2="0"/>
+        <line class="l1-lane-line" x1="0" y1="120" x2="1180" y2="120"/>
+        <line class="l1-lane-line" x1="0" y1="240" x2="1180" y2="240"/>
+        <line class="l1-lane-line" x1="0" y1="360" x2="1180" y2="360"/>
+        <line class="l1-lane-line" x1="0" y1="480" x2="1180" y2="480"/>
+        <line class="l1-lane-line" x1="82" y1="0" x2="82" y2="480"/>
+        <!-- 阶段分隔垂直虚线 -->
+        <line class="l1-lane-line" x1="356" y1="0" x2="356" y2="480" stroke-dasharray="3 3"/>
+        <line class="l1-lane-line" x1="630" y1="0" x2="630" y2="480" stroke-dasharray="3 3"/>
+        <line class="l1-lane-line" x1="904" y1="0" x2="904" y2="480" stroke-dasharray="3 3"/>
+
+        <!-- 角色名 -->
+        <text class="l1-role-text" x="31" y="22">研究员</text>
+        <text class="l1-role-tag" x="54" y="28">用户洞察</text>
+        <text class="l1-role-text" x="31" y="142">产品经理</text>
+        <text class="l1-role-tag" x="54" y="148">方向决策</text>
+        <text class="l1-role-text" x="31" y="262">设计师</text>
+        <text class="l1-role-tag" x="54" y="268">体验落地</text>
+        <text class="l1-role-text" x="31" y="382">前端</text>
+        <text class="l1-role-tag" x="54" y="388">技术实现</text>
+
+        <!-- ===== 连线(共 20 条:同行主线 + 跨行交接 + decision 分支) ===== -->
+        <!-- 研究员行 -->
+        <path class="l1-connector" d="M 200 50 H 260" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 370 50 H 420" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 530 50 H 690" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 800 50 H 970" marker-end="url(#l1-arrow2)"/>
+        <text class="l1-branch-label" x="580" y="42">是</text>
+        <path class="l1-connector soft" d="M 475 75 V 158" marker-end="url(#l1-arrow2)"/>
+        <text class="l1-branch-label" x="481" y="100">否</text>
+
+        <!-- 研究员 → PM 交接 -->
+        <path class="l1-connector" d="M 140 75 V 158" marker-end="url(#l1-arrow2)"/>
+
+        <!-- PM 行 -->
+        <path class="l1-connector" d="M 215 170 H 405" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 540 170 H 580" marker-end="url(#l1-arrow2)"/>
+        <text class="l1-branch-label" x="552" y="162">是</text>
+        <path class="l1-connector" d="M 700 170 H 770" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 870 170 H 1010" marker-end="url(#l1-arrow2)"/>
+
+        <!-- PM → 设计师 交接 -->
+        <path class="l1-connector" d="M 640 195 V 278" marker-end="url(#l1-arrow2)"/>
+
+        <!-- 设计师行 -->
+        <path class="l1-connector" d="M 470 290 H 540" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 650 290 H 690" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 790 290 H 820" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 920 290 H 1010" marker-end="url(#l1-arrow2)"/>
+
+        <!-- 设计师 → 前端 交接 -->
+        <path class="l1-connector" d="M 740 315 V 398" marker-end="url(#l1-arrow2)"/>
+
+        <!-- 前端行 -->
+        <path class="l1-connector" d="M 470 410 H 540" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 650 410 H 715" marker-end="url(#l1-arrow2)"/>
+        <path class="l1-connector" d="M 825 410 H 860" marker-end="url(#l1-arrow2)"/>
+        <text class="l1-branch-label" x="832" y="402">是</text>
+        <path class="l1-connector soft" d="M 770 437 H 690 V 410" marker-end="url(#l1-arrow2)"/>
+        <text class="l1-branch-label" x="708" y="432">否</text>
+        <path class="l1-connector" d="M 940 410 H 1010" marker-end="url(#l1-arrow2)"/>
+
+        <!-- ===== 节点 ===== -->
+        <!-- 研究员 lane (y center=50, height=36) -->
+        <g class="l1-node l1-start" transform="translate(100 32)">
+          <rect width="100" height="36" rx="18"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">接需求</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(260 32)">
+          <rect width="110" height="36"/>
+          <foreignObject width="110" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">招募访谈</div></foreignObject>
+        </g>
+        <g class="l1-node l1-decision" transform="translate(420 20)">
+          <polygon points="55,0 110,30 55,60 0,30"/>
+          <foreignObject width="110" height="60"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">假设验证?</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(690 32)">
+          <rect width="110" height="36"/>
+          <foreignObject width="110" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">跟踪走查</div></foreignObject>
+        </g>
+        <g class="l1-node l1-end" transform="translate(970 32)">
+          <rect width="100" height="36" rx="18"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">上线 NPS</div></foreignObject>
+        </g>
+
+        <!-- PM lane (y center=170) -->
+        <g class="l1-node l1-action" transform="translate(105 152)">
+          <rect width="110" height="36"/>
+          <foreignObject width="110" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">业务对齐</div></foreignObject>
+        </g>
+        <g class="l1-node l1-decision" transform="translate(405 140)">
+          <polygon points="65,0 130,30 65,60 0,30"/>
+          <foreignObject width="130" height="60"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">方向可行?</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(580 152)">
+          <rect width="120" height="36"/>
+          <foreignObject width="120" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">制定迭代计划</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(770 152)">
+          <rect width="100" height="36"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">推进开发</div></foreignObject>
+        </g>
+        <g class="l1-node l1-doc" transform="translate(1010 152)">
+          <path d="M0,0 H110 V32 Q82,42 55,36 Q27,30 0,36 Z"/>
+          <foreignObject width="110" height="32"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">复盘报告</div></foreignObject>
+        </g>
+
+        <!-- 设计师 lane (y center=290) -->
+        <g class="l1-node l1-step" transform="translate(370 272)">
+          <rect width="100" height="36"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">梳理流程</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(540 272)">
+          <rect width="110" height="36"/>
+          <foreignObject width="110" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">出原型</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(690 272)">
+          <rect width="100" height="36"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">高保真</div></foreignObject>
+        </g>
+        <g class="l1-node l1-action" transform="translate(820 272)">
+          <rect width="100" height="36"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">评审切图</div></foreignObject>
+        </g>
+        <g class="l1-node l1-doc" transform="translate(1010 272)">
+          <path d="M0,0 H110 V32 Q82,42 55,36 Q27,30 0,36 Z"/>
+          <foreignObject width="110" height="32"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">体验复盘</div></foreignObject>
+        </g>
+
+        <!-- 前端 lane (y center=410) -->
+        <g class="l1-node l1-action" transform="translate(370 392)">
+          <rect width="100" height="36"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">评估技术</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(540 392)">
+          <rect width="110" height="36"/>
+          <foreignObject width="110" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">搭骨架</div></foreignObject>
+        </g>
+        <g class="l1-node l1-decision" transform="translate(715 380)">
+          <polygon points="55,0 110,30 55,60 0,30"/>
+          <foreignObject width="110" height="60"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">联调通过?</div></foreignObject>
+        </g>
+        <g class="l1-node l1-step" transform="translate(860 392)">
+          <rect width="80" height="36"/>
+          <foreignObject width="80" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">修 Bug</div></foreignObject>
+        </g>
+        <g class="l1-node l1-end" transform="translate(1010 392)">
+          <rect width="100" height="36" rx="18"/>
+          <foreignObject width="100" height="36"><div xmlns="http://www.w3.org/1999/xhtml" class="l1-node-label small">发布</div></foreignObject>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="demo-note">
+    <strong>stress test 数据:</strong>
+    <br>· <strong>20 个节点</strong>(5 个 step + 5 个 action + 2 个 start/end + 3 个 decision + 2 个 doc + 3 个 step)
+    <br>· <strong>20 条连线</strong>(15 条同行主线 + 5 条跨行交接 + 3 条 decision yes/no 分支 + 1 条 "否" 回流虚线)
+    <br>· <strong>4 阶段 × 4 角色</strong>(研究员 / PM / 设计师 / 前端)
+    <br>· 每个 lane 4-5 个节点,**典型密集业务场景**
+    <br><br>
+    <strong>预期能观察:</strong>密集情况下,看节点 / 连线 / 文字是否还能稳定不溢出 / 不错位 / 不被遮挡。如果还稳,就证明 UML 方案能 hold 真实复杂场景。
+  </div>
+</div>
+<!-- v7 备注:被 v6.3 demo-note 替换,下方原 demo-note 内容废弃 -->
+<div style="display:none">
+  <div class="demo-note">
+    <strong>v6.3 箭头方案 — 从根上重新设计:不用 SVG overlay,完全 CSS Grid 内嵌</strong>
+    <br><br>
+    <strong>产品需求(你说的):</strong>表达"同一用户角色"的从左到右、从上到下顺序。
+    <strong>不</strong>跨角色折线(SVG overlay 必飘,放弃)。
+    <br><br>
+    <strong>3 种箭头机制,都"长在 grid cell 里"跟着 grid 走,永远不飘:</strong>
+    <br>① <strong>相邻 task→task</strong>:cell 加 <code>.has-right-arrow</code>,CSS <code>::after</code> 在 cell 右边缘画 → 短箭头
+    <br>② <strong>跨空 cell 的长拉</strong>:空 cell 直接换成 <code>&lt;div class="l1-arrow-line"&gt;</code>(可加 <code>.span-2</code> / <code>.span-3</code> 占多列),内部 flex 撑满画长横线 + 三角
+    <br>③ <strong>同 cell 内多 task</strong>:CSS <code>.l1-task + .l1-task</code> 自动在第二个 task 上方画 ↓ 短箭头
+    <br><br>
+    <strong>真实场景已演示(去仔细数 ↓):</strong>
+    <br>· 研究员行 6 个相邻 → + 1 个 col7→col9 跨空 col8 长拉 + col2 范围对齐↓背景调研
+    <br>· PM 行 col1→col4 跨 col2/col3 双空长拉(<code>.span-2</code>!) + 3 个相邻 → + col7→col9 长拉 + col5 制定迭代↓分sprint
+    <br>· 设计师 col2 → col3 相邻 + col3→col5 跨空 col4 长拉 + col5 内 ↓ + col5 → col6 相邻 + col6→col8 跨空 col7 长拉 + col8 → col9 相邻
+    <br><br>
+    <strong>为什么这次稳定:</strong>
+    <br>· 每个箭头都"长"在它该在的 grid cell 里(::after 或独立 div),跟着 grid 走
+    <br>· 不依赖跨容器坐标计算,不依赖 viewBox 缩放
+    <br>· cell 移动,箭头自动跟着移动
+    <br>· **永远不会飘、不会错位、不会被遮挡**
+    <br><br>
+    <strong>跨角色协作怎么表达?</strong>不在 L1 全景画箭头(避免飘),改在 L2 单角色页面用 task 卡内文字角标(如"接自研究员")表达。L1 干净清爽,只有同角色顺序。
+    <br><br>
+    <strong>其它已修复:</strong>① stage 间白色细分割线;② 子阶段 space-evenly;③ substage-row 去黄色
+  </div>
+</div>
+
+<!-- 在 Layout 1 task "归纳画像" 也加一个 hover 触发 tooltip 的真实示意 -->
+<div class="demo-section">
+  <div class="demo-section-label">真实 task hover Tooltip 示意</div>
+  <p style="font-size:13.5px; color:#555; margin-bottom:16px; line-height:1.6;">
+    把鼠标移到下面 task 卡片上,演示 <code>_base.html</code> 内置 tooltip 行为(本 demo 用纯 CSS hover 模拟)。
+  </p>
+  <div style="padding:60px 24px; background:#faf6e6; border-radius:8px; display:flex; gap:80px; justify-content:center;">
+    <div class="tip-demo-card" style="padding:0; background:transparent; border:0;">
+      <div class="tip" style="bottom:calc(100% + 8px);">"我们更多的是交付导向,缺少产品路线图。" — 李女士(Scrum Master)</div>
+      <div class="trigger" style="background:white; border:1px solid #d8dde8; padding:8px 12px;">
+        <strong style="font-size:12px; color:#1a2a4a;">归纳画像</strong>
+        <div style="font-size:10.5px; color:#8a8f9c; margin-top:2px;">提炼共性主题</div>
+      </div>
+    </div>
+    <div class="tip-demo-card" style="padding:0; background:transparent; border:0;">
+      <div class="tip" style="bottom:calc(100% + 8px);">"用户场景很多,但能落地的就那几个。" — 王先生(产品总监)</div>
+      <div class="trigger" style="background:white; border:1px solid #d8dde8; padding:8px 12px;">
+        <strong style="font-size:12px; color:#1a2a4a;">评估方向</strong>
+        <div style="font-size:10.5px; color:#8a8f9c; margin-top:2px;">调整产品策略</div>
+      </div>
+    </div>
+    <div class="tip-demo-card" style="padding:0; background:transparent; border:0;">
+      <div class="tip" style="bottom:calc(100% + 8px);">"测试规范是基础,但每个项目都要重新对齐。" — 洪经理(测试经理)</div>
+      <div class="trigger" style="background:white; border:1px solid #d8dde8; padding:8px 12px;">
+        <strong style="font-size:12px; color:#1a2a4a;">推进开发</strong>
+        <div style="font-size:10.5px; color:#8a8f9c; margin-top:2px;">每日跟进风险</div>
+      </div>
+    </div>
+  </div>
+  <div class="demo-note">
+    <strong>真实报告中:</strong>每个有 <code>data-evidence</code> 属性的元素 hover 时,_base.html 内置 JS 解析 evidence 内容,定位在 trigger 上方,显示包含多条原话+脱敏来源的气泡。本 demo 用 CSS :hover 模拟,实际位置 + 反向 + 视口检测全由 JS 处理。
+  </div>
+</div>
+
+<!-- ============ Layout 2 v5 ============ -->
+<div class="demo-section">
+  <div class="demo-section-label">Layout 2 · 2B 双页第二页 v5(字号↑ + 行距↑ + badge 右对齐)</div>
+  <div class="l2bd-frame">
+    <div class="l2bd-banner">📋 研究员 · 工作细节</div>
+    <div class="l2bd-grid">
+      <div class="l2bd-cell">
+        <h3>典型业务场景</h3>
+        <div class="scn-grid">
+          <div class="scn-card"><div class="name">需求评估</div><div class="desc">快速判断研究价值</div><div class="tools"><span class="tool">需求文档</span><span class="tool">访谈记录</span></div></div>
+          <div class="scn-card"><div class="name">访谈推进</div><div class="desc">2-3 周连续访谈</div><div class="tools"><span class="tool">腾讯会议</span><span class="tool">飞书</span></div></div>
+          <div class="scn-card"><div class="name">报告交付</div><div class="desc">归纳画像后输出</div><div class="tools"><span class="tool">Figma</span><span class="tool">PPT</span></div></div>
+        </div>
+      </div>
+      <div class="l2bd-cell">
+        <h3><span class="ai-mark">✨</span>AI 辅助场景</h3>
+        <div class="scn-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="scn-card is-ai"><div class="name">访谈转录</div><div class="desc">语音转结构化文本</div><div class="tools"><span class="tool">通义听悟</span></div></div>
+          <div class="scn-card is-ai"><div class="name">报告归纳</div><div class="desc">跨文档抽共性主题</div><div class="tools"><span class="tool">Claude</span></div></div>
+        </div>
+      </div>
+      <div class="l2bd-cell">
+        <h3>核心痛点</h3>
+        <div class="pp-list">
+          <div class="pp-item"><div class="pp-title"><span>研究价值难量化</span><span class="pp-badge">3/5</span></div><div class="pp-detail">业务方质疑投入产出比,缺可量化指标</div></div>
+          <div class="pp-item"><div class="pp-title"><span>招募周期长</span><span class="pp-badge">4/5</span></div><div class="pp-detail">用户分布散,平均招满 8 人要 1.5 周</div></div>
+          <div class="pp-item"><div class="pp-title"><span>结论落地难</span><span class="pp-badge">5/5</span></div><div class="pp-detail">报告发完缺跟踪,洞察 6 个月后无人记得</div></div>
+        </div>
+      </div>
+      <div class="l2bd-cell">
+        <h3>高频任务</h3>
+        <div class="task-list">
+          <div class="task-row-l2"><div class="t-name">用户访谈</div><div class="t-freq">每周</div><div class="t-process">1v1 深访 60-90 分钟,录音转文字</div></div>
+          <div class="task-row-l2"><div class="t-name">数据整理</div><div class="t-freq">每周</div><div class="t-process">归纳访谈记录,提炼共性主题</div></div>
+          <div class="task-row-l2"><div class="t-name">报告输出</div><div class="t-freq">每月</div><div class="t-process">画像/旅程/洞察报告</div></div>
+          <div class="task-row-l2"><div class="t-name">复盘评审</div><div class="t-freq">季度</div><div class="t-process">看落地数据调整方向</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-note">
+    <strong>响应:</strong>
+    <br>① row-gap 32 → **48px**(纵向间距明显拉大)
+    <br>② badge 用 `grid-template-columns:1fr auto` + `justify-self:end`,**严格右对齐**(不管标题长短)
+    <br>③ 字号整体放大:卡片 name 12.5→14、desc 11.5→12.5、痛点 title 13→14.5、痛点 detail 12→13、任务 name 12.5→14
+  </div>
+</div>
+
+<!-- ============ Layout 3 v5 ============ -->
+<div class="demo-section demo-2c-detail">
+  <div class="demo-section-label">Layout 3 · 2C 双页第二页 v5(caption 真正居中 + 字号↑)</div>
+  <div class="l2c-frame">
+    <h1 class="l2c-headline">深听场景派对 HiRes 的核心期待:<br>不是更清晰的音源,而是更值得的"听"</h1>
+    <div class="l2c-body">
+      <div>
+        <div class="mockup-2">
+          <div class="mockup-item">
+            <div class="mockup-frame">📱<br>专区首页</div>
+            <div class="mockup-caption">HiRes 专区常用入口</div>
+          </div>
+          <div class="mockup-item">
+            <div class="mockup-frame">📱<br>曲目详情</div>
+            <div class="mockup-caption">曲目解读和场景化推荐入口</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="l2c-analysis-section">
+          <div class="l2c-analysis-title">使用动机</div>
+          <div class="l2c-analysis-body">深听场景派打开 HiRes 不是为了"听清楚",而是为了<span class="accent">进入沉浸状态</span>。他们常在睡前、阅读、独处等场景使用,把音乐当作<span class="accent">精神陪伴</span>。音质提升只是入门门票,他们更在意曲目的故事性和编排的层次感。</div>
+        </div>
+        <div class="l2c-analysis-section">
+          <div class="l2c-analysis-title">核心期待</div>
+          <div class="l2c-analysis-body">希望专区在保持高品质的同时,<span class="accent">补充曲目的解读和场景化推荐</span>。他们不需要更多曲目数量,而需要"为什么这首值得听"的入口——<span class="accent">中文曲名</span>、<span class="accent">作曲背景</span>、当代演绎者的解读。</div>
+        </div>
+      </div>
+    </div>
+    <div class="l2c-corner">深</div>
+  </div>
+
+  <div class="demo-note">
+    <strong>响应:</strong>
+    <br>① caption `width:100%` + `text-align:center`,去 min-height / flex(可能导致视觉错位),纯净 text-align 居中
+    <br>② 字号放大:headline 26→28、analysis title 15→16.5、analysis body 14→15、caption 12→13.5
+  </div>
+</div>
+
+<!-- ============ Tooltip 越界示意 ============ -->
+<div class="demo-section">
+  <div class="demo-section-label">Tooltip · hover 用户原声气泡(viewport-aware,不超界)</div>
+  <p style="font-size:13.5px; color:#555; margin-bottom:16px; line-height:1.6;">
+    真实报告里 tooltip 由 <code style="background:#eef; padding:1px 5px; border-radius:3px;">_base.html</code> 内置 JS 控制,
+    用 <code style="background:#eef; padding:1px 5px; border-radius:3px;">position:fixed</code> +
+    <code style="background:#eef; padding:1px 5px; border-radius:3px;">z-index:9999</code>。
+    JS 检测 viewport 边缘,trigger 在不同位置时 tooltip 自动反向/偏移,**永远在 viewport 内可见**。下面三种情况示意:
+  </p>
+  <div class="tip-demo-row">
+    <div class="tip-demo-card">
+      <span class="tip-label">case 1:正常</span>
+      <div class="tip">tip 在 trigger 上方,水平居中</div>
+      <div class="trigger">hover 我(中间)</div>
+    </div>
+    <div class="tip-demo-card edge-right">
+      <span class="tip-label">case 2:贴右边缘</span>
+      <div class="tip">tip 右边贴 viewport,不超出</div>
+      <div class="trigger">hover 我(贴右边)</div>
+    </div>
+    <div class="tip-demo-card edge-top">
+      <span class="tip-label">case 3:贴顶</span>
+      <div class="trigger">hover 我(贴顶)</div>
+      <div class="tip">tip 翻到下方</div>
+    </div>
+  </div>
+  <div class="demo-note">
+    <strong>已实现机制(_base.html 第 264-280 行 JS):</strong>
+    <br>① <code>left + width > viewport.width - margin</code> → tooltip 右边贴 viewport 右边
+    <br>② <code>left < margin</code> → tooltip 左边贴 margin
+    <br>③ <code>top < margin</code>(上方空间不够) → 翻到 trigger 下方
+    <br><br>
+    <strong>为什么不会被组件容器裁切:</strong>tooltip 是 <code>position:fixed</code>,**脱离任何父容器的 overflow:hidden 限制**,直接挂在 body 上。
+    <br><br>
+    <strong>之前 gallery v1 看到超界的原因:</strong>gallery 模板没引入 _base.html 的 tooltip JS,fallback 走到 CSS-only `:hover::after` 伪元素,这个伪元素是被 `.gallery-render` 的 `overflow:hidden` 裁了 —— **真实 report.html 不会**。
+    <br><br>
+    <strong>Codex B 阶段做对的事:</strong>新 gallery 模板要把 _base.html 的 tooltip JS 完整引入,确保 hover 行为跟真实报告一致。
+  </div>
+</div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

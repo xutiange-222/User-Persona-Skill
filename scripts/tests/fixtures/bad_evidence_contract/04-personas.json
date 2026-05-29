@@ -1,0 +1,20 @@
+{
+  "version": "v8",
+  "personas": [
+    {
+      "name": "错误画像",
+      "description": "证据数量不一致。",
+      "pain_points": [
+        {
+          "title": "证据缺失",
+          "detail": "只给了一条原话。",
+          "mention_count": 2,
+          "mentioned_by": ["张老师", "李老师"],
+          "evidence_quotes": [
+            {"source": "张老师", "quote": "我遇到过这个问题。"}
+          ]
+        }
+      ]
+    }
+  ]
+}

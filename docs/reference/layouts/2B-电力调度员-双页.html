@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<!--
+  电力调度员双页样板 (P2-A)
+  ------------------------------------------------------------
+  目的:把 v2.html 的单页内容按"画像核心 vs 工作细节"拆成两页,
+        验证 P2 双页布局的视觉效果。
+  ------------------------------------------------------------
+  第 1 页:身份卡完整版 + 工作职责 + 上下游协同 + 核心痛点
+  第 2 页:身份卡精简版 + 业务系统 + AI 辅助系统 + 决策信息源
+  ------------------------------------------------------------
+  CSS 复用 layouts 目录的副本(已与 skill 源码同步)。
+-->
+<html lang="zh-CN" data-theme="2b" data-density="high">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电力调度员用户画像 — 双页样板</title>
+  <link rel="stylesheet" href="_design-tokens.css">
+  <link rel="stylesheet" href="_components.css">
+
+  <style>
+    /* ============ _base 自己的样式(全局布局 + 共享外壳) ============ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-7);
+    }
+
+    .report-meta-bar {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 var(--space-3);
+      color: var(--color-text-secondary);
+      font-size: var(--text-lg);
+    }
+
+    .report-meta-title {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-semibold);
+      color: var(--color-text-primary);
+    }
+
+    .report-meta-info {
+      font-size: var(--text-lg);
+      color: var(--color-text-secondary);
+    }
+
+    .persona-nav {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: var(--space-2) var(--space-7);
+      font-size: var(--text-lg);
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-bg-card);
+      color: var(--color-text-primary);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-primary-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    .nav-btn.active {
+      background: var(--color-accent);
+      color: var(--color-text-inverse);
+      border-color: var(--color-accent);
+    }
+
+    .persona-slide {
+      width: 100%;
+      max-width: var(--canvas-max-w);
+      aspect-ratio: var(--canvas-aspect);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      background: var(--color-bg-canvas-right);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .persona-slide:not(.active) {
+      display: none;
+    }
+
+    /* ============ 全局 Tooltip ============ */
+    [data-evidence]:not([data-evidence=""]) {
+      cursor: help;
+    }
+
+    #global-tooltip {
+      position: fixed;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      line-height: var(--leading-relaxed);
+      max-width: 380px;
+      z-index: 9999;
+      box-shadow: var(--shadow-tooltip);
+      pointer-events: none;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+
+    #global-tooltip.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    #global-tooltip .tip-quote {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    #global-tooltip .tip-quote:last-child { border-bottom: none; }
+    #global-tooltip .tip-quote:first-child { padding-top: 0; }
+
+    #global-tooltip .tip-text {
+      color: var(--tooltip-text);
+      font-style: italic;
+    }
+
+    #global-tooltip .tip-source {
+      color: var(--tooltip-source);
+      font-size: var(--text-sm);
+      margin-top: var(--space-1);
+    }
+
+    #global-tooltip::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--tooltip-bg);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="global-tooltip"></div>
+
+  <div class="report-meta-bar">
+    <div class="report-meta-title">电力调度员用户画像 — AI 辅助决策需求研究</div>
+    <div class="report-meta-info">1 个画像 · 双页呈现 · 来源 5 份访谈 · 2026-05-17</div>
+  </div>
+
+  <div class="persona-nav">
+    <button class="nav-btn active" data-target="page-1">画像核心</button>
+    <button class="nav-btn" data-target="page-2">工作细节</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 第 1 页:画像核心(身份卡完整版 + 职责 + 协同 + 痛点)         -->
+  <!-- ============================================================ -->
+  <section class="persona-slide layout-2b-grid active" id="page-1">
+    <div class="identity-panel">
+      <div class="avatar-wrap">
+        <div class="persona-avatar placeholder">电</div>
+      </div>
+      <div class="identity-name">
+        <div class="name-line">电力调度员</div>
+      </div>
+      <div class="identity-desc">
+        横跨发电企业、省调、区县调三层调度生态的电力调度从业者,长期被多系统割裂、故障定位粗、经验沉淀难三大问题困扰,期待 AI 做辅助而非替代
+      </div>
+      <div class="identity-meta">
+        <div class="meta-row">
+          <div class="meta-label">部门</div>
+          <div class="meta-value">国网体系(省调/区县调)/ 发电企业 / 新能源投资公司</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">岗位</div>
+          <div class="meta-value">电力调度员 / 电站运维</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">工作<br>年限</div>
+          <div class="meta-value">1 年到资深均有,跨度大</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">背景</div>
+          <div class="meta-value">横跨「发电企业侧 → 调度方 → 新能源投资方」三类视角,工作集中在并网调度协同、设备故障处置、电网平衡、消纳分配、负荷转供等核心场景。</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">知识<br>结构</div>
+          <div class="meta-value">电网四遥、AGC/AVC、孤岛保护、调度五级体系、调度主监控(D5000/Open3000/SCADA)、故障录波、保护信息子站、OMS、接线图(纸质+CAD+电子)</div>
+        </div>
+      </div>
+      <div class="one-sentence-need">
+        <div class="osn-text">AI 还是做一个在辅助的层级上,它可以进一步,但是最终的决策应该还是在这个用户上</div>
+        <div class="osn-source">— 邓老师</div>
+      </div>
+    </div>
+
+    <div class="modules-panel">
+      <!-- 工作职责 -->
+      <div class="grid-module" style="grid-column: 1 / 7; grid-row: 1 / 2;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="5" height="5" rx="1" fill="white"/>
+              <rect x="9" y="2" width="5" height="5" rx="1" fill="white"/>
+              <rect x="2" y="9" width="5" height="5" rx="1" fill="white"/>
+              <rect x="9" y="9" width="5" height="5" rx="1" fill="white"/>
+            </svg>
+          </span>工作职责
+        </div>
+        <div class="module-body">
+          <div class="resp-rings">
+            <div class="ring-item" data-evidence="">
+              <svg class="ring-svg" viewBox="0 0 64 64">
+                <circle class="ring-track" cx="32" cy="32" r="24"/>
+                <circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="98.0"/>
+                <text class="ring-pct" x="32" y="38" text-anchor="middle">35%</text>
+              </svg>
+              <div class="ring-label">故障处置(告警识别 → 定位 → 隔离 → 恢复 → 上报)</div>
+            </div>
+            <div class="ring-item" data-evidence="">
+              <svg class="ring-svg" viewBox="0 0 64 64">
+                <circle class="ring-track" cx="32" cy="32" r="24"/>
+                <circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="98.0"/>
+                <text class="ring-pct" x="32" y="38" text-anchor="middle">35%</text>
+              </svg>
+              <div class="ring-label">调度协同(响应/下发指令、跨方报备、调令录音回令)</div>
+            </div>
+            <div class="ring-item" data-evidence="">
+              <svg class="ring-svg" viewBox="0 0 64 64">
+                <circle class="ring-track" cx="32" cy="32" r="24"/>
+                <circle class="ring-fill" cx="32" cy="32" r="24" stroke-dasharray="150.8" stroke-dashoffset="105.6"/>
+                <text class="ring-pct" x="32" y="38" text-anchor="middle">30%</text>
+              </svg>
+              <div class="ring-label">电网平衡/消纳/负荷转供(实时调度+日内 1-2 小时级管控)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 上下游协同 -->
+      <div class="grid-module" style="grid-column: 7 / 13; grid-row: 1 / 2;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="3" cy="8" r="1.5" fill="white"/>
+              <circle cx="8" cy="8" r="1.5" fill="white"/>
+              <circle cx="13" cy="8" r="1.5" fill="white"/>
+              <line x1="4.5" y1="8" x2="6.5" y2="8" stroke="white" stroke-width="1.2"/>
+              <line x1="9.5" y1="8" x2="11.5" y2="8" stroke="white" stroke-width="1.2"/>
+            </svg>
+          </span>上下游协同
+        </div>
+        <div class="module-body">
+          <div class="collab-flow">
+            <div class="flow-cell" data-evidence="&quot;上一秒跟下一秒决策的失误,可能造成重特大国家电网的安全事故&quot;
+— 孔老师">
+              <div class="flow-cell-label">需求来源</div>
+              <div class="flow-cell-value">上级调度(网/省/地/市)下发指令;下级场站上报数据、故障与计划检修;部分对接虚拟电厂聚合商</div>
+            </div>
+            <div class="flow-cell highlight" data-evidence="&quot;AI 给你告诉你要排查哪些方面的问题,然后针对哪些方面的问题,他给你解决方法&quot;
+— 邓老师">
+              <div class="flow-cell-label">交付物</div>
+              <div class="flow-cell-value">实时调度令(电话或网络令,必须录音/必须回令)、操作票、事故报告、转供方案、消纳分配方案</div>
+            </div>
+            <div class="flow-cell" data-evidence="">
+              <div class="flow-cell-label">下一步流转</div>
+              <div class="flow-cell-value">下到场站执行、运维现场抢修、变电运维巡检;事故报告 OMS 多部门会签;商业损失走保险</div>
+            </div>
+          </div>
+          <div class="kpi-block" data-evidence="">
+            <span class="kpi-label">KPI</span>联络线偏差 10/30 分钟考核(华东资金池零和奖罚,年涉数百至数千万);用户停电时长有上限(12-24 小时);母线负荷预测准确率考核;数据上报错一位数即扣分(1 分=1000 元);力调电费功率因数 ≥0.9
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心痛点(跨整宽 2 行) -->
+      <div class="grid-module" style="grid-column: 1 / 13; grid-row: 2 / 4;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 2 L14 13 L2 13 Z" fill="none" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+              <line x1="8" y1="6" x2="8" y2="9.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="11.5" r="0.7" fill="white"/>
+            </svg>
+          </span>核心痛点
+        </div>
+        <div class="module-body">
+          <ul class="painpoints-list">
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">告警颗粒度粗</span><span class="pp-detail">5/5 共识。后台告警只到柜/设备级,无法到元器件;低压农网甚至只能一条线一条线试停;故障逐级排查链路长,严重时 3-5 天才完全解决</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">多系统数据未打通</span><span class="pp-detail">5/5 共识。调度系统、保护子站、故障录波、监控后台、Excel、接线图、厂网平台各自独立;故障/备用/力调判断都要跨平台手工拉数据,有些还要电话核对</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">经验沉淀难</span><span class="pp-detail">4/5 共识。故障分析报告在 Word/纸质归档,与系统告警不关联;新手依赖手册,手册又长又重点不清;反事故演习不规范化;职长靠经验,决策时不翻预案</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">决策窗口短</span><span class="pp-detail">2/5 共识。10 分钟必须控到位但&#x27;动到哪一步&#x27;没有定量依据;故障处置上一秒下一秒决策失误就可能升级为重特大事故</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">无故障预警</span><span class="pp-detail">3/5 共识。系统只在故障跳停后告警,无法基于温度/电压/电流趋势提前预警;运维巡检走过场,真隐患不到出事看不出来</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================ -->
+  <!-- 第 2 页:工作细节(身份卡精简版 + 业务系统 + AI 系统 + 决策源) -->
+  <!-- ============================================================ -->
+  <section class="persona-slide layout-2b-grid" id="page-2">
+    <div class="identity-panel">
+      <div class="avatar-wrap">
+        <div class="persona-avatar placeholder">电</div>
+      </div>
+      <div class="identity-name">
+        <div class="name-line">电力调度员</div>
+      </div>
+      <div class="identity-desc">
+        横跨发电企业、省调、区县调三层调度生态的电力调度从业者,长期被多系统割裂、故障定位粗、经验沉淀难三大问题困扰,期待 AI 做辅助而非替代
+      </div>
+      <div class="identity-meta">
+        <div class="meta-row">
+          <div class="meta-label">部门</div>
+          <div class="meta-value">国网体系(省调/区县调)/ 发电企业 / 新能源投资公司</div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-label">岗位</div>
+          <div class="meta-value">电力调度员 / 电站运维</div>
+        </div>
+      </div>
+      <div class="one-sentence-need">
+        <div class="osn-text">AI 还是做一个在辅助的层级上,它可以进一步,但是最终的决策应该还是在这个用户上</div>
+        <div class="osn-source">— 邓老师</div>
+      </div>
+    </div>
+
+    <div class="modules-panel">
+      <!-- 业务系统及场景 -->
+      <div class="grid-module" style="grid-column: 1 / 7; grid-row: 1 / 2;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="3" width="12" height="9" rx="1" fill="none" stroke="white" stroke-width="1.5"/>
+              <line x1="5" y1="14" x2="11" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="12" x2="8" y2="14" stroke="white" stroke-width="1.5"/>
+            </svg>
+          </span>业务系统及场景
+        </div>
+        <div class="module-body">
+          <div class="system-grid-4" data-count="4">
+            <div class="system-card" data-evidence="">
+              <div class="system-name">调度主监控(SCADA/D5000/Open3000/南瑞/华为)</div>
+              <div class="system-scenario">看接线图、设备状态、电压电流功率因数、电能质量、告警弹窗</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">告警系统(告警窗+光字牌+报文)</div>
+              <div class="system-scenario">故障跳闸时三重提示;只到柜/设备级,无法到元器件</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">接线图(纸质 + CAD + 电子)</div>
+              <div class="system-scenario">故障定位、检修前确认拓扑;电子版部分不好用,大家用纸质,临时变化靠手标</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">故障录波 / 保护信息子站</div>
+              <div class="system-scenario">故障后调取波形分析、判断是否误动作;南瑞子站支持手机短信推送</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 辅助系统 -->
+      <div class="grid-module" style="grid-column: 7 / 13; grid-row: 1 / 2;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="3" width="12" height="9" rx="1" fill="none" stroke="white" stroke-width="1.5"/>
+              <line x1="5" y1="14" x2="11" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="12" x2="8" y2="14" stroke="white" stroke-width="1.5"/>
+            </svg>
+          </span>AI 辅助系统
+        </div>
+        <div class="module-body">
+          <div class="system-grid-4" data-count="4">
+            <div class="system-card" data-evidence="">
+              <div class="system-name">保护信息子站短信推送(南瑞,已落地)</div>
+              <div class="system-scenario">故障/运行方式改变后第一时间推送到调度员手机,离岗也能收到</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">负荷转供 AI(自研+南瑞,基于改进遗传算法,已落地)</div>
+              <div class="system-scenario">故障/检修时自动计算可转供线路,把人工 1+ 小时压到几分钟</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">规则化开票+防误模块</div>
+              <div class="system-scenario">申请单自动生成操作票;实时比对电网状态校验正确性(规则,非真 AI)</div>
+            </div>
+            <div class="system-card" data-evidence="">
+              <div class="system-name">调度知识库 RAG(已开发,使用率极低)</div>
+              <div class="system-scenario">调度规程检索;职长决策时不翻预案,只有找文件场景偶尔用</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 决策信息源(跨整宽 2 行) -->
+      <div class="grid-module" style="grid-column: 1 / 13; grid-row: 2 / 4;">
+        <div class="module-title">
+          <span class="module-icon">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="3" width="10" height="10" rx="1.5" fill="none" stroke="white" stroke-width="1.5"/>
+              <line x1="6" y1="6.5" x2="11" y2="6.5" stroke="white" stroke-width="1.2"/>
+              <line x1="6" y1="9.5" x2="11" y2="9.5" stroke="white" stroke-width="1.2"/>
+            </svg>
+          </span>决策信息源
+        </div>
+        <div class="module-body">
+          <ul class="painpoints-list">
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">故障定位与处置决策(5/5)</span><span class="pp-detail">告警三重提示(图形+光字牌+报文)→ 接线图大到小定位 → 故障点电压电流 → 下级开关柜/变压器/逆变器逐级 → 故障录波+保护子站核对 → 现场目视+钳压表 → 综合电量与非电量信息判断是否误动作</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">调度协同决策(4/5)</span><span class="pp-detail">上级令到 → 本侧执行/排查 → 完成后报备(电子或纸质盖章)→ 等批复 → 复令闭环;应急情况下可先停电再补报备</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">电网平衡/消纳决策(2/5)</span><span class="pp-detail">联络线偏差 + 未来偏差 → 评估爬坡能力 → 优先级:煤机/燃机加减 → 水电开停 → 储能调整 → 跨省买卖电;10 分钟必须控到位,&#x27;动到哪一步&#x27;凭经验</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">负荷转供决策(1/5)</span><span class="pp-detail">枚举候选线路 → 算每条满载/超载 → 算上级变电站过载 → 改进遗传算法寻优 → 输出推荐线路+开关编号(可一键复制到开票系统)</span>
+            </li>
+            <li class="painpoint-item" data-evidence="">
+              <span class="pp-title">电站侧特有决策(2/5)</span><span class="pp-detail">力调:SVG 老化检查 → 逆变器无功抑制;储能:传感器逼近需量上限自动停冲放(不告警直接决策,15 分钟过期就赔款);极端天气:气象数据预判光伏出力</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      const tooltip = document.getElementById('global-tooltip');
+      let hideTimer = null;
+
+      function showTooltip(target) {
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        const blocks = evidence.split('\n\n').map(b => b.trim()).filter(Boolean);
+        const html = blocks.map(block => {
+          const lines = block.split('\n');
+          const text = lines[0] || '';
+          let source = '';
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].startsWith('—') || lines[i].startsWith('-')) {
+              source = lines[i].replace(/^[—-]\s*/, '');
+              break;
+            }
+          }
+          const safe = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<div class="tip-quote"><div class="tip-text">${safe(text)}</div>${source ? `<div class="tip-source">— ${safe(source)}</div>` : ''}</div>`;
+        }).join('');
+        tooltip.innerHTML = html;
+        tooltip.classList.add('visible');
+        const rect = target.getBoundingClientRect();
+        const tipRect = tooltip.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - tipRect.width / 2;
+        let top = rect.top - tipRect.height - 12;
+        const margin = 8;
+        if (left < margin) left = margin;
+        if (left + tipRect.width > window.innerWidth - margin) {
+          left = window.innerWidth - tipRect.width - margin;
+        }
+        if (top < margin) {
+          top = rect.bottom + 12;
+        }
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove('visible');
+      }
+
+      document.body.addEventListener('mouseover', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        const evidence = target.getAttribute('data-evidence');
+        if (!evidence) return;
+        clearTimeout(hideTimer);
+        showTooltip(target);
+      });
+
+      document.body.addEventListener('mouseout', function(e) {
+        const target = e.target.closest('[data-evidence]');
+        if (!target) return;
+        hideTimer = setTimeout(hideTooltip, 50);
+      });
+
+      // Tab 切换
+      document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.nav-btn[data-target]');
+        if (!btn) return;
+        const targetId = btn.getAttribute('data-target');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
+        const slide = document.getElementById(targetId);
+        if (slide) slide.classList.add('active');
+      });
+    })();
+  </script>
+</body>
+</html>

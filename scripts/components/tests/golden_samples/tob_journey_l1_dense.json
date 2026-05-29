@@ -1,0 +1,345 @@
+{
+  "type": "tob_journey_l1",
+  "props": {
+    "banner_title": "产品迭代全流程 — 跨职能密集协同",
+    "banner_subtitle": "同色主步骤,判断节点,起止节点,压力测试25+节点/18+连线",
+    "stages": [
+      {
+        "id": "discover",
+        "name": "发现",
+        "subStages": [
+          "立项",
+          "访谈",
+          "归纳"
+        ]
+      },
+      {
+        "id": "plan",
+        "name": "规划",
+        "subStages": [
+          "评估",
+          "拆分",
+          "排期"
+        ]
+      },
+      {
+        "id": "build",
+        "name": "开发",
+        "subStages": [
+          "编码",
+          "联调",
+          "自测"
+        ]
+      },
+      {
+        "id": "launch",
+        "name": "上线",
+        "subStages": [
+          "发布",
+          "监控",
+          "复盘"
+        ]
+      }
+    ],
+    "lanes": [
+      {
+        "id": "l1",
+        "name": "研究员",
+        "tag": "用户洞察"
+      },
+      {
+        "id": "l2",
+        "name": "产品经理",
+        "tag": "方向决策"
+      },
+      {
+        "id": "l3",
+        "name": "设计师",
+        "tag": "体验落地"
+      },
+      {
+        "id": "l4",
+        "name": "前端",
+        "tag": "技术实现"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "lane": "l1",
+        "stage": "discover",
+        "type": "start",
+        "label": "接需求",
+        "slot": 0
+      },
+      {
+        "id": "n2",
+        "lane": "l1",
+        "stage": "discover",
+        "type": "step",
+        "label": "招募访谈",
+        "slot": 1
+      },
+      {
+        "id": "n3",
+        "lane": "l1",
+        "stage": "plan",
+        "type": "decision",
+        "label": "假设验证?",
+        "slot": 0
+      },
+      {
+        "id": "n4",
+        "lane": "l1",
+        "stage": "build",
+        "type": "step",
+        "label": "跟踪走查",
+        "slot": 0
+      },
+      {
+        "id": "n5",
+        "lane": "l1",
+        "stage": "launch",
+        "type": "end",
+        "label": "上线 NPS",
+        "slot": 0
+      },
+      {
+        "id": "n6",
+        "lane": "l2",
+        "stage": "discover",
+        "type": "action",
+        "label": "业务对齐",
+        "slot": 0
+      },
+      {
+        "id": "n7",
+        "lane": "l2",
+        "stage": "plan",
+        "type": "decision",
+        "label": "方向可行?",
+        "slot": 0
+      },
+      {
+        "id": "n8",
+        "lane": "l2",
+        "stage": "build",
+        "type": "step",
+        "label": "制定迭代计划",
+        "slot": 0
+      },
+      {
+        "id": "n9",
+        "lane": "l2",
+        "stage": "build",
+        "type": "step",
+        "label": "推进开发",
+        "slot": 1
+      },
+      {
+        "id": "n10",
+        "lane": "l2",
+        "stage": "launch",
+        "type": "doc",
+        "label": "复盘报告",
+        "slot": 0
+      },
+      {
+        "id": "n11",
+        "lane": "l3",
+        "stage": "plan",
+        "type": "step",
+        "label": "梳理流程",
+        "slot": 0
+      },
+      {
+        "id": "n12",
+        "lane": "l3",
+        "stage": "plan",
+        "type": "action",
+        "label": "出原型",
+        "slot": 1
+      },
+      {
+        "id": "n13",
+        "lane": "l3",
+        "stage": "build",
+        "type": "step",
+        "label": "高保真",
+        "slot": 0
+      },
+      {
+        "id": "n14",
+        "lane": "l3",
+        "stage": "build",
+        "type": "action",
+        "label": "评审切图",
+        "slot": 1
+      },
+      {
+        "id": "n15",
+        "lane": "l3",
+        "stage": "launch",
+        "type": "doc",
+        "label": "体验复盘",
+        "slot": 0
+      },
+      {
+        "id": "n16",
+        "lane": "l4",
+        "stage": "plan",
+        "type": "action",
+        "label": "评估技术",
+        "slot": 0
+      },
+      {
+        "id": "n17",
+        "lane": "l4",
+        "stage": "plan",
+        "type": "step",
+        "label": "搭骨架",
+        "slot": 1
+      },
+      {
+        "id": "n18",
+        "lane": "l4",
+        "stage": "build",
+        "type": "decision",
+        "label": "联调通过?",
+        "slot": 0
+      },
+      {
+        "id": "n19",
+        "lane": "l4",
+        "stage": "build",
+        "type": "step",
+        "label": "修 Bug",
+        "slot": 1
+      },
+      {
+        "id": "n20",
+        "lane": "l4",
+        "stage": "launch",
+        "type": "end",
+        "label": "发布",
+        "slot": 0
+      },
+      {
+        "id": "n21",
+        "lane": "l3",
+        "stage": "discover",
+        "type": "action",
+        "slot": 0,
+        "label": "补充任务 21"
+      },
+      {
+        "id": "n22",
+        "lane": "l4",
+        "stage": "discover",
+        "type": "action",
+        "slot": 0,
+        "label": "补充任务 22"
+      },
+      {
+        "id": "n23",
+        "lane": "l1",
+        "stage": "plan",
+        "type": "action",
+        "slot": 1,
+        "label": "补充任务 23"
+      },
+      {
+        "id": "n24",
+        "lane": "l1",
+        "stage": "build",
+        "type": "action",
+        "slot": 1,
+        "label": "补充任务 24"
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3"
+      },
+      {
+        "from": "n3",
+        "to": "n4"
+      },
+      {
+        "from": "n4",
+        "to": "n5"
+      },
+      {
+        "from": "n3",
+        "to": "n7",
+        "style": "dashed"
+      },
+      {
+        "from": "n1",
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "to": "n7"
+      },
+      {
+        "from": "n7",
+        "to": "n8"
+      },
+      {
+        "from": "n8",
+        "to": "n9"
+      },
+      {
+        "from": "n9",
+        "to": "n10"
+      },
+      {
+        "from": "n8",
+        "to": "n12"
+      },
+      {
+        "from": "n11",
+        "to": "n12"
+      },
+      {
+        "from": "n12",
+        "to": "n13"
+      },
+      {
+        "from": "n13",
+        "to": "n14"
+      },
+      {
+        "from": "n14",
+        "to": "n15"
+      },
+      {
+        "from": "n13",
+        "to": "n18"
+      },
+      {
+        "from": "n16",
+        "to": "n17"
+      },
+      {
+        "from": "n17",
+        "to": "n18"
+      },
+      {
+        "from": "n18",
+        "to": "n19"
+      },
+      {
+        "from": "n19",
+        "to": "n20",
+        "style": "dashed"
+      }
+    ]
+  }
+}

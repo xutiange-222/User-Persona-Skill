@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tob_journey_l2",
+  "title": "toB 单角色 UML 泳道旅程图",
+  "description": "单角色或少量角色的 UML 风格泳道流程图。LLM 只提供 nodes 和 edges DSL,Python 负责 deterministic 几何计算。",
+  "type": "object",
+  "required": [
+    "banner_title",
+    "banner_subtitle",
+    "stages",
+    "lanes",
+    "nodes",
+    "edges"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "banner_title": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 30,
+      "description": "顶部主标题"
+    },
+    "banner_subtitle": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "顶部副标题"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 220,
+      "description": "可选底部说明"
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "description": "流程阶段",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "subStages"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "maxLength": 20
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 8
+          },
+          "subStages": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "maxLength": 6
+            }
+          }
+        }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "description": "泳道角色。L2 通常是单角色,最多保留一个辅助泳道。",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "maxLength": 20
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 6
+          },
+          "tag": {
+            "type": "string",
+            "maxLength": 6
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "description": "UML 节点 DSL",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "lane",
+          "stage",
+          "type",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^n[0-9]+$",
+            "maxLength": 8
+          },
+          "lane": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "stage": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "start",
+              "end",
+              "step",
+              "action",
+              "decision",
+              "doc"
+            ]
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "track": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "同一 slot 内的纵向轨道(0=上轨,1=下轨),用于节点错位避免重叠"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 16
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 50,
+      "description": "UML 连线 DSL",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "pattern": "^n[0-9]+$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^n[0-9]+$"
+          },
+          "branch": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no"
+            ]
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "solid",
+              "dashed"
+            ]
+          }
+        }
+      }
+    },
+    "focuses": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 6,
+      "description": "L2 关注点或痛点卡片列表,按阶段渲染到流程下方",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "body"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 14
+          },
+          "body": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 160,
+            "pattern": "^(?!(本阶段|无额外|按团队|暂无|无明显|无特殊|无关键)).+",
+            "description": "关注点/痛点正文,必须 ≥ 20 字,含具体动作或场景。禁止以「本阶段/无额外/按团队/暂无/无明显/无特殊/无关键」开头的填充语 — 该阶段无关注点时应整张卡片不输出。"
+          },
+          "is_pain": {
+            "type": "boolean"
+          },
+          "evidence": {
+            "type": "string",
+            "maxLength": 260
+          },
+          "screenshot": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "cards": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "description": "同一阶段内的多个关注点或痛点卡片;每张卡包含 title/body/is_pain 等字段",
+            "items": {
+              "type": "object",
+              "required": [
+                "title",
+                "body"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 14
+                },
+                "body": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 180,
+                  "pattern": "^(?!(本阶段|无额外|按团队|暂无|无明显|无特殊|无关键)).+",
+                  "description": "关注点/痛点卡片正文,必须 ≥ 20 字,含具体动作或场景。禁止以「本阶段/无额外/按团队/暂无/无明显/无特殊/无关键」开头的填充语。"
+                },
+                "is_pain": {
+                  "type": "boolean"
+                },
+                "evidence": {
+                  "type": "string",
+                  "maxLength": 260
+                },
+                "screenshot": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tools_touchpoints": {
+      "type": "array",
+      "description": "与 stages 等长;每阶段 0-6 个工具/触点标签",
+      "items": {
+        "type": "array",
+        "maxItems": 6,
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8
+        }
+      }
+    },
+    "focus_mode": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image_placeholder"
+      ],
+      "description": "关注点呈现模式。text 直接显示文本卡片;image_placeholder 预留截图占位并显示卡片内容"
+    }
+  }
+}

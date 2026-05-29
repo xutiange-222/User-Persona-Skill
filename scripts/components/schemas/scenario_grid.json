@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scenario_grid",
+  "title": "典型业务场景网格",
+  "description": "展示典型业务场景,可带工具标签和截图文件名。",
+  "type": "object",
+  "required": [
+    "scenes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "description": "场景卡片列表",
+      "items": {
+        "type": "object",
+        "description": "场景卡片",
+        "required": [
+          "title",
+          "tools"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 10,
+            "description": "场景标题,使用动词+名词的完整语义词组,核心场景 3-10 字;极限情况按具体业务微调"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "description": "场景一句话描述,用于卡片标题下方的简短说明"
+          },
+          "tools": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "工具或业务系统标签;同时显示在图片占位区(tag)和 caption(顿号拼接)",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 12,
+              "description": "工具或系统名"
+            }
+          },
+          "screenshot": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "可选截图文件名,渲染时由 Python 检查是否存在"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4,
+            "description": "支撑该场景的访谈原话(可选)。渲染为 scenario-card 的 data-evidence",
+            "items": {
+              "type": "object",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 20
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

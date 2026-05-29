@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "section_blocks_grid",
+  "title": "画像段卡拼贴网格",
+  "description": "承载 4、5 或 6 个 section_block 的拼贴容器。合法组合(只有这 4 种,其它会被 renderer 拒):\n- 4 个普通(无 full_width): 2x2 网格\n- 6 个普通(无 full_width): 2x3 网格\n- 2 普通 + 2 full_width = 4 个: 1 行普通对 + 2 行整宽,顺序由 LLM 决定\n- 4 普通 + 1 full_width = 5 个: 2x2 网格 + 1 行整宽(真值模式,首选)\n用 block 数 = 5 时,full_width 那块通常放最后做总结/痛点段。",
+  "type": "object",
+  "required": [
+    "blocks"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "blocks": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 6,
+      "description": "段卡数组,总数 4/5/6,full_width 数量需匹配总数(见父级 description)",
+      "items": {
+        "type": "object",
+        "description": "三层画像段卡",
+        "required": [
+          "title",
+          "summary",
+          "body",
+          "evidence_quotes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 6,
+            "description": "段卡标题,自由文本,贴合画像特征"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 25,
+            "description": "一句话总结"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 30,
+            "maxLength": 200,
+            "description": "展开正文,必须有具体动作、场景或程度信息。允许用「<strong>关键短语</strong>」标记 3-6 处高亮(其它 HTML 标签会被转义)。strong 标签字符也算入 maxLength。"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "description": "至少 2 条证据原话",
+            "items": {
+              "type": "object",
+              "description": "证据原话",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 80,
+                  "description": "访谈原话或证据摘录"
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 20,
+                  "description": "证据来源或受访者脱敏名"
+                }
+              }
+            }
+          },
+          "full_width": {
+            "type": "boolean",
+            "description": "是否跨整宽显示"
+          }
+        }
+      }
+    },
+    "full_width_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "兼容旧字段。renderer 会把该索引对应 block 标记为 full_width;新数据优先在 block 内使用 full_width。"
+    }
+  },
+  "oneOf": [
+    {
+      "description": "4 块:full_width 数量 0-2",
+      "properties": {
+        "blocks": { "minItems": 4, "maxItems": 4 }
+      }
+    },
+    {
+      "description": "5 块:必须恰好 1 个 full_width(通常放最后)",
+      "properties": {
+        "blocks": {
+          "minItems": 5,
+          "maxItems": 5,
+          "contains": { "properties": { "full_width": { "const": true } } },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    {
+      "description": "6 块:不允许 full_width(2x3 网格)",
+      "properties": {
+        "blocks": {
+          "minItems": 6,
+          "maxItems": 6,
+          "not": { "contains": { "properties": { "full_width": { "const": true } } } }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "identity_panel",
+  "title": "toB 身份信息面板",
+  "description": "左栏身份卡容器,固定拼装头像、名称、描述、元信息和一句话需求。",
+  "type": "object",
+  "required": [
+    "persona_avatar",
+    "identity_name",
+    "identity_desc",
+    "identity_meta_rows",
+    "one_sentence_need"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "persona_avatar": {
+      "type": "object",
+      "description": "头像或占位配置",
+      "required": [],
+      "additionalProperties": false,
+      "properties": {
+        "image_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "头像文件名;可省略。解析顺序:用户 画像头像素材/ → assets/default-avatars/ → 占位"
+        },
+        "alt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12,
+          "description": "头像替代文本(与 name maxLength 对齐)"
+        }
+      }
+    },
+    "identity_name": {
+      "type": "object",
+      "description": "画像名称",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 12,
+          "description": "画像中文名"
+        },
+        "alias": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24,
+          "description": "英文别名或辅助称呼"
+        }
+      }
+    },
+    "identity_desc": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 200,
+      "description": "一段身份描述"
+    },
+    "identity_meta_rows": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "description": "元信息行。value 可以是短值(部门/岗位),也可以是段落(背景/知识结构)。value 内 \\n 会渲染为 <br>",
+      "items": {
+        "type": "object",
+        "description": "元信息行",
+        "required": [
+          "key",
+          "value"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "元信息字段名,可含 \\n 换行(如 '知识\\n结构')"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "元信息字段值。短值如 'Scrum Master',也可是段落如背景说明。\\n 渲染为换行"
+          }
+        }
+      }
+    },
+    "one_sentence_need": {
+      "type": "object",
+      "description": "一句话需求与来源",
+      "required": [
+        "text",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 60,
+          "description": "一句话需求"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 20,
+          "description": "需求来源"
+        }
+      }
+    }
+  }
+}

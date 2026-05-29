@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "journey_2c",
+  "title": "toC 用户旅程容器",
+  "description": "整张 toC 用户旅程图的数据容器,SVG 曲线和 emoji 由 Python 渲染。",
+  "type": "object",
+  "required": [
+    "title",
+    "subtitle",
+    "stages",
+    "dimensions",
+    "cells",
+    "emotion"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30,
+      "description": "旅程标题。若标题以「旅程」结尾且未包含「·」,renderer 会显示为「xxx · 旅程」。"
+    },
+    "subtitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60,
+      "description": "旅程副标题"
+    },
+    "illust_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "可选插画文件名"
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 6,
+      "description": "旅程阶段",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 6,
+        "description": "阶段名"
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "description": "旅程维度,至少包含思考、行为、痛点,可加触点、情绪",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 2,
+        "description": "维度名",
+        "enum": [
+          "思考",
+          "行为",
+          "痛点",
+          "触点",
+          "情绪"
+        ]
+      },
+      "allOf": [
+        {
+          "contains": {
+            "const": "思考"
+          }
+        },
+        {
+          "contains": {
+            "const": "行为"
+          }
+        },
+        {
+          "contains": {
+            "const": "痛点"
+          }
+        }
+      ]
+    },
+    "cells": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "description": "二维数组,外层为 dimensions(行),内层为 stages(列);禁止按「一行一个阶段」组织",
+      "items": {
+        "type": "array",
+        "minItems": 4,
+        "maxItems": 6,
+        "description": "某维度下各阶段单元",
+        "items": {
+          "type": "object",
+          "description": "旅程单元",
+          "required": [
+            "keyword",
+            "summary"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "keyword": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 7,
+              "description": "旅程单元关键词。核心建议 3-7 个汉字,优先自然短语;极限情况可在 2-7 字内适当调整。"
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 25,
+              "description": "旅程单元摘要"
+            },
+            "touchpoints": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 3,
+              "description": "可选触点标签",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10,
+                "description": "触点名"
+              }
+            },
+            "frequency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 7,
+              "description": "可选频次,格式 N/N",
+              "pattern": "^\\d+/\\d+$"
+            },
+            "evidence_quotes": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 4,
+              "description": "支撑该旅程单元的访谈原话,渲染为 journey-cell 的 data-evidence",
+              "items": {
+                "type": "object",
+                "required": [
+                  "quote",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "quote": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 200
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "emotion": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 6,
+      "description": "每个阶段一个情绪点,应与 stages 对齐",
+      "items": {
+        "type": "object",
+        "description": "阶段情绪点",
+        "required": [
+          "stage_label",
+          "level",
+          "emoji"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "stage_label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 6,
+            "description": "阶段情绪标签"
+          },
+          "level": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 6,
+            "description": "情绪曲线高度档位",
+            "enum": [
+              "high",
+              "middle",
+              "low"
+            ]
+          },
+          "emoji": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 14,
+            "description": "内置 emoji 语义名",
+            "enum": [
+              "smile",
+              "smile_blush",
+              "grin",
+              "laughing",
+              "content",
+              "relaxed",
+              "proud",
+              "star_struck",
+              "thinking",
+              "confused",
+              "raised_eyebrow",
+              "neutral",
+              "hmm",
+              "frowning",
+              "disappointed",
+              "frustrated",
+              "persevere",
+              "tired",
+              "sad",
+              "crying",
+              "surprised",
+              "shocked",
+              "exclamation",
+              "excited",
+              "celebrate",
+              "fire",
+              "heart_eyes",
+              "headphone",
+              "light_bulb",
+              "target",
+              "thumbs_up",
+              "thumbs_down",
+              "question"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "persona_quote_pull",
+  "title": "画像代表原话",
+  "description": "展示一条短而有代表性的用户原话。",
+  "type": "object",
+  "required": [
+    "quote",
+    "source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "quote": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 50,
+      "description": "代表原话(可对长原话做提炼或浓缩,完整长话挂到 evidence_quotes 里供 hover)"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 28,
+      "description": "原话来源,允许带身份/年龄括注,如「黄医生（医生 · 50+）」"
+    },
+    "evidence_quotes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "description": "可选,长原话证据(hover 时显示),若 quote 已是完整原话可省略",
+      "items": {
+        "type": "object",
+        "description": "证据原话",
+        "required": [
+          "quote",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "quote": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200,
+            "description": "完整原话"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "受访者脱敏名"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "generic_bullet",
+  "title": "兜底要点列表",
+  "description": "用于无法归入其他结构的短句列表。",
+  "type": "object",
+  "required": [
+    "module_title",
+    "items"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "module_title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 12,
+      "description": "模块标题(LLM 自由命名);兜底组件无 default 标题,必填"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "description": "短句列表",
+      "items": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 40,
+        "description": "短句条目"
+      }
+    }
+  }
+}

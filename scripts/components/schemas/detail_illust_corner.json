@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detail_illust_corner",
+  "title": "详情页角落头像",
+  "description": "详情页右下角可选头像装饰。只有提供 illust_path 且文件存在时才渲染;没有用户头像时不渲染任何文字徽记。",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "illust_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "可选头像或角落图文件名,renderer 检查 <项目运行目录>/画像头像素材/<filename> 是否存在"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2,
+      "description": "兼容旧字段。renderer 不再使用该字段生成文字徽记。"
+    },
+    "corner_image_hint": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 40,
+      "description": "兼容旧字段。renderer 不再使用该字段生成文字徽记。"
+    }
+  }
+}

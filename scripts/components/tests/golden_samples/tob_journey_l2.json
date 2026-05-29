@@ -1,0 +1,237 @@
+{
+  "type": "tob_journey_l2",
+  "props": {
+    "banner_title": "研究员单角色旅程",
+    "banner_subtitle": "从需求输入到洞察复用的单角色主流程",
+    "stages": [
+      {
+        "id": "discover",
+        "name": "发现",
+        "subStages": [
+          "立项",
+          "访谈",
+          "归纳"
+        ]
+      },
+      {
+        "id": "plan",
+        "name": "规划",
+        "subStages": [
+          "评估",
+          "拆分",
+          "排期"
+        ]
+      },
+      {
+        "id": "build",
+        "name": "开发",
+        "subStages": [
+          "编码",
+          "联调",
+          "自测"
+        ]
+      },
+      {
+        "id": "launch",
+        "name": "上线",
+        "subStages": [
+          "发布",
+          "监控",
+          "复盘"
+        ]
+      }
+    ],
+    "lanes": [
+      {
+        "id": "researcher",
+        "name": "研究员",
+        "tag": "洞察"
+      }
+    ],
+    "tools_touchpoints": [
+      ["飞书", "问卷"],
+      ["Notion", "白板"],
+      ["Figma", "Jira"],
+      ["Confluence", "看板"]
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "lane": "researcher",
+        "stage": "discover",
+        "type": "start",
+        "slot": 0,
+        "label": "接收需求"
+      },
+      {
+        "id": "n2",
+        "lane": "researcher",
+        "stage": "discover",
+        "type": "action",
+        "slot": 1,
+        "label": "安排访谈"
+      },
+      {
+        "id": "n3",
+        "lane": "researcher",
+        "stage": "discover",
+        "type": "doc",
+        "slot": 2,
+        "label": "访谈纪要"
+      },
+      {
+        "id": "n4",
+        "lane": "researcher",
+        "stage": "plan",
+        "type": "decision",
+        "slot": 0,
+        "label": "范围清晰?"
+      },
+      {
+        "id": "n5",
+        "lane": "researcher",
+        "stage": "plan",
+        "type": "step",
+        "slot": 1,
+        "label": "拆分任务"
+      },
+      {
+        "id": "n6",
+        "lane": "researcher",
+        "stage": "plan",
+        "type": "action",
+        "slot": 2,
+        "label": "排期确认"
+      },
+      {
+        "id": "n7",
+        "lane": "researcher",
+        "stage": "build",
+        "type": "step",
+        "slot": 0,
+        "label": "访谈归纳"
+      },
+      {
+        "id": "n8",
+        "lane": "researcher",
+        "stage": "build",
+        "type": "action",
+        "slot": 1,
+        "label": "联调验证"
+      },
+      {
+        "id": "n9",
+        "lane": "researcher",
+        "stage": "build",
+        "type": "decision",
+        "slot": 2,
+        "label": "结论成立?"
+      },
+      {
+        "id": "n10",
+        "lane": "researcher",
+        "stage": "launch",
+        "type": "doc",
+        "slot": 0,
+        "label": "洞察报告"
+      },
+      {
+        "id": "n11",
+        "lane": "researcher",
+        "stage": "launch",
+        "type": "step",
+        "slot": 1,
+        "label": "发布宣讲"
+      },
+      {
+        "id": "n12",
+        "lane": "researcher",
+        "stage": "launch",
+        "type": "action",
+        "slot": 2,
+        "label": "监控反馈"
+      },
+      {
+        "id": "n13",
+        "lane": "researcher",
+        "stage": "discover",
+        "type": "step",
+        "slot": 3,
+        "label": "补充立项"
+      },
+      {
+        "id": "n14",
+        "lane": "researcher",
+        "stage": "build",
+        "type": "doc",
+        "slot": 3,
+        "label": "原型草图"
+      },
+      {
+        "id": "n15",
+        "lane": "researcher",
+        "stage": "launch",
+        "type": "end",
+        "slot": 3,
+        "label": "复用模板"
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3"
+      },
+      {
+        "from": "n3",
+        "to": "n4"
+      },
+      {
+        "from": "n4",
+        "to": "n5",
+        "branch": "yes"
+      },
+      {
+        "from": "n4",
+        "to": "n13",
+        "branch": "no"
+      },
+      {
+        "from": "n5",
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "to": "n7"
+      },
+      {
+        "from": "n7",
+        "to": "n8"
+      },
+      {
+        "from": "n8",
+        "to": "n9"
+      },
+      {
+        "from": "n9",
+        "to": "n10",
+        "branch": "yes"
+      },
+      {
+        "from": "n10",
+        "to": "n11"
+      },
+      {
+        "from": "n11",
+        "to": "n12"
+      },
+      {
+        "from": "n12",
+        "to": "n15"
+      }
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detail_analysis",
+  "title": "详情页访谈解读",
+  "description": "详情页右侧 2 到 3 段深入分析。",
+  "type": "object",
+  "required": [
+    "sections"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "sections": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "description": "分析段落",
+      "items": {
+        "type": "object",
+        "description": "分析段落",
+        "required": [
+          "title",
+          "body"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 8,
+            "description": "段落标题(渲染时自动前缀 ▸ )"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 220,
+            "description": "分析正文。允许用「<strong>关键短语</strong>」标记 3-6 处 accent 高亮(其它 HTML 标签会被转义)。strong 标签字符也算入 maxLength。"
+          },
+          "evidence_quotes": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 4,
+            "description": "支撑该分析段落的访谈原话,渲染为正文块的 data-evidence",
+            "items": {
+              "type": "object",
+              "required": [
+                "quote",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "quote": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
