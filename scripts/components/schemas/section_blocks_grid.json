@@ -99,7 +99,10 @@
         "blocks": {
           "minItems": 5,
           "maxItems": 5,
-          "contains": { "properties": { "full_width": { "const": true } } },
+          "contains": {
+            "required": ["full_width"],
+            "properties": { "full_width": { "const": true } }
+          },
           "minContains": 1,
           "maxContains": 1
         }
@@ -111,7 +114,12 @@
         "blocks": {
           "minItems": 6,
           "maxItems": 6,
-          "not": { "contains": { "properties": { "full_width": { "const": true } } } }
+          "not": {
+            "contains": {
+              "required": ["full_width"],
+              "properties": { "full_width": { "const": true } }
+            }
+          }
         }
       }
     }
