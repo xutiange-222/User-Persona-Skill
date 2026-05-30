@@ -2,7 +2,7 @@
 
 中文 | [English](#english)
 
-从用户访谈逐字稿生成结构化用户画像报告，产出可交互 HTML（可导出 PPT）。
+从用户访谈逐字稿生成结构化用户画像报告，产出可交互 HTML（后续将支持导出 PPT）。
 
 本仓库是 **User Persona Skill** 的完整源码包，可安装到 **Claude Code** 或 **Cursor** 的 skills 目录。你提供访谈材料并说明研究目标后，Agent 会按固定工作流完成分类、字段对齐、抽取合并与渲染，最终交付一份可在浏览器中打开的画像报告。
 
@@ -159,7 +159,7 @@ user-persona/
 
 [中文](#user-persona-skill) | English
 
-User Persona Skill turns user-interview transcripts into structured persona reports as interactive HTML (exportable to PPT).
+User Persona Skill turns user-interview transcripts into structured persona reports as interactive HTML.
 
 This repository is the full **skill package** for **Claude Code** or **Cursor**. After you provide interview files and align on research goals, the agent follows a fixed workflow—classification, field alignment, extract/merge, and render—to deliver a browser-ready persona report.
 
