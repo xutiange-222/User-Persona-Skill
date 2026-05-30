@@ -74,6 +74,13 @@ map-reduce 架构:
 
 每条 `content` 都必须附 `evidence_quote`(原话)。这是 SKILL.md 硬约束 5 的硬性要求。
 
+### 脱敏(约束 8 · 与约束 5 同级)
+
+- `extracted/{名}.json` 文件名可用访谈原名,但写入 `05-report.json` 时**所有用户可见字段**必须脱敏。
+- **合并 reduce 正文**禁止用真名并列对比(如「刘宇…刘军…」);用脱敏指代或「部分受访者」。
+- 每位受访者在报告中的 `source` / `display_name` 在合并阶段就确定好,不要留到渲染再改。
+- 合并完成后建议执行:`python scripts/privacy_guard.py --workdir <过程稿>`(配合 `--report` 在写出 05 后)。
+
 ### 单值字段格式
 
 ```json

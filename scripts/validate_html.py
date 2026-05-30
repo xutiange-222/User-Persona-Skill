@@ -619,7 +619,22 @@ def run_validation(html_path: Path, project_dir: Path | None) -> Report:
             rep.add("WARNING", "VALIDATOR-CRASH",
                     f"check {fn.__name__} 自己抛异常,跳过:{type(e).__name__}: {e}")
     check_avatar_usage(raw_html, rep, project_dir)
+    _check_privacy_leaks(raw_html, rep, project_dir)
     return rep
+
+
+def _check_privacy_leaks(html: str, rep: Report, project_dir: Path | None) -> None:
+    try:
+        from scripts.privacy_guard import validate_privacy_in_html
+    except ImportError:
+        from privacy_guard import validate_privacy_in_html
+    for item in validate_privacy_in_html(html, project_dir):
+        rep.add(
+            item["level"],
+            item["code"],
+            item["message"],
+            snippet=item["message"][:140],
+        )
 
 
 def print_human_report(rep: Report) -> None:

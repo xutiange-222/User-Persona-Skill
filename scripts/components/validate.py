@@ -263,7 +263,7 @@ def _check_overview_components(report: dict) -> list[dict]:
     return issues
 
 
-def validate_report_json(report: dict) -> list[dict]:
+def validate_report_json(report: dict, process_dir: Path | None = None) -> list[dict]:
     issues: list[dict] = []
 
     try:
@@ -343,6 +343,13 @@ def validate_report_json(report: dict) -> list[dict]:
     issues.extend(_check_theme_layout(report))
     issues.extend(_check_overview_components(report))
 
+    if process_dir is not None:
+        try:
+            from scripts.privacy_guard import validate_privacy_in_report
+        except ImportError:
+            from privacy_guard import validate_privacy_in_report
+        issues.extend(validate_privacy_in_report(report, process_dir))
+
     return issues
 
 
@@ -358,6 +365,11 @@ def format_issues_for_human(issues: list[dict]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="P8 组件 JSON 事前校验")
     parser.add_argument("input", help="components JSON 文件路径")
+    parser.add_argument(
+        "--workdir",
+        default=None,
+        help="过程稿或项目运行目录(用于真名泄露检查)",
+    )
     parser.add_argument("--json", action="store_true", help="JSON 输出(默认人读格式)")
     args = parser.parse_args()
 
@@ -372,7 +384,8 @@ def main() -> int:
         print(f"[ERROR] JSON 解析失败: {e}", file=sys.stderr)
         return 2
 
-    issues = validate_report_json(report)
+    pdir = Path(args.workdir).resolve() if args.workdir else None
+    issues = validate_report_json(report, pdir)
     errors = [i for i in issues if i["level"] == "ERROR"]
 
     if args.json:

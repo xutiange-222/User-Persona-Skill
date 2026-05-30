@@ -132,23 +132,44 @@ LLM 决策 → 05-report.json(layout + components + props)
 
 > **历史背景**:P7 之前 LLM 直接产 HTML,弱模型(DeepSeek v4Flash 等)反复在 token 名 / class 名 / 结构上"自由发挥",每次测试都触发新视觉问题。P8 起 LLM 产出范围严格收窄到 components JSON,从根因切断同类问题。
 
-### 约束 8:受访者展示默认脱敏
+### 约束 8:受访者信息脱敏(最强约束 · P0 · 交付硬门禁)
 
-最终报告和 hover tooltip 里,受访者来源默认不能展示完整真实姓名。内部 JSON 可保留原始 source,但展示层必须转换:
+**优先级与九条硬约束并列最高**。任何用户可见的交付物(HTML 正文、hover、矩阵标签、画像段卡、代表人群、旅程页)**禁止出现访谈真名**(如 `刘宇`、`刘军`、完整文件名主干)。
 
-- `姓氏 + * + 身份`,如 `张*（大专学生）`
-- 身份指代,如 `张医生`、`米同学`
-- 先生 / 女士,如 `黄先生`、`丁先生`
+**允许**:
 
-如果无法判断身份,默认用 `U1`、`U2` 这种受访者代号。禁止展示 `U1_黄捷`、`U2_丁家铭`、`U5_张汝` 这类完整姓名。
-**禁止把 `受访者1`、`受访者2` 当成最终展示名**。这种编号只能用于内部排查,不能出现在矩阵点位、tooltip、画像引用、用户原声 source 或旅程页。展示层必须先从访谈文件名、source、basic profile、原话上下文里提取姓氏和身份:
+- 脱敏显示名:`张*（大专学生）`、`黄医生`、`米同学`、`黄先生`、`U1`
+- 画像类型名:`实用跟进派`(聚合角色,不是真人姓名)
+- `evidence_quotes[].quote` 内可保留受访者**自己说出的原话**,但同行的 `source` 仍须脱敏
 
-1. 有明确职业或身份:用 `姓氏 + 身份`,如 `张医生`、`米同学`
-2. 有姓氏但身份不稳:用 `姓氏 + 先生/女士`
-3. 只有姓名但不确定性别/身份:用 `姓氏 + *`
-4. 连姓氏也没有:才用 `U1`、`U2`
+**禁止**(出现即 ERROR,`privacy_guard` + `validate_html` 阻断交付):
 
-如果生成 HTML 前仍出现可见文本 `受访者\d+`,必须回到字段对齐或证据抽取阶段补齐脱敏显示名,不能把编号交付给用户。
+- 正文/摘要/代表人群中用真名对比多人(如「刘宇…刘军…」)
+- `display_name` / `source` / 矩阵标签为裸 `XX` 两字名
+- `受访者1`、`U1_黄捷` 等内部代号或「代号_真名」
+- 从 `processed/刘宇.txt` 文件名原样写入报告
+
+**内部 vs 展示**:
+
+| 位置 | 可否保留真名 |
+|------|----------------|
+| `processed/`、`extracted/`、`04-personas.json` 内部映射 | 可以(仅排查) |
+| `05-report.json` 与 `report.html` 一切用户可见字段 | **禁止** |
+
+**流程硬要求**:
+
+1. 预处理完成后执行 `python scripts/privacy_guard.py --workdir <过程稿> --report /dev/null` 仅写缓存,或调用 `write_forbidden_names_cache` 生成 `.privacy_forbidden_names.json`
+2. 写 `05-report.json` 前:合并/归纳正文用「部分受访者」「该类型用户」「条件买家 A」等指代,**不得**用真名区分个体
+3. 渲染前:`validate_components_json.py --workdir <过程稿> 05-report.json` 与 `validate_html.py --project-dir <项目目录> report.html` 必须通过 **P0-PRIVACY** 检查
+
+脱敏显示名生成规则(与旧版一致):
+
+1. 有明确职业或身份 → `姓氏 + 身份`(张医生)
+2. 有姓氏身份不稳 → `姓氏 + 先生/女士`
+3. 仅有姓名 → `姓氏 + *`
+4. 无姓氏 → `U1`、`U2`
+
+若检出真名:回到抽取/合并/写 `05-report.json` 阶段改写,**不得**在 HTML 里手工替换蒙混过关。
 
 ### 约束 14:toB/toD 多角色「整体旅程(L1)」须先做组织同构判定(2026-05-28)
 
@@ -242,7 +263,7 @@ LLM 决策 → 05-report.json(layout + components + props)
 **P7 (2026-05-21) 引入 HTML validator;P8 (2026-05-25) 升级为双层**:
 
 ```
-事前:scripts/validate_components_json.py   ← P8,校验 05-report.json
+事前:scripts/validate_components_json.py --workdir <过程稿>  ← P8 + P0-PRIVACY
                   ↓
 事中:render_report.py                       ← 渲染时挡 layout / type 不在白名单
                   ↓
