@@ -764,7 +764,7 @@ skill 启动后,在用户操作目录下创建 `用户画像报告输出/`。每
 
 1. `过程稿/`
    - 放可续跑、可排查的中间产物
-   - 包括 `00-research-goal.json`、`01-paradigm.json`、`02-classification.json`、`03-field-alignment.json`、`04-personas.json`、`processed/`、`extracted/`、日志、草稿、测试脚本
+   - 包括 `00-research-goal.json` … `05-report.json`、`processed/`、`extracted/`、`CHECKPOINTS.md`、`logs/`、`drafts/`(见 `assets/templates/CHECKPOINTS.md`)
    - 这个文件夹像厨房备菜台,可以乱一点,但必须保留完整脉络
 
 2. `画像头像素材/`
@@ -877,6 +877,8 @@ HiRes
 │   ├── processed/                     ← 预处理后的访谈文本(每份一个 txt)
 │   ├── extracted/                     ← 单文档抽取产物(每份一个 JSON)
 │   ├── 04-personas.json               ← 合并后的画像数据(R4/R5 还含矩阵/分布图数据)
+│   ├── 05-report.json                 ← ★ 渲染用组件 JSON(P8 必写,断点续跑锚点)
+│   ├── CHECKPOINTS.md                 ← 检查点清单(init_run_dir 自动复制)
 │   ├── logs/                          ← 运行日志、检查结果、失败原因
 │   └── drafts/                        ← 中间 HTML、截图、临时验证件
     ├── 画像头像素材/                  ← 用户补充的画像头像
@@ -891,24 +893,39 @@ HiRes
 
 ### 断点续跑:模型启动时的恢复检查
 
-skill 启动时,**模型第一件事是扫 `用户画像报告输出/<项目名>-<日期时间>/过程稿/`**,看哪些文件已存在,从下一个未完成的步骤继续:
+skill 启动时,**模型第一件事必须跑**:
+
+```bash
+python scripts/recovery_check.py --workdir <项目运行目录或过程稿目录> --format human
+```
+
+根据输出的 `next_step` 与 `missing_artifacts` 续跑。**禁止**不扫目录就凭对话记忆往下做。
+
+新建项目目录时优先:
+
+```bash
+python scripts/init_run_dir.py --base-dir . --project-name <项目名>
+```
+
+会在 `过程稿/` 下创建 `processed/`、`extracted/`、`logs/`、`drafts/` 并复制 `CHECKPOINTS.md`。
 
 ```
 存在的文件                                                      从这一步继续
 ─────────────────────────────────────────────────────────────  ─────────────────
 什么都没有                                                      Step 0:扫文件 + 形成初判
-有 00-research-goal.json                                        Step 2:确认范式
-有 01-paradigm.json,范式是 R3/R4/R5                             分类依据 / 区分点
-有 01-paradigm.json,范式是 R1/R2                                字段对齐
-有 02-classification.json                                       字段对齐
-有 03-field-alignment.json + 必填字段全(fields_per_persona /     单文档抽取
-   user_confirmed / confirmation_message_summary / add_on_pages.journey)
-有 03-field-alignment.json 但缺必填字段(如只有 alignment_mode:    回退字段对齐 Step 1
-   recommended_by_goal)                                         (2026-05-28 加固)
-extracted/ 已有所有文件                                          合并
-有 04-personas.json                                             渲染
-有 04-personas.json 且有 `最终交付件-*`                            流程完成,问用户要重做哪一步
+有 00-research-goal.json                                        Step 2:确认范式 → 写 01
+有 01-paradigm.json,范式是 R3/R4/R5                             分类 → 写 02
+有 01-paradigm.json,范式是 R1/R2                                字段对齐 → 写 03
+有 02-classification.json                                       字段对齐 → 写 03
+有 03-field-alignment.json + 校验通过                            预处理+抽取 → processed/ + extracted/
+有 03 但校验失败(如仅 alignment_mode)                            回退字段对齐
+extracted/ 份数 < processed/                                    补全 extracted/*.json
+有 04-personas.json                                             写 05-report.json
+有 05-report.json                                               render_report.py → 最终交付件
+有 最终交付件-*/report.html                                      完成;缺 05 则续跑不可靠
 ```
+
+**每步结束硬约束**:该步对应的 JSON/目录**必须已写入磁盘**才能进入下一步。禁止跳过 `extracted/` 逐份文件、禁止跳过 `05-report.json` 直接写 HTML。
 
 **模型恢复时的开场话术**:
 
@@ -920,7 +937,12 @@ extracted/ 已有所有文件                                          合并
 ✗ 字段对齐(下一步)
 ✗ 抽取
 ✗ 合并
+✗ 05-report.json
 ✗ 渲染
+
+缺漏检查点:
+  - 05-report.json: 渲染前须写入组件 JSON
+  - extracted/*.json: 单文档抽取需 5/5 份
 
 要从【字段对齐】继续吗?或者你想回到某一步重做?
 ```
@@ -934,8 +956,8 @@ extracted/ 已有所有文件                                          合并
 
 如果跑到一半模型卡了、或者你想换更强的模型重跑某一步:
 
-1. 别担心,所有中间产物都存在 `用户画像报告输出/<项目名>-<日期时间>/过程稿/` 里
-2. 重新启动 skill 时,我会扫这个目录,从最近完成的步骤接着跑
+1. 别担心,中间产物应存在 `用户画像报告输出/<项目名>-<日期时间>/过程稿/`(含 `00`–`05` 与 `extracted/`)
+2. 重新启动 skill 时,我会先跑 `recovery_check.py`,按 `missing_artifacts` 补全后再继续
 3. 你需要保留两样东西:
    - skill 文件夹(整个 user-persona/)
    - 过程稿目录(`用户画像报告输出/<项目名>-<日期时间>/过程稿/`,在你当前操作的目录下)

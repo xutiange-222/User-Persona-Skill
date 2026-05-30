@@ -30,6 +30,21 @@ def sanitize_project_name(name: str) -> str:
     return cleaned[:32] or "用户画像项目"
 
 
+def checkpoints_template_path() -> Path:
+    """Return bundled CHECKPOINTS.md for new process dirs."""
+    return Path(__file__).resolve().parent.parent / "assets" / "templates" / "CHECKPOINTS.md"
+
+
+def bootstrap_process_dir(process_dir: Path) -> None:
+    """Create subfolders and checkpoint readme under 过程稿/."""
+    for sub in ("processed", "extracted", "logs", "drafts"):
+        (process_dir / sub).mkdir(parents=True, exist_ok=True)
+    template = checkpoints_template_path()
+    target = process_dir / "CHECKPOINTS.md"
+    if template.is_file() and not target.exists():
+        target.write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
+
+
 def create_run_dir(base_dir: Path, project_name: str, now: datetime | None = None) -> Path:
     """Create a project run directory and required user-facing folders."""
     timestamp = (now or datetime.now()).strftime("%Y%m%d-%H%M%S")
@@ -41,6 +56,7 @@ def create_run_dir(base_dir: Path, project_name: str, now: datetime | None = Non
         INTERFACE_SCREENSHOTS_DIR_NAME,
     ):
         (run_dir / child).mkdir(parents=True, exist_ok=True)
+    bootstrap_process_dir(run_dir / PROCESS_DIR_NAME)
     return run_dir
 
 

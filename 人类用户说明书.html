@@ -770,7 +770,10 @@
     │   ├── 02-classification.json   <span class="dim">分类 / 区分点（部分路径）</span>
     │   ├── 03-field-alignment.json  <span class="dim">字段对齐结果</span>
     │   ├── 04-personas.json         <span class="dim">合并后的画像数据</span>
-    │   ├── extracted/               <span class="dim">每份访谈的抽取结果</span>
+    │   ├── 05-report.json           <span class="dim">渲染用组件 JSON（必写）</span>
+    │   ├── processed/               <span class="dim">预处理访谈 txt</span>
+    │   ├── extracted/               <span class="dim">每份访谈的抽取 json</span>
+    │   ├── CHECKPOINTS.md           <span class="dim">检查点清单</span>
     │   └── logs/                    <span class="dim">运行日志</span>
     │
     ├── 画像头像素材/                 <span class="note">← 你放头像图</span>
@@ -801,9 +804,10 @@
 
     <div class="resume">
       <h4>不用从头来</h4>
-      <p>启动时扫 <code>过程稿/00–04</code> 的 JSON，从断点接着跑。</p>
-      <p><b>重做某步：</b>删对应 JSON（如 <code>03-field-alignment.json</code> → 从字段对齐重来）。</p>
-      <p><b>全部重做：</b>删整个项目目录。换模型只需复制 skill + 工作目录。</p>
+      <p>续跑前在项目目录执行：<code>python scripts/recovery_check.py --workdir . --format human</code>，按输出的「下一步」和「缺漏检查点」补文件。</p>
+      <p>过程稿须按序落盘：<code>00</code> → <code>01</code> →（R3/R4/R5 才有 <code>02</code>）→ <code>03</code> → <code>processed/</code> + <code>extracted/</code>（份数一致）→ <code>04</code> → <code>05-report.json</code> → 再渲染 HTML。</p>
+      <p><b>重做某步：</b>删该步及之后的 JSON/目录（如删 <code>03-field-alignment.json</code> 即从字段对齐重来）。</p>
+      <p><b>全部重做：</b>删整个项目目录。换模型：复制 skill + 工作目录，先跑 recovery_check。</p>
     </div>
   </section>
 
