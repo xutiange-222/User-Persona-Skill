@@ -260,10 +260,21 @@ def main() -> int:
     parser.add_argument("--report", help="05-report.json 路径")
     parser.add_argument("--html", help="report.html 路径")
     parser.add_argument("--workdir", help="过程稿或项目运行目录")
+    parser.add_argument(
+        "--write-cache",
+        action="store_true",
+        help="仅根据 workdir 写入 .privacy_forbidden_names.json",
+    )
     args = parser.parse_args()
 
     process_dir = Path(args.workdir).resolve() if args.workdir else None
     all_issues: list[dict] = []
+
+    if args.write_cache and process_dir is not None:
+        root = resolve_process_dir(process_dir) if resolve_process_dir else process_dir
+        cache = write_forbidden_names_cache(root)
+        print(json.dumps({"success": True, "cache": str(cache)}, ensure_ascii=False, indent=2))
+        return 0
 
     if args.report:
         report = json.loads(Path(args.report).read_text(encoding="utf-8"))

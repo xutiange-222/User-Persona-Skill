@@ -54,7 +54,41 @@ COMPONENTS_CSS_PATH = SKILL_ROOT / "assets" / "templates" / "_components.css"
 # ============================================================
 
 
-def render_report(input_json: dict, output_dir: Path, validate: bool = True) -> str:
+def _resolve_dirs(input_path: Path | None, output_dir: Path) -> tuple[Path | None, Path | None]:
+    """从 05-report.json 路径推断过程稿目录与项目运行目录。"""
+    process_dir: Path | None = None
+    project_dir: Path | None = None
+    if input_path is not None:
+        try:
+            from scripts.path_utils import PROCESS_DIR_NAME, resolve_process_dir
+        except ImportError:
+            PROCESS_DIR_NAME = "过程稿"
+            resolve_process_dir = None  # type: ignore
+        inp = Path(input_path).resolve()
+        if inp.parent.name == PROCESS_DIR_NAME:
+            process_dir = inp.parent
+            project_dir = process_dir.parent
+        elif resolve_process_dir is not None:
+            process_dir = resolve_process_dir(inp.parent)
+            if process_dir.name == PROCESS_DIR_NAME:
+                project_dir = process_dir.parent
+    if project_dir is None and output_dir is not None:
+        out = Path(output_dir).resolve()
+        if out.parent.name == PROCESS_DIR_NAME:
+            process_dir = process_dir or out.parent
+            project_dir = out.parent.parent
+        elif (out.parent / "过程稿").is_dir():
+            project_dir = out.parent
+            process_dir = process_dir or (project_dir / "过程稿")
+    return process_dir, project_dir
+
+
+def render_report(
+    input_json: dict,
+    output_dir: Path,
+    validate: bool = True,
+    input_path: Path | None = None,
+) -> str:
     """渲染完整 report.html 字符串。
 
     Args:
@@ -71,9 +105,11 @@ def render_report(input_json: dict, output_dir: Path, validate: bool = True) -> 
     metadata = dict(input_json["metadata"])  # 浅拷贝,避免改原对象
     personas = input_json["personas"]
 
+    process_dir, project_dir = _resolve_dirs(input_path, output_dir)
+
     # 1. schema 校验(可选,F 阶段产物;尚未实现就跳过)
     if validate:
-        _try_schema_validate(input_json)
+        _try_schema_validate(input_json, process_dir)
         _try_field_alignment_gate(output_dir)
 
     # 2. 调 assembler,收集所有 slide
@@ -128,7 +164,7 @@ def render_report(input_json: dict, output_dir: Path, validate: bool = True) -> 
 
     # 8. P7 体检(warn 不阻塞)
     if validate:
-        _try_html_validate(report_path)
+        _try_html_validate(report_path, project_dir)
 
     return out
 
@@ -254,8 +290,8 @@ def _try_field_alignment_gate(output_dir: Path) -> None:
         )
 
 
-def _try_schema_validate(input_json: dict) -> None:
-    """跑 F 阶段的 validate_components_json(P8 事前校验)。"""
+def _try_schema_validate(input_json: dict, process_dir: Path | None = None) -> None:
+    """跑 F 阶段的 validate_components_json(P8 事前校验 + P0-PRIVACY)。"""
     try:
         from scripts.components.validate import validate_report_json, format_issues_for_human
     except ImportError as e:
@@ -263,7 +299,7 @@ def _try_schema_validate(input_json: dict) -> None:
         print(f"[WARN] validate_components_json 不可用,跳过事前校验:{e}", file=sys.stderr)
         return
 
-    issues = validate_report_json(input_json)
+    issues = validate_report_json(input_json, process_dir)
     errors = [i for i in issues if i.get("level") == "ERROR"]
     if errors:
         raise ValueError(
@@ -271,7 +307,7 @@ def _try_schema_validate(input_json: dict) -> None:
         )
 
 
-def _try_html_validate(report_path: Path) -> None:
+def _try_html_validate(report_path: Path, project_dir: Path | None = None) -> None:
     """跑 P7 validate_html(若可用),ERROR 阻塞渲染。
 
     Codex review 2026-05-25 P1:体检 ERROR 只 WARN 会让带 ERROR 的产物流出。
@@ -279,8 +315,11 @@ def _try_html_validate(report_path: Path) -> None:
     """
     try:
         import subprocess
+        cmd = [sys.executable, str(SKILL_ROOT / "scripts" / "validate_html.py"), str(report_path)]
+        if project_dir is not None:
+            cmd.extend(["--project-dir", str(project_dir)])
         result = subprocess.run(
-            [sys.executable, str(SKILL_ROOT / "scripts" / "validate_html.py"), str(report_path)],
+            cmd,
             capture_output=True, text=True, encoding="utf-8", errors="replace",
         )
         if result.returncode != 0:
@@ -339,7 +378,12 @@ def main() -> int:
             pass
 
     input_json = json.loads(in_path.read_text(encoding="utf-8"))
-    html = render_report(input_json, out_dir, validate=not args.skip_validate)
+    html = render_report(
+        input_json,
+        out_dir,
+        validate=not args.skip_validate,
+        input_path=in_path,
+    )
     # render_report 已经写到 out_dir/report.html;如果 user 指定的输出名不是 report.html,再 copy 一份
     default_path = out_dir / "report.html"
     if out_path.resolve() != default_path.resolve():

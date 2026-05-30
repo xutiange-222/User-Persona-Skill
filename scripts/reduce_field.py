@@ -35,6 +35,13 @@ DEFAULT_BASE_URL = "https://api.anthropic.com"
 DEFAULT_MODEL = "claude-opus-4-5"
 PROMPTS_DIR = Path(__file__).parent.parent / "assets" / "prompts"
 
+_PRIVACY_P0_BLOCK = """
+## P0 脱敏(最强约束,与 SKILL.md 约束 8 同级)
+- 聚合后的 title/detail/正文描述中**禁止出现访谈真名**(如刘宇、刘军、完整文件名)。
+- mentioned_by 与 evidence 的 source 只用脱敏名: 姓氏+*、身份(张医生)、U1。
+- 禁止在一条描述里用真名对比多人;用「部分受访者」「该类型用户」或脱敏指代。
+"""
+
 # 字段 → reducer prompt 文件
 FIELD_REDUCER_PROMPT = {
     "responsibilities": "reduce_responsibilities.txt",
@@ -155,7 +162,8 @@ def reduce_field(field_name: str, extractions: list) -> dict:
     inputs_json = json.dumps(items, ensure_ascii=False, indent=2)
 
     full_prompt = (
-        prompt_template
+        _PRIVACY_P0_BLOCK
+        + prompt_template
         .replace("{{FIELD_NAME}}", field_name)
         .replace("{{TOTAL}}", str(total))
         .replace("{{INPUTS}}", inputs_json)
