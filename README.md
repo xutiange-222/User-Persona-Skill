@@ -6,6 +6,8 @@
 
 本仓库是 **User Persona Skill** 的完整源码包，可安装到 **Claude Code** 或 **Cursor** 的 skills 目录。你提供访谈材料并说明研究目标后，Agent 会按固定工作流完成分类、字段对齐、抽取合并与渲染，最终交付一份可在浏览器中打开的画像报告。
 
+**首次使用请优先阅读 [`人类用户说明书.html`](人类用户说明书.html)**（用浏览器打开），再查阅本 README 与 `SKILL.md`。
+
 ## 它适合什么问题
 
 适合这类输入：
@@ -160,6 +162,8 @@ user-persona/
 User Persona Skill turns user-interview transcripts into structured persona reports as interactive HTML (exportable to PPT).
 
 This repository is the full **skill package** for **Claude Code** or **Cursor**. After you provide interview files and align on research goals, the agent follows a fixed workflow—classification, field alignment, extract/merge, and render—to deliver a browser-ready persona report.
+
+**First-time users: start with [`人类用户说明书.html`](人类用户说明书.html)** (open in a browser) before this README or `SKILL.md`.
 
 ## What It Is For
 
