@@ -6,7 +6,7 @@
 
 本仓库是 **User Persona Skill** 的完整源码包，可安装到 **Claude Code** 或 **Cursor** 的 skills 目录。你提供访谈材料并说明研究目标后，Agent 会按固定工作流完成分类、字段对齐、抽取合并与渲染，最终交付一份可在浏览器中打开的画像报告。
 
-**首次使用请优先阅读 [`人类用户说明书.html`](人类用户说明书.html)**（用浏览器打开），再查阅本 README 与 `SKILL.md`。
+**首次使用请优先阅读 [人类用户说明书（在线打开）](https://xutiange-222.github.io/User-Persona-Skill/%E4%BA%BA%E7%B1%BB%E7%94%A8%E6%88%B7%E8%AF%B4%E6%98%8E%E4%B9%A6.html)**，再查阅本 README 与 `SKILL.md`。（GitHub Pages 首次启用后约需 1–2 分钟生效。）
 
 ## 它适合什么问题
 
@@ -75,7 +75,7 @@ macOS / Linux：
 
 1. 重启 Claude Code / Cursor。
 2. 询问 Agent 是否可以使用 `user-persona` skill。
-3. 人类可读说明可浏览器打开仓库内 **`人类用户说明书.html`**。
+3. 人类可读说明：[在线打开说明书](https://xutiange-222.github.io/User-Persona-Skill/%E4%BA%BA%E7%B1%BB%E7%94%A8%E6%88%B7%E8%AF%B4%E6%98%8E%E4%B9%A6.html)（或本地打开 `人类用户说明书.html`）。
 
 ## 使用示例
 
@@ -163,7 +163,7 @@ User Persona Skill turns user-interview transcripts into structured persona repo
 
 This repository is the full **skill package** for **Claude Code** or **Cursor**. After you provide interview files and align on research goals, the agent follows a fixed workflow—classification, field alignment, extract/merge, and render—to deliver a browser-ready persona report.
 
-**First-time users: start with [`人类用户说明书.html`](人类用户说明书.html)** (open in a browser) before this README or `SKILL.md`.
+**First-time users: start with the [human guide (open in browser)](https://xutiange-222.github.io/User-Persona-Skill/%E4%BA%BA%E7%B1%BB%E7%94%A8%E6%88%B7%E8%AF%B4%E6%98%8E%E4%B9%A6.html)** before this README or `SKILL.md`. (GitHub Pages may take 1–2 minutes after first enable.)
 
 ## What It Is For
 
@@ -220,7 +220,7 @@ C:\Users\<you>\.claude\skills\user-persona\   # Windows
 
 If you have `user-persona.zip`, extract so that `SKILL.md` sits directly under `skills/user-persona/`.
 
-Then restart Claude Code / Cursor and confirm the agent can use the `user-persona` skill. Open **`人类用户说明书.html`** in a browser for the human guide.
+Then restart Claude Code / Cursor and confirm the agent can use the `user-persona` skill. Human guide: [open online](https://xutiange-222.github.io/User-Persona-Skill/%E4%BA%BA%E7%B1%BB%E7%94%A8%E6%88%B7%E8%AF%B4%E6%98%8E%E4%B9%A6.html).
 
 ## Example Prompts
 
