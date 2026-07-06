@@ -164,6 +164,32 @@ toC 版话术结构类似,但用 `schemas/schema-toc.md` 的字段池。
 
 用户回答后写入 `visual_assets`(格式见 `steps/visual-assets.md` §5)。`assets_asked: true` 为进入抽取的硬门禁之一。
 
+### Step 5.0.0:视觉规范选择(所有范式,2B/2C 必选)
+
+字段确定后、写 `03-field-alignment.json` **之前**,必须读取 `steps/visual-style-guide.md`,并向用户确认:
+
+1. **业务类型**:`2b` / `2c` / `2d`
+2. **固定模板**:
+   - 2B/toD 流程旅程:`2b-overall-journey`
+   - 2C 画像主页:`2c-persona`
+   - 2C 旅程页:`2c-journey`
+3. **色板**:
+   - 2B/toD 默认 `2b-process-blue`
+   - 2C 从 `2c-purple-default`,`2c-red-orange`,`2c-green-gray`,`2c-yellow-orange`,`2c-high-contrast`,`2c-blue-yellow`,`2c-cyan-gold` 中选 1 套
+4. **选择理由**:用一句话说明为什么这个模板和色板适合研究目标
+
+写入 `03-field-alignment.json` 时必须包含:
+
+```json
+"visual_spec": {
+  "template_id": "2b-overall-journey",
+  "palette_id": "2b-process-blue",
+  "palette_reason": "强调多角色流程、节点状态和风险阻塞,适合给产品团队看整体旅程。"
+}
+```
+
+`visual_spec` 是进入抽取和报告组件组装的硬门禁。弱模型不得只写 `visual_assets`,也不得把色板选择拖到最终 HTML 阶段。
+
 ### Step 5.0.1:旅程页与其它呈现问题
 
 在 Step 5.0 素材问题之后,继续问旅程等呈现问题。toB/toD 多角色见 Step 5.1;toC 见 Step 5.2。
@@ -404,6 +430,11 @@ R4/R5 后续要在矩阵里展示每位受访者,字段对齐阶段必须同时�
     "screenshot_mapping": {
       "发布流水线.png": "运维 / journey / stage_3"
     }
+  },
+  "visual_spec": {
+    "template_id": "2b-overall-journey",
+    "palette_id": "2b-process-blue",
+    "palette_reason": "强调多角色流程、节点状态和风险阻塞,适合给产品团队看整体旅程。"
   },
   "layout_estimate": {
     "默认": {

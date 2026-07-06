@@ -21,12 +21,12 @@ from path_utils import OUTPUT_ROOT_NAME, resolve_process_dir
 CLASSIFICATION_PARADIGMS = frozenset({"R3", "R4", "R5"})
 
 CHECKPOINT_FILES = (
-    ("00-research-goal.json", "research_goal", "Step 0/1: 写入研究目标"),
-    ("01-paradigm.json", "paradigm", "Step 2: 写入范式选择"),
-    ("02-classification.json", "classification", "分类/区分点: 写入 02-classification.json"),
-    ("03-field-alignment.json", "field_alignment", "字段对齐: 写入并校验 03-field-alignment.json"),
-    ("04-personas.json", "personas", "合并: 写入 04-personas.json"),
-    ("05-report.json", "report_json", "渲染前: 写入 05-report.json"),
+    ("00-research-goal", "research_goal", "Step 0/1: 写入研究目标 MD 和 JSON"),
+    ("01-paradigm", "paradigm", "Step 2: 写入范式选择 MD 和 JSON"),
+    ("02-classification", "classification", "分类/区分点: 写入 02-classification.md/json"),
+    ("03-field-alignment", "field_alignment", "字段对齐: 写入并校验 03-field-alignment.md/json"),
+    ("04-personas", "personas", "合并: 写入 04-personas.md/json"),
+    ("05-report", "report_json", "渲染前: 写入 05-report.md/json"),
 )
 
 
@@ -79,16 +79,34 @@ def audit_missing_artifacts(process_dir: Path, paradigm: str | None) -> list[dic
     missing: list[dict] = []
     needs_classification = paradigm in CLASSIFICATION_PARADIGMS
 
-    for filename, _step_id, hint in CHECKPOINT_FILES:
-        if filename == "02-classification.json" and not needs_classification:
+    for stem, _step_id, hint in CHECKPOINT_FILES:
+        if stem == "02-classification" and not needs_classification:
             continue
-        path = process_dir / filename
-        if not path.is_file():
+        md_path = process_dir / f"{stem}.md"
+        json_path = process_dir / f"{stem}.json"
+        if not md_path.is_file() and not json_path.is_file():
             missing.append(
                 {
-                    "kind": "file",
-                    "path": filename,
+                    "kind": "checkpoint_pair",
+                    "path": stem,
                     "hint": hint,
+                }
+            )
+            continue
+        if not md_path.is_file():
+            missing.append(
+                {
+                    "kind": "checkpoint_md",
+                    "path": md_path.name,
+                    "hint": f"缺少用户对齐稿 {md_path.name},不得只保留 JSON",
+                }
+            )
+        if not json_path.is_file():
+            missing.append(
+                {
+                    "kind": "checkpoint_json",
+                    "path": json_path.name,
+                    "hint": f"缺少系统续跑稿 {json_path.name},不得只保留 MD",
                 }
             )
 
@@ -120,6 +138,21 @@ def audit_missing_artifacts(process_dir: Path, paradigm: str | None) -> list[dic
 
     delivery = find_delivery_report(process_dir)
     report_json = process_dir / "05-report.json"
+    if report_json.is_file():
+        for prereq in (
+            "00-research-goal.json",
+            "01-paradigm.json",
+            "03-field-alignment.json",
+            "04-personas.json",
+        ):
+            if not (process_dir / prereq).is_file():
+                missing.append(
+                    {
+                        "kind": "warning",
+                        "path": prereq,
+                        "hint": f"已有 05-report.json 但缺少前序检查点 {prereq},疑似跳步输出",
+                    }
+                )
     if delivery and not report_json.is_file():
         missing.append(
             {

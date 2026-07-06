@@ -1,0 +1,23 @@
+{
+  "version": "v9",
+  "field_pool_presented": true,
+  "fields_display_names": {},
+  "fields_per_persona": {},
+  "custom_fields": [],
+  "user_confirmed": true,
+  "confirmation_message_summary": "",
+  "add_on_pages": {
+    "journey": false,
+    "journey_scope": "none"
+  },
+  "visual_assets": {
+    "assets_asked": true,
+    "avatar_use_default": true,
+    "screenshots_enabled": false
+  },
+  "visual_spec": {
+    "template_id": "",
+    "palette_id": "",
+    "palette_reason": ""
+  }
+}

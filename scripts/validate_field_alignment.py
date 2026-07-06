@@ -41,6 +41,23 @@ _PLACEHOLDER_FIELD_VALUES = {
     "默认",
 }
 
+_ALLOWED_VISUAL_TEMPLATES = {
+    "2b-overall-journey": {"2b", "2d", "tob", "tod"},
+    "2c-persona": {"2c", "toc"},
+    "2c-journey": {"2c", "toc"},
+}
+
+_ALLOWED_PALETTES = {
+    "2b-process-blue": {"2b", "2d", "tob", "tod"},
+    "2c-purple-default": {"2c", "toc"},
+    "2c-red-orange": {"2c", "toc"},
+    "2c-green-gray": {"2c", "toc"},
+    "2c-yellow-orange": {"2c", "toc"},
+    "2c-high-contrast": {"2c", "toc"},
+    "2c-blue-yellow": {"2c", "toc"},
+    "2c-cyan-gold": {"2c", "toc"},
+}
+
 
 def _normalize_summary(text: str) -> str:
     return re.sub(r"\s+", "", (text or "").strip())
@@ -136,6 +153,36 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
         errors.append(
             "visual_assets.assets_asked 必须为 true — 字段对齐 Step 5.0 须问过头像/截图"
         )
+
+    visual_spec = data.get("visual_spec")
+    if not isinstance(visual_spec, dict):
+        errors.append("visual_spec 必须是对象,且必须记录 template_id / palette_id / palette_reason")
+    else:
+        template_id = str(visual_spec.get("template_id") or "").strip()
+        palette_id = str(visual_spec.get("palette_id") or "").strip()
+        palette_reason = str(visual_spec.get("palette_reason") or "").strip()
+        if template_id not in _ALLOWED_VISUAL_TEMPLATES:
+            errors.append(
+                "visual_spec.template_id 必须从 steps/visual-style-guide.md 固定模板选择"
+            )
+        if palette_id not in _ALLOWED_PALETTES:
+            errors.append(
+                "visual_spec.palette_id 必须从 steps/visual-style-guide.md 固定色板选择"
+            )
+        if len(palette_reason) < 12:
+            errors.append("visual_spec.palette_reason 至少 12 字,说明模板和色板选择理由")
+
+        persona_type_norm = str(data.get("persona_type") or data.get("research_type") or "").lower()
+        if template_id in _ALLOWED_VISUAL_TEMPLATES and persona_type_norm:
+            if persona_type_norm not in _ALLOWED_VISUAL_TEMPLATES[template_id]:
+                errors.append(
+                    f"visual_spec.template_id={template_id} 与 persona_type/research_type={persona_type_norm} 不匹配"
+                )
+        if palette_id in _ALLOWED_PALETTES and persona_type_norm:
+            if persona_type_norm not in _ALLOWED_PALETTES[palette_id]:
+                errors.append(
+                    f"visual_spec.palette_id={palette_id} 与 persona_type/research_type={persona_type_norm} 不匹配"
+                )
 
     # toB/toD 多角色 L1 判定
     persona_count = int(data.get("persona_count") or 0)
