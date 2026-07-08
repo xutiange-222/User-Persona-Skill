@@ -86,14 +86,16 @@
 
 ### 0.4 渲染前 checklist(模型自检)
 
-渲染任何 HTML 前,模型必须自问 5 条:
+渲染任何 HTML 前,模型必须自问 7 条:
 - [ ] link 了 `_design-tokens.css` 和 `_components.css` 吗?
 - [ ] `<html>` 上有 `data-theme` + `data-density` 吗?
 - [ ] 主 section 用的是 0.2 节 7 个 layout 类之一吗?(`layout-2b-journey` 必须带 `is-l1` 或 `is-l2` 修饰类)
 - [ ] 有没有写任何硬编码颜色/字号/间距(像 `#0f1729` / `14px` / `32px`)? 有就换成 `var(--xxx)`。
 - [ ] 有没有自创新组件类名(像 `.persona-page` / `.panel`)? 有就停下,报错回字段对齐。
+- [ ] 2B/L2 旅程是否满足 `steps/visual-style-guide.md` 的阶段、子阶段、工具触点、UML 外框、节点边框规则?
+- [ ] 2C 复杂报告是否满足 `steps/visual-style-guide.md` 的七套色板、低密度、多维分布、画像页、详情页、旅程页规则?
 
-**5 条全过才能出 HTML**。任一条不过 = 违反 SKILL.md 约束 7。
+**7 条全过才能出 HTML**。任一条不过 = 违反 SKILL.md 约束 7。
 
 ---
 
@@ -420,11 +422,11 @@ Step 1. 判断画像是否"AI 相关"
 Step 1.5. 判断画像是否"主题明显匹配某色板"(特例,优先于哈希)
   当画像核心场景与下表某条强吻合时,直接取对应色,不走哈希:
   ┌──────────────────────┬─────────────────────────────────────┐
-  │ --accent-mist-blue   │ 文艺 / 治愈 / 阅读 / 音乐 / 安静沉思 │
-  │ --accent-moss-green  │ 自然 / 健康 / 户外 / 运动 / 养生     │
   │ --accent-warm-orange │ 美食 / 生活 / 社交 / 温暖陪伴        │
-  │ --accent-clay-red    │ 文化 / 复古 / 收藏 / 影视            │
+  │ --accent-moss-green  │ 自然 / 健康 / 户外 / 运动 / 养生     │
   │ --accent-mustard     │ 童趣 / 家庭 / 烹饪 / 育儿            │
+  │ --accent-mist-blue   │ 科技 / 清爽 / 蓝黄对比 / 新 TO C-4   │
+  │ --accent-cyan-gold   │ 潮流 / 活力 / 青金对比 / 新 TO C-5   │
   └──────────────────────┴─────────────────────────────────────┘
   判断标准:画像名 / 核心场景 / 一句话需求里出现该列关键词或同义概念。
   若无明显匹配 → 进入 Step 2(哈希 fallback)
@@ -432,11 +434,11 @@ Step 1.5. 判断画像是否"主题明显匹配某色板"(特例,优先于哈希
 Step 2. 单画像哈希取色(fallback,主题不明显时用)
   对画像中文名所有字符求 unicode 总和,mod 5,从下表取色:
   ┌─────┬──────────────────────┐
-  │ 0   │ --accent-mist-blue   │ 雾蓝
-  │ 1   │ --accent-moss-green  │ 苔绿
-  │ 2   │ --accent-warm-orange │ 暖橙
-  │ 3   │ --accent-clay-red    │ 陶红
-  │ 4   │ --accent-mustard     │ 芥末
+  │ 0   │ --accent-warm-orange │ 红橙
+  │ 1   │ --accent-moss-green  │ 绿灰
+  │ 2   │ --accent-mustard     │ 黄橙
+  │ 3   │ --accent-mist-blue   │ 蓝黄
+  │ 4   │ --accent-cyan-gold   │ 青金
   └─────┴──────────────────────┘
   哈希让同一画像名永远是同一色,可复现。
 
@@ -444,24 +446,26 @@ Step 3. 多画像并存时,顺序循环避免相邻同色
   适用场景:tab 切换、矩阵 4 象限、分布图 N 类。
   第 1 个画像:走 Step 1 → 1.5 → 2 取色作为起点。
   第 2-N 个画像:在 5 色环上顺时针取下一色,跳过 AI 类的紫色。
-  色环顺序:雾蓝 → 苔绿 → 暖橙 → 陶红 → 芥末 →(回到雾蓝)
+  色环顺序:红橙 → 绿灰 → 黄橙 → 蓝黄 → 青金 →(回到红橙)
   AI 类画像强制紫,不参与循环计数(即如果第 3 个是 AI 类,第 4 个还是从第 2 个的下一位继续)。
   如果主题匹配 Step 1.5 的结果在循环中已被占用,可优先保留主题匹配色给主画像,其余画像走循环。
 ```
 
 **例子**:
-- "品质聆听者"(Hi-res 音乐画像)→ Step 1.5 命中"音乐/安静沉思" → 雾蓝(若走哈希会得到芥末,与主题不符)
-- "驴友登山客"(户外画像)→ Step 1.5 命中"户外/运动" → 苔绿
+- "品质聆听者"(Hi-res 音乐画像)→ Step 1.5 命中"科技/清爽" → 蓝黄或青金
+- "驴友登山客"(户外画像)→ Step 1.5 命中"户外/运动" → 绿灰
 - "盘古助手用户"(AI 类)→ Step 1 命中 → 雾紫
 - "二次元手帐控"(主题不明显匹配色板)→ Step 2 哈希取色
 
 **colour-token 列表**(完整定义在 `assets/templates/_design-tokens.css`):
-- `--accent-purple` = #9B7BC4
-- `--accent-mist-blue` = #7BA8C9
-- `--accent-moss-green` = #6B8E5A
-- `--accent-warm-orange` = #D97757
-- `--accent-clay-red` = #B8665C
-- `--accent-mustard` = #C9A55A
+- `--accent-purple` = #9664FF
+- `--accent-warm-orange` = #F05A28
+- `--accent-moss-green` = #82B4B4
+- `--accent-mustard` = #FFB41E
+- `--accent-mist-blue` = #5A8CFA
+- `--accent-cyan-gold` = #32B4DC
+
+旧 TO C-4 `high-contrast` 色卡已废弃，不得再作为新报告可选色卡。旧 TO C-5 顺位前移为新 TO C-4，旧 TO C-6 顺位前移为新 TO C-5。
 
 ---
 
@@ -641,9 +645,9 @@ python scripts/validate_html.py "<交付件>/report.html" --project-dir "<项目
 
 CSS 已实现:`grid-template-columns: 32% 1fr 1fr`(身份卡 32% + 右侧 2 列各 34%)。
 
-**主背景规范**:`--color-bg-page: #FCFAF5`(近白) — **不再铺米黄**。米黄只用作 `--color-bg-card-soft`(辅助色块底)。这避免了"灰扑扑融背景"问题。
+**主背景规范**:`--color-bg-page: #FFFFFF`。大面积页面背景保持白色,辅助色块用 2C 色板里的 bg/soft 色。
 
-**身份卡(.identity-card)的色块背景**:`--color-bg-illust = color-mix(accent 15%, bg-page)`——accent 是雾蓝就带蓝调,是暖橙就带橙调,**主题色自动跟随**。
+**身份卡(.identity-card)的色块背景**:`--color-bg-illust = --color-toc-surface`。`--color-toc-surface` 必须来自当前 2C 色卡风格的大面积/色块色,如蓝黄用 `--palette-2c-blue-yellow-bg`,绿灰用 `--palette-2c-green-gray-bg`。每个用户角色必须绑定完整 `palette pack`: `--color-toc-style`、`--color-toc-primary`、`--color-toc-secondary`、`--color-toc-surface`、`--color-toc-bg`、`--color-toc-soft`、`--color-toc-alert`。`--color-toc-primary` 用于 icon、标题胶囊、描边、重点词。
 
 **section-block 必须 3 层结构**:
 ```html

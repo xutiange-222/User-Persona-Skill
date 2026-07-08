@@ -74,6 +74,24 @@ def _validate_field_alignment(field_file: Path) -> list[str]:
         return [str(exc)]
 
 
+def _validate_checkpoint_pairing(process_dir: Path) -> list[dict]:
+    try:
+        try:
+            from validate_checkpoint_pairing import validate_checkpoint_pairing
+        except ImportError:
+            from scripts.validate_checkpoint_pairing import validate_checkpoint_pairing
+
+        return validate_checkpoint_pairing(process_dir)
+    except Exception as exc:
+        return [
+            {
+                "code": "CHECKPOINT_VALIDATOR_ERROR",
+                "path": str(process_dir),
+                "message": str(exc),
+            }
+        ]
+
+
 def audit_missing_artifacts(process_dir: Path, paradigm: str | None) -> list[dict]:
     """List checkpoint files/dirs that should exist but do not."""
     missing: list[dict] = []
@@ -88,7 +106,7 @@ def audit_missing_artifacts(process_dir: Path, paradigm: str | None) -> list[dic
             missing.append(
                 {
                     "kind": "checkpoint_pair",
-                    "path": stem,
+                    "path": f"{stem}.json",
                     "hint": hint,
                 }
             )
@@ -271,6 +289,8 @@ def check_recovery(workdir: Path) -> dict:
         result["status"] = "in_progress"
 
     result["missing_artifacts"] = audit_missing_artifacts(workdir, result.get("paradigm"))
+    result["checkpoint_pairing_errors"] = _validate_checkpoint_pairing(workdir)
+    result["checkpoint_pairing_valid"] = not result["checkpoint_pairing_errors"]
 
     return result
 

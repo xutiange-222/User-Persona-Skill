@@ -15,6 +15,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from privacy_guard import (  # noqa: E402
     collect_forbidden_real_names,
+    validate_privacy_in_html,
     validate_privacy_in_report,
     _is_masked_display_name,
 )
@@ -64,6 +65,13 @@ class PrivacyGuardTests(unittest.TestCase):
             (proc / "processed" / "刘宇.txt").write_text("", encoding="utf-8")
             names = collect_forbidden_real_names(proc)
             self.assertIn("刘宇", names)
+
+
+    def test_html_structure_words_are_not_bare_names(self):
+        html = "<div>阶段</div><div>发现</div><div>试听</div><div>旅程</div>"
+        issues = validate_privacy_in_html(html, None)
+        codes = {i["code"] for i in issues}
+        self.assertNotIn("P0-PRIVACY-BARE-NAME-HTML", codes)
 
 
 if __name__ == "__main__":

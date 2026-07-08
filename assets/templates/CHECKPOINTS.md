@@ -29,3 +29,15 @@ python scripts/recovery_check.py --workdir <本项目运行目录或过程稿目
 - 直接手写 `report.html` 而不写 `05-report.json`
 - 只有 `04-personas.json` 却没有 `extracted/` 逐份文件
 - 只有 `alignment_mode` 而无完整字段池的 `03-field-alignment.json`
+## 2026-07-08 hard gates
+
+Before continuing or rendering, run:
+
+```bash
+python scripts/validate_checkpoint_pairing.py --workdir <run-or-process-dir>
+python scripts/validate_field_alignment.py --workdir <run-or-process-dir>
+python scripts/validate_components_json.py --workdir <process-dir> 05-report.json
+python scripts/validate_html.py --project-dir <run-dir> <delivery-dir>/report.html
+```
+
+The process is blocked when any checkpoint has only `.md` or only `.json`, when `05-report.json` appears without earlier checkpoints, when final HTML appears without `05-report.json`, or when `processed/*.txt` and `extracted/*.json` counts differ.

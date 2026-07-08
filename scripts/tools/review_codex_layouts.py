@@ -346,6 +346,13 @@ def check_2c_accent_inline_present():
     html = result[0]
     assert "--color-accent" in html, f"2c-portrait HTML 应含 --color-accent, 实际:\n{html[:300]}"
     assert "--accent-mist-blue" in html, f"2c-portrait HTML 应含 --accent-mist-blue, 实际:\n{html[:300]}"
+    assert "--color-toc-style: blue-yellow" in html, f"2c-portrait HTML must include palette style, actual:\n{html[:300]}"
+    assert "--color-toc-primary" in html, f"2c-portrait HTML must include --color-toc-primary, actual:\n{html[:300]}"
+    assert "--color-toc-secondary" in html, f"2c-portrait HTML must include --color-toc-secondary, actual:\n{html[:300]}"
+    assert "--color-toc-surface" in html, f"2c-portrait HTML must include --color-toc-surface, actual:\n{html[:300]}"
+    assert "--color-toc-soft" in html, f"2c-portrait HTML must include --color-toc-soft, actual:\n{html[:300]}"
+    assert "--color-toc-alert" in html, f"2c-portrait HTML must include --color-toc-alert, actual:\n{html[:300]}"
+    assert "color-mix(in srgb, var(--palette-2c-blue-yellow-primary)" in html, f"2c-portrait HTML must keep blue style backgrounds in the blue family, actual:\n{html[:300]}"
 
 
 def check_2b_grid_dual_page():

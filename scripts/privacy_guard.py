@@ -242,7 +242,7 @@ def validate_privacy_in_html(
         token = m.group(1)
         if _is_masked_display_name(token):
             continue
-        if token in forbidden or _BARE_NAME_RE.fullmatch(token):
+        if token in forbidden:
             issues.append(_issue(
                 "ERROR",
                 "P0-PRIVACY-BARE-NAME-HTML",

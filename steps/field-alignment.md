@@ -175,7 +175,7 @@ toC 版话术结构类似,但用 `schemas/schema-toc.md` 的字段池。
    - 2C 旅程页:`2c-journey`
 3. **色板**:
    - 2B/toD 默认 `2b-process-blue`
-   - 2C 从 `2c-purple-default`,`2c-red-orange`,`2c-green-gray`,`2c-yellow-orange`,`2c-high-contrast`,`2c-blue-yellow`,`2c-cyan-gold` 中选 1 套
+   - 2C 从 `2c-purple-default`,`2c-red-orange`,`2c-green-gray`,`2c-yellow-orange`,`2c-blue-yellow`,`2c-cyan-gold` 中选 1 套。`2c-high-contrast` 已废弃，不得再选；旧 TO C-5、TO C-6 顺位前移为新 TO C-4、TO C-5。
 4. **选择理由**:用一句话说明为什么这个模板和色板适合研究目标
 
 写入 `03-field-alignment.json` 时必须包含:

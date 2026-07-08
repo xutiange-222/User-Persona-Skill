@@ -109,8 +109,9 @@ def render_report(
 
     # 1. schema 校验(可选,F 阶段产物;尚未实现就跳过)
     if validate:
+        _try_checkpoint_pairing_gate(process_dir, input_path)
         _try_schema_validate(input_json, process_dir)
-        _try_field_alignment_gate(output_dir)
+        _try_field_alignment_gate(process_dir or output_dir)
 
     # 2. 调 assembler,收集所有 slide
     all_slides: list[str] = []
@@ -287,6 +288,45 @@ def _try_field_alignment_gate(output_dir: Path) -> None:
             f"03-field-alignment.json 未通过硬门禁({alignment_path}):\n{head}\n"
             f"须回到 steps/field-alignment.md Step 1 展示字段池并获用户确认后再渲染。"
             f"调试可用 --skip-validate 绕过(产物不可交付)。"
+        )
+
+
+def _try_checkpoint_pairing_gate(process_dir: Path | None, input_path: Path | None) -> None:
+    """When rendering a workflow report, require paired MD/JSON checkpoints."""
+    if process_dir is None or not process_dir.exists():
+        return
+
+    checkpoint_globs = (
+        "00-research-goal.*",
+        "01-paradigm.*",
+        "03-field-alignment.*",
+        "04-personas.*",
+        "05-report.*",
+    )
+    has_checkpoint_trace = any(
+        any(process_dir.glob(pattern)) for pattern in checkpoint_globs
+    )
+    is_named_process_dir = process_dir.name in {"过程稿", "杩囩▼绋?"}
+    is_workflow_report = input_path is not None and Path(input_path).name == "05-report.json"
+    should_gate = is_named_process_dir or (is_workflow_report and has_checkpoint_trace)
+    if not should_gate:
+        return
+
+    try:
+        from scripts.validate_checkpoint_pairing import validate_checkpoint_pairing
+    except ImportError:
+        print("[WARN] validate_checkpoint_pairing.py is unavailable; skipped checkpoint gate", file=sys.stderr)
+        return
+
+    errors = validate_checkpoint_pairing(process_dir)
+    if errors:
+        head = "\n".join(
+            f"  - {item.get('code')}: {item.get('path')} | {item.get('message')}"
+            for item in errors[:8]
+        )
+        raise RuntimeError(
+            f"checkpoint pairing failed for {process_dir}; rendering is blocked:\n{head}\n"
+            f"Fix: add the missing .md/.json checkpoints and processed/extracted artifacts, then rerun render_report.py."
         )
 
 

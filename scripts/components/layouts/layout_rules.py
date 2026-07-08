@@ -124,5 +124,100 @@ def require_accent(layout: str, persona: dict) -> str:
     return accent
 
 
+TOC_PALETTE_STYLES = {
+    "purple": {
+        "style": "purple-default",
+        "primary": "palette-2c-purple-primary",
+        "secondary": "palette-2c-purple-soft",
+        "surface": "palette-2c-purple-bg",
+        "soft": "palette-2c-purple-soft",
+        "alert": "palette-2c-purple-alert",
+        "aux": "palette-2c-purple-aux",
+    },
+    "mist-blue": {
+        "style": "blue-yellow",
+        "primary": "palette-2c-blue-yellow-primary",
+        "secondary": "palette-2c-blue-yellow-soft",
+        "surface": "color-mix(in srgb, var(--palette-2c-blue-yellow-primary) 12%, #FFFFFF)",
+        "soft": "palette-2c-blue-yellow-soft",
+        "alert": "palette-2c-blue-yellow-yellow",
+        "aux": "palette-2c-blue-yellow-yellow",
+    },
+    "moss-green": {
+        "style": "green-gray",
+        "primary": "palette-2c-green-gray-primary",
+        "secondary": "palette-2c-green-gray-olive",
+        "surface": "color-mix(in srgb, var(--palette-2c-green-gray-primary) 12%, #FFFFFF)",
+        "soft": "color-mix(in srgb, var(--palette-2c-green-gray-primary) 22%, #FFFFFF)",
+        "alert": "palette-2c-green-gray-yellow",
+        "aux": "palette-2c-green-gray-yellow",
+    },
+    "warm-orange": {
+        "style": "red-orange",
+        "primary": "palette-2c-red-orange-primary",
+        "secondary": "palette-2c-red-orange-mid",
+        "surface": "palette-2c-red-orange-soft",
+        "soft": "palette-2c-red-orange-soft",
+        "alert": "palette-2c-red-orange-primary",
+        "aux": "palette-2c-red-orange-mid",
+    },
+    "clay-red": {
+        "style": "blue-yellow",
+        "primary": "palette-2c-blue-yellow-primary",
+        "secondary": "palette-2c-blue-yellow-soft",
+        "surface": "color-mix(in srgb, var(--palette-2c-blue-yellow-primary) 12%, #FFFFFF)",
+        "soft": "palette-2c-blue-yellow-soft",
+        "alert": "palette-2c-blue-yellow-primary",
+        "aux": "palette-2c-blue-yellow-yellow",
+    },
+    "mustard": {
+        "style": "cyan-gold",
+        "primary": "palette-2c-cyan-gold-cyan",
+        "secondary": "palette-2c-cyan-gold-primary",
+        "surface": "palette-2c-cyan-gold-bg",
+        "soft": "palette-2c-cyan-gold-bg",
+        "alert": "palette-2c-cyan-gold-cyan",
+        "aux": "palette-2c-cyan-gold-gold",
+    },
+    "cyan-gold": {
+        "style": "cyan-gold",
+        "primary": "palette-2c-cyan-gold-primary",
+        "secondary": "palette-2c-cyan-gold-gold",
+        "surface": "palette-2c-cyan-gold-bg",
+        "soft": "palette-2c-cyan-gold-bg",
+        "alert": "palette-2c-cyan-gold-cyan",
+        "aux": "palette-2c-cyan-gold-gold",
+    },
+}
+
+TOC_PALETTE_STYLES.update({
+    "blue": TOC_PALETTE_STYLES["mist-blue"],
+    "green": TOC_PALETTE_STYLES["moss-green"],
+    "orange": TOC_PALETTE_STYLES["warm-orange"],
+    "red": TOC_PALETTE_STYLES["warm-orange"],
+    "yellow": TOC_PALETTE_STYLES["mustard"],
+})
+
+
 def accent_inline(accent: str) -> str:
-    return f'style="--color-accent: var(--accent-{escape(accent, quote=True)});"'
+    safe_accent = escape(accent, quote=True)
+    palette = TOC_PALETTE_STYLES.get(accent, TOC_PALETTE_STYLES["purple"])
+
+    def css_value(value: str) -> str:
+        if value.startswith(("var(", "color-mix(")):
+            return value
+        return f"var(--{value})"
+
+    return (
+        f'style="--color-accent: var(--accent-{safe_accent}); '
+        f'--color-toc-style: {palette["style"]}; '
+        f'--color-toc-primary: {css_value(palette["primary"])}; '
+        f'--color-toc-secondary: {css_value(palette["secondary"])}; '
+        f'--color-toc-surface: {css_value(palette["surface"])}; '
+        f'--color-toc-bg: {css_value(palette["surface"])}; '
+        f'--color-toc-soft: {css_value(palette["soft"])}; '
+        f'--color-toc-alert: {css_value(palette["alert"])}; '
+        f'--color-toc-aux: {css_value(palette["aux"])}; '
+        f'--color-toc-aux-bg: {css_value(palette["aux"])}; '
+        f'--color-toc-aux-text: var(--color-text-primary);"'
+    )

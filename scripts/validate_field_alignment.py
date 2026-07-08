@@ -53,7 +53,6 @@ _ALLOWED_PALETTES = {
     "2c-red-orange": {"2c", "toc"},
     "2c-green-gray": {"2c", "toc"},
     "2c-yellow-orange": {"2c", "toc"},
-    "2c-high-contrast": {"2c", "toc"},
     "2c-blue-yellow": {"2c", "toc"},
     "2c-cyan-gold": {"2c", "toc"},
 }

@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    user-persona-v8 Design Tokens (v1)
    ------------------------------------------------------------
    两套主题:
@@ -151,46 +151,48 @@
 [data-theme="2b"],
 [data-theme="2d"] {
   /* 品牌色四级 */
-  --color-primary:       #1e40af;
-  --color-primary-dark:  #1e3a8a;
-  --color-primary-light: #dbeafe;
-  --color-primary-soft:  #eff6ff;
+  --color-primary:       #6EA0DC;
+  --color-primary-dark:  #3296FF;
+  --color-primary-light: #DCF0FA;
+  --color-primary-soft:  #F3FAFE;
 
-  /* 强调色(2B/2D 等同 primary,不暴露 LLM 覆盖) */
-  --color-accent:      var(--color-primary);
+  /* 强调色(2B/2D 固定使用 ToB 重点蓝,不暴露 LLM 覆盖) */
+  --color-accent:      var(--color-primary-dark);
   --color-accent-soft: var(--color-primary-soft);
 
   /* 警告色(故障场景) */
-  --color-warning:      #f59e0b;
-  --color-warning-soft: #fef7f0;
+  --color-warning:      #DC2828;
+  --color-warning-soft: #FAE6E6;
+  --color-success:      #8CBE6E;
+  --color-process-main: #96BEFA;
 
   /* 文字色 */
-  --color-text-primary:   #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary:  #9ca3af;
+  --color-text-primary:   #282828;
+  --color-text-secondary: #787878;
+  --color-text-tertiary:  #B4B4B4;
   --color-text-inverse:   #ffffff;
 
   /* 背景层 */
-  --color-bg-page:         #f5f4f0;
-  --color-bg-canvas-left:  #f5f4f0;  /* 身份卡 */
+  --color-bg-page:         #F7FBFE;
+  --color-bg-canvas-left:  #DCF0FA;  /* 身份卡 */
   --color-bg-canvas-right: #ffffff;  /* 模块网格 */
   --color-bg-card:         #ffffff;
-  --color-bg-card-soft:    #fafafa;  /* system-card / task-freq-item */
+  --color-bg-card-soft:    #F3FAFE;  /* system-card / task-freq-item */
 
   /* 边框 */
-  --color-border-subtle: #e5e7eb;
+  --color-border-subtle: #DCDCDC;
 
   /* 阴影(蓝色系,与品牌色和谐) */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(30, 64, 175, 0.08);
-  --shadow-lg: 0 8px 28px rgba(30, 64, 175, 0.14);
+  --shadow-md: 0 4px 16px rgba(50, 150, 255, 0.10);
+  --shadow-lg: 0 8px 28px rgba(50, 150, 255, 0.16);
 
   /* 字体:中性专业 */
   --font-family-base: var(--font-family-sans);
 
   /* 头像占位渐变(柔和蓝,沿用 v2 原值) */
-  --gradient-avatar-from: #93c5fd;  /* blue-300 */
-  --gradient-avatar-to:   #60a5fa;  /* blue-400 */
+  --gradient-avatar-from: #DCF0FA;
+  --gradient-avatar-to:   #96BEFA;
 }
 
 
@@ -209,8 +211,9 @@
          0 → --accent-mist-blue   (雾蓝)
          1 → --accent-moss-green  (苔绿)
          2 → --accent-warm-orange (暖橙)
-         3 → --accent-clay-red    (陶红)
-         4 → --accent-mustard     (芥末)
+         3 → --accent-mustard     (黄橙)
+         4 → --accent-mist-blue   (蓝黄,原 TO C-5 顺位前移)
+         5 → --accent-cyan-gold   (青金,原 TO C-6 顺位前移)
        哈希让同一画像名永远是同一色,可复现
 
      Step 3. 多画像并存(tab/矩阵/多维分布图):按顺序循环,避免相邻同色
@@ -222,13 +225,46 @@
    禁忌:高饱和、明亮刺眼。色相必须莫兰迪、低饱和、温和。
    ============================================================ */
 [data-theme="2c"] {
-  /* 6 色候选板(LLM 按上面规则选用) */
-  --accent-purple:      #9B7BC4;  /* AI 相关画像 - 强制 */
-  --accent-mist-blue:   #7BA8C9;  /* 哈希索引 0 / 循环起点 */
-  --accent-moss-green:  #6B8E5A;  /* 哈希索引 1 */
-  --accent-warm-orange: #D97757;  /* 哈希索引 2 */
-  --accent-clay-red:    #B8665C;  /* 哈希索引 3 */
-  --accent-mustard:     #C9A55A;  /* 哈希索引 4 */
+  /* 6 色候选板(LLM 按上面规则选用)
+     旧 TO C-4 high-contrast 已废弃,不得作为新报告色卡。 */
+  --accent-purple:      #9664FF;  /* 2c-purple-default */
+  --accent-mist-blue:   #5A8CFA;  /* 2c-blue-yellow */
+  --accent-moss-green:  #82B4B4;  /* 2c-green-gray */
+  --accent-warm-orange: #F05A28;  /* 2c-red-orange */
+  --accent-mustard:     #FFB41E;  /* 2c-yellow-orange */
+  --accent-cyan-gold:   #32B4DC;  /* 2c-cyan-gold */
+  --accent-clay-red:    var(--accent-mist-blue);  /* deprecated: TO C-4 high-contrast removed, keep as safe alias */
+
+  --palette-2c-purple-primary: #9664FF;
+  --palette-2c-purple-soft:    #DCD2FF;
+  --palette-2c-purple-bg:      #F0F0FA;
+  --palette-2c-purple-alert:   #FA5A5A;
+  --palette-2c-purple-aux:     #FFF0BE;
+
+  --palette-2c-red-orange-primary: #F05A28;
+  --palette-2c-red-orange-soft:    #FFE6E6;
+  --palette-2c-red-orange-mid:     #F0AA8C;
+  --palette-2c-red-orange-green:   #3C6E64;
+
+  --palette-2c-green-gray-primary: #82B4B4;
+  --palette-2c-green-gray-olive:   #96AA78;
+  --palette-2c-green-gray-yellow:  #D2D278;
+  --palette-2c-green-gray-bg:      #F0F0DC;
+
+  --palette-2c-yellow-orange-primary: #FFB41E;
+  --palette-2c-yellow-orange-lime:    #F0E678;
+  --palette-2c-yellow-orange-soft:    #FFE6D2;
+  --palette-2c-yellow-orange-bg:      #E6F0F0;
+
+  --palette-2c-blue-yellow-primary: #5A8CFA;
+  --palette-2c-blue-yellow-soft:    #B4C8FA;
+  --palette-2c-blue-yellow-yellow:  #F0DC0A;
+  --palette-2c-blue-yellow-bg:      #FFF0BE;
+
+  --palette-2c-cyan-gold-primary: #285A82;
+  --palette-2c-cyan-gold-cyan:    #32B4DC;
+  --palette-2c-cyan-gold-gold:    #FFC846;
+  --palette-2c-cyan-gold-bg:      #DCF0F0;
 
   /* ---- 防御性别名:LLM 反复用错的短名也能 resolve(2026-05-21 P7) ----
      真实回归出现过:LLM 写 var(--accent-blue),CSS 解析不到→静默 white
@@ -236,67 +272,90 @@
   --accent-blue:           var(--accent-mist-blue);
   --accent-green:          var(--accent-moss-green);
   --accent-orange:         var(--accent-warm-orange);
-  --accent-red:            var(--accent-clay-red);
+  --accent-red:            var(--accent-warm-orange);
   --accent-yellow:         var(--accent-mustard);
   --accent-mustard-yellow: var(--accent-mustard);
   --accent-mist:           var(--accent-mist-blue);
   --accent-moss:           var(--accent-moss-green);
   --accent-warm:           var(--accent-warm-orange);
-  --accent-clay:           var(--accent-clay-red);
+  --accent-clay:           var(--accent-mist-blue);
 
   /* 默认值:留空让 LLM 必须在渲染时显式设置;
      LLM 渲染时通过 <html style="--color-accent: var(--accent-XXX)"> 注入 */
   --color-accent:      var(--accent-purple);  /* fallback,不应被使用 */
-  --color-accent-soft: rgba(155, 123, 196, 0.12);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 12%, transparent);
+
+  /* ---- TO C 色卡语义层 ----
+     一个用户角色绑定一套 palette style,不只替换单个 accent。
+     primary: 当前角色主色,用于主按钮、描边、重点词。
+     secondary: 同套色卡的辅助色,用于装饰、弱分隔、图表辅助。
+     surface/bg: 同套色卡的大面积浅底色,用于身份卡、头像底、信息承载块。
+     soft: 胶囊、小标签、轻强调底色。
+     alert: 同套色卡的警示/冲突色,用于痛点、风险、价格敏感等。 */
+  --color-toc-primary:     var(--color-accent);
+  --color-toc-secondary:   color-mix(in srgb, var(--color-toc-primary) 36%, #FFFFFF);
+  --color-toc-surface:     color-mix(in srgb, var(--color-toc-primary) 10%, #FFFFFF);
+  --color-toc-bg:          var(--color-toc-surface);
+  --color-toc-soft:        color-mix(in srgb, var(--color-toc-primary) 14%, #FFFFFF);
+  --color-toc-tint:        color-mix(in srgb, var(--color-toc-primary) 8%, #FFFFFF);
+  --color-toc-alert:       var(--color-warning);
+  --color-toc-aux:         var(--color-toc-secondary);
+  --color-toc-aux-bg:      var(--color-toc-aux);
+  --color-toc-aux-text:    var(--color-text-primary);
+  --color-toc-focus:       var(--color-toc-primary);
+  --color-toc-focus-soft:  var(--color-toc-soft);
+  --color-toc-focus-tint:  var(--color-toc-tint);
+  --color-toc-icon:        var(--color-toc-primary);
+  --color-toc-icon-bg:     var(--color-toc-soft);
+  --color-toc-on-focus:    #FFFFFF;
 
   /* 品牌色(2C 不强调品牌,弱化为标题/文字色) */
-  --color-primary:       #3A2E2A;  /* 深棕橄榄,作为标题主色 */
-  --color-primary-dark:  #2A1F1C;
-  --color-primary-light: #E8DDD0;  /* hover 浅底 */
-  --color-primary-soft:  #F0E8DA;  /* 轻强调底 */
+  --color-primary:       #282828;
+  --color-primary-dark:  #282828;
+  --color-primary-light: #F0F0FA;
+  --color-primary-soft:  #F0F0FA;
 
   /* 警告色(2C 也可能有故障/痛点场景) */
-  --color-warning:      #C97A4F;  /* 暖橙偏赤,匹配低饱和基调 */
-  --color-warning-soft: #F5E5D8;
+  --color-warning:      #FA5A5A;
+  --color-warning-soft: #FFE6E6;
 
   /* 文字色(全部偏暖) */
-  --color-text-primary:   #3A2E2A;  /* 深棕橄榄 */
-  --color-text-secondary: #7A6B62;  /* 中棕灰 */
-  --color-text-tertiary:  #B0A498;  /* 浅棕灰 */
+  --color-text-primary:   #282828;
+  --color-text-secondary: #787878;
+  --color-text-tertiary:  #B4B4B4;
   --color-text-inverse:   #ffffff;
 
-  /* 背景层(白底为主,米黄只作辅助色块底)
-     参考图 image002/005:主背景是极浅米/白,米黄只用在身份卡/装饰区 */
-  --color-bg-page:         #FCFAF5;  /* 主背景:近白(极浅米),不再铺满米黄 */
-  --color-bg-canvas-left:  #FCFAF5;  /* 与主背景一致 */
-  --color-bg-canvas-right: #FCFAF5;  /* 与主背景一致 */
+  /* 背景层:整体页面保持白色,淡紫灰只作辅助色块底 */
+  --color-bg-page:         #FFFFFF;
+  --color-bg-canvas-left:  #FFFFFF;
+  --color-bg-canvas-right: #FFFFFF;
   --color-bg-card:         #FFFFFF;  /* 纯白卡片 */
-  --color-bg-card-soft:    #F4EDDF;  /* 米黄软底,用作"温暖色块" */
+  --color-bg-card-soft:    var(--color-toc-bg);
 
   /* 边框(低对比,不抢戏) */
-  --color-border-subtle: #E5DDCF;
+  --color-border-subtle: #DCDCDC;
 
   /* 阴影(暖色调,柔和) */
-  --shadow-sm: 0 1px 2px rgba(58, 46, 42, 0.04);
-  --shadow-md: 0 4px 16px rgba(58, 46, 42, 0.08);
-  --shadow-lg: 0 8px 28px rgba(58, 46, 42, 0.12);
+  --shadow-sm: 0 1px 2px rgba(40, 40, 40, 0.04);
+  --shadow-md: 0 4px 16px color-mix(in srgb, var(--color-toc-focus) 12%, transparent);
+  --shadow-lg: 0 8px 28px color-mix(in srgb, var(--color-toc-focus) 18%, transparent);
 
   /* 字体:标题可选衬线(参考里"私房菜""唱片店"有手写/书法感) */
   --font-family-base:    var(--font-family-sans);
   --font-family-display: var(--font-family-sans);  /* 2C 标题也用清爽中文无衬线,避免宋体感 */
 
   /* 头像占位渐变(暖色柔和:米黄软底 → 主题强调色) */
-  --gradient-avatar-from: #F0E8DA;
-  --gradient-avatar-to:   var(--color-accent);
+  --gradient-avatar-from: #F0F0FA;
+  --gradient-avatar-to:   var(--color-toc-focus);
 
   /* 画像专属色块(illust-panel 背景)
      用 color-mix 实现:accent 色 15% 叠在主背景上,
      accent 变化时色块自动跟随(雾蓝→米黄+蓝,暖橙→米黄+橙) */
-  --color-bg-illust: color-mix(in srgb, var(--color-accent) 15%, var(--color-bg-page));
+  --color-bg-illust: var(--color-toc-surface);
   /* section 标题胶囊 hover/active 强调色块 */
-  --color-bg-accent-block: color-mix(in srgb, var(--color-accent) 90%, var(--color-text-inverse));
+  --color-bg-accent-block: color-mix(in srgb, var(--color-toc-focus) 90%, var(--color-text-inverse));
   /* 代表原话区底色(比 illust-panel 更柔和) */
-  --color-bg-quote-pull: color-mix(in srgb, var(--color-accent) 8%, var(--color-bg-canvas-right));
+  --color-bg-quote-pull: var(--color-toc-tint);
 }
 
 

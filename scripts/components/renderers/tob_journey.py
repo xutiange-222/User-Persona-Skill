@@ -5,6 +5,31 @@ import math
 from ._utils import escape, screenshot_exists
 
 
+L1_RAIL_WIDTH = 87
+
+
+def _split_role_label(label: str, max_chars: int = 4) -> list[str]:
+    text = label.strip()
+    if len(text) <= max_chars:
+        return [text]
+    if len(text) <= max_chars + 2 and text[-2:].isascii() and not text[-2:].isdigit():
+        return [text[:-2], text[-2:]]
+    return [text[i:i + max_chars] for i in range(0, len(text), max_chars)]
+
+
+def _render_role_label(cls: str, label: str, x: float, y: float, max_chars: int = 4) -> str:
+    lines = _split_role_label(label, max_chars)
+    if len(lines) == 1:
+        return f'<text class="{cls}" x="{x:.1f}" y="{y:.0f}">{escape(lines[0])}</text>'
+    line_h = 14
+    start_dy = -line_h * (len(lines) - 1) / 2
+    tspans = []
+    for idx, line in enumerate(lines):
+        dy = start_dy if idx == 0 else line_h
+        tspans.append(f'<tspan x="{x:.1f}" dy="{dy:.1f}">{escape(line)}</tspan>')
+    return f'<text class="{cls}" x="{x:.1f}" y="{y:.0f}">{"".join(tspans)}</text>'
+
+
 def _render_banner(title: str, subtitle: str) -> str:
     return (
         '<div class="tob-banner"><div class="tob-banner-main">'
@@ -149,7 +174,7 @@ def _render_stage_board(stages: list[dict]) -> str:
         row_style = ""
         cell_style = ""
     else:
-        row_style = f' style="grid-template-columns:92px repeat({n}, 1fr);"'
+        row_style = f' style="grid-template-columns:{L1_RAIL_WIDTH}px repeat({n}, 1fr);"'
         cell_style = ' style="grid-column:span 1;"'
     stage_cells = "".join(
         f'<div class="l1-stage-cell"{cell_style}>'
@@ -705,7 +730,7 @@ def _render_uml_journey(
     edges = props["edges"]
 
     svg_w = 1180
-    rail_w = 87 if show_lane_rail else 0
+    rail_w = L1_RAIL_WIDTH if show_lane_rail else 0
     # Issue 1a 修复(2026-05-28):lane_heights 改为基于 16:9 画布预算的动态计算
     # 画布 1280×720,扣掉 banner(~80) + stage_board(~80) + subtitle(~24) + padding(~40) ≈ 220px
     # SVG 实际可用高度 ≈ 500px。对 N lanes,按 N 均分,封顶 120px 防止 3-4 lane 时过空。
@@ -849,13 +874,15 @@ def _render_uml_journey(
     y_cursor = head_h
     for idx, lane in enumerate(lanes):
         y = y_cursor
-        y_cursor += lane_heights[idx]
+        lane_h = lane_heights[idx]
+        y_cursor += lane_h
         if show_lane_rail:
-            name_x = 34 if head_h else 36
-            tag_x = 57 if head_h else 60
-            bg_parts.append(f'<text class="l1-role-text" x="{name_x}" y="{y + 22}">{escape(lane["name"])}</text>')
+            role_x = rail_w / 2
+            role_mid_y = y + lane_h / 2
+            tag_y = role_mid_y + 20 if len(lane["name"]) > 4 else role_mid_y + 10
+            bg_parts.append(_render_role_label("l1-role-text", lane["name"], role_x, role_mid_y - 8))
             if lane.get("tag"):
-                bg_parts.append(f'<text class="l1-role-tag" x="{tag_x}" y="{y + 28}">{escape(lane["tag"])}</text>')
+                bg_parts.append(_render_role_label("l1-role-tag", lane["tag"], role_x, tag_y, max_chars=4))
     for idx in range(1, len(stages)):
         x = rail_w + idx * stage_w
         bg_parts.append(f'<line class="l1-lane-line" x1="{x:.0f}" y1="{head_h}" x2="{x:.0f}" y2="{svg_h}" stroke-dasharray="3 3"/>')

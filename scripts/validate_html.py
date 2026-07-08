@@ -51,6 +51,7 @@ LEGAL_ACCENT_TOKENS = {
     "--accent-warm-orange",
     "--accent-clay-red",
     "--accent-mustard",
+    "--accent-cyan-gold",
     # P7 别名,允许使用(虽然推荐用全名)
     "--accent-blue",
     "--accent-green",
@@ -214,6 +215,7 @@ def check_accent_tokens(html: str, rep: Report) -> None:
         "--accent-warm-orange",
         "--accent-clay-red",
         "--accent-mustard",
+        "--accent-cyan-gold",
     }
     for m in re.finditer(r"var\((--accent-[a-z][a-z0-9-]*)\b", html):
         token = m.group(1)
@@ -573,6 +575,259 @@ def check_evidence_duplication(html: str, rep: Report) -> None:
 # 入口
 # ============================================================
 
+def _load_visual_css(rep: Report) -> str:
+    chunks: list[str] = []
+    for name in ("_design-tokens.css", "_components.css"):
+        path = rep.html_path.parent / name
+        if path.exists():
+            chunks.append(path.read_text(encoding="utf-8"))
+    return "\n".join(chunks)
+
+
+def _compact_css(text: str) -> str:
+    return re.sub(r"\s+", "", text).lower()
+
+
+def _css_has_decl(css: str, selector: str, prop: str, value: str) -> bool:
+    pattern = re.compile(re.escape(selector) + r"\s*\{(?P<body>.*?)\}", re.S)
+    wanted = _compact_css(f"{prop}:{value}")
+    return any(wanted in _compact_css(m.group("body")) for m in pattern.finditer(css))
+
+
+def check_visual_style_contract(html: str, rep: Report) -> None:
+    """Protect the visual rules in steps/visual-style-guide.md."""
+    css = _load_visual_css(rep)
+    if "_components.css" in html and "_design-tokens.css" in html and not css:
+        rep.add("ERROR", "VSTYLE-NO-LOCAL-CSS",
+                "report.html links CSS but local _design-tokens.css/_components.css are missing next to the report")
+        return
+
+    compact = _compact_css(css)
+
+    if 'data-theme="2c"' in html and 'data-density="low"' not in html:
+        rep.add("ERROR", "VSTYLE-2C-DENSITY",
+                '2C reports must use data-density="low"')
+
+    if 'data-theme="2c"' in html:
+        required_2c_tokens = {
+            "--color-bg-page": "#ffffff",
+            "--color-bg-canvas-left": "#ffffff",
+            "--color-bg-canvas-right": "#ffffff",
+            "--palette-2c-purple-primary": "#9664ff",
+            "--palette-2c-purple-aux": "#fff0be",
+            "--palette-2c-red-orange-primary": "#f05a28",
+            "--palette-2c-green-gray-primary": "#82b4b4",
+            "--palette-2c-yellow-orange-primary": "#ffb41e",
+            "--palette-2c-blue-yellow-primary": "#5a8cfa",
+            "--palette-2c-cyan-gold-primary": "#285a82",
+        }
+        for token, value in required_2c_tokens.items():
+            if _compact_css(f"{token}:{value}") not in compact:
+                rep.add("ERROR", "VSTYLE-2C-TOKEN-MISSING",
+                        f"2C palette token missing or wrong: {token} must be {value.upper()}")
+
+        required_2c_semantic_tokens = {
+            "--color-toc-primary": "var(--color-accent)",
+            "--color-toc-secondary": "color-mix(in srgb, var(--color-toc-primary) 36%, #FFFFFF)",
+            "--color-toc-surface": "color-mix(in srgb, var(--color-toc-primary) 10%, #FFFFFF)",
+            "--color-toc-bg": "var(--color-toc-surface)",
+            "--color-toc-soft": "color-mix(in srgb, var(--color-toc-primary) 14%, #FFFFFF)",
+            "--color-toc-tint": "color-mix(in srgb, var(--color-toc-primary) 8%, #FFFFFF)",
+            "--color-toc-alert": "var(--color-warning)",
+            "--color-toc-aux": "var(--color-toc-secondary)",
+            "--color-toc-aux-bg": "var(--color-toc-aux)",
+            "--color-toc-aux-text": "var(--color-text-primary)",
+            "--color-toc-focus": "var(--color-toc-primary)",
+            "--color-toc-focus-soft": "var(--color-toc-soft)",
+            "--color-toc-focus-tint": "var(--color-toc-tint)",
+            "--color-toc-icon": "var(--color-toc-primary)",
+            "--color-toc-icon-bg": "var(--color-toc-soft)",
+            "--color-toc-on-focus": "#FFFFFF",
+        }
+        for token, value in required_2c_semantic_tokens.items():
+            if _compact_css(f"{token}:{value}") not in compact:
+                rep.add("ERROR", "VSTYLE-2C-SEMANTIC-TOKEN-MISSING",
+                        f"2C semantic color token missing or wrong: {token} must be {value}")
+
+        if "layout-2c-portrait" in html:
+            portrait_css = [
+                (".identity-card", "background", "var(--color-toc-surface, var(--color-bg-illust))"),
+                (".section-block", "border-left", "3px solid var(--color-toc-primary, var(--color-accent))"),
+                (".section-block-title", "color", "var(--color-text-primary)"),
+                (".section-block-title", "background", "var(--color-toc-soft, var(--color-accent-soft))"),
+                (".section-block-body strong", "color", "var(--color-toc-primary, var(--color-accent))"),
+                (".persona-quote-pull", "background", "var(--color-toc-surface, var(--color-bg-quote-pull))"),
+                (".persona-quote-pull", "border-left", "4px solid var(--color-toc-primary, var(--color-accent))"),
+                (".persona-quote-pull::before", "color", "var(--color-toc-primary, var(--color-accent))"),
+            ]
+            for selector, prop, value in portrait_css:
+                if not _css_has_decl(css, selector, prop, value):
+                    rep.add("ERROR", "VSTYLE-2C-PORTRAIT-COLOR",
+                            f"2C portrait cards must use TO C semantic color tokens: {selector} must include {prop}: {value}")
+            nav_required = [
+                ".nav-btn.active",
+                "--nav-color",
+                "syncNavPalette",
+                "--color-toc-primary",
+                "--color-toc-soft",
+            ]
+            missing_nav_bits = [bit for bit in nav_required if bit not in html]
+            if missing_nav_bits:
+                rep.add("ERROR", "VSTYLE-2C-NAV-PALETTE-SYNC",
+                        "2C multi-persona nav must sync active tab colors from the target persona palette: "
+                        + ", ".join(missing_nav_bits))
+            section_styles = re.findall(r'<section\b[^>]*class="[^"]*\blayout-2c-(?:portrait|detail|journey)\b[^"]*"[^>]*style="([^"]*)"', html)
+            for style in section_styles:
+                required_palette_vars = [
+                    "--color-toc-style:",
+                    "--color-toc-primary:",
+                    "--color-toc-secondary:",
+                    "--color-toc-surface:",
+                    "--color-toc-bg:",
+                    "--color-toc-soft:",
+                    "--color-toc-alert:",
+                    "--color-toc-aux:",
+                    "--color-toc-aux-bg:",
+                    "--color-toc-aux-text:",
+                ]
+                if "--color-accent:" in style:
+                    missing_palette_vars = [v for v in required_palette_vars if v not in style]
+                    if missing_palette_vars:
+                        rep.add("ERROR", "VSTYLE-2C-PALETTE-PACK-MISSING",
+                                "2C persona/detail/journey sections must set a complete TO C palette pack with --color-accent: "
+                                + ", ".join(missing_palette_vars))
+            section_style_matches = re.findall(
+                r'<section\b(?=[^>]*class="[^"]*\blayout-2c-(?:portrait|detail|journey)\b[^"]*")'
+                r'(?=[^>]*\bid="([^"]+)")(?=[^>]*\bstyle="([^"]*)")[^>]*>',
+                html,
+            )
+            persona_palette_styles: dict[str, set[str]] = {}
+            for section_id, style in section_style_matches:
+                style_match = re.search(r"--color-toc-style:\s*([^;]+)", style)
+                if not style_match:
+                    continue
+                persona_id = re.sub(r"-(?:detail|journey)$", "", section_id)
+                persona_palette_styles.setdefault(persona_id, set()).add(style_match.group(1).strip())
+            for persona_id, styles in persona_palette_styles.items():
+                if len(styles) > 1:
+                    rep.add("ERROR", "VSTYLE-2C-PALETTE-STYLE-MISMATCH",
+                            f"2C persona '{persona_id}' must use one TO C palette style across portrait/detail/journey: "
+                            + ", ".join(sorted(styles)))
+            style_palette_families = {
+                "purple-default": {"purple"},
+                "red-orange": {"red-orange"},
+                "green-gray": {"green-gray"},
+                "yellow-orange": {"yellow-orange"},
+                "blue-yellow": {"blue-yellow"},
+                "cyan-gold": {"cyan-gold"},
+            }
+            for section_id, style in section_style_matches:
+                style_match = re.search(r"--color-toc-style:\s*([^;]+)", style)
+                if not style_match:
+                    continue
+                style_name = style_match.group(1).strip()
+                allowed_families = style_palette_families.get(style_name)
+                if not allowed_families:
+                    rep.add("ERROR", "VSTYLE-2C-PALETTE-STYLE-UNKNOWN",
+                            f"2C section '{section_id}' uses an unknown TO C palette style: {style_name}")
+                    continue
+                used_families = set(re.findall(r"var\(--palette-2c-([a-z]+(?:-[a-z]+)*)-[a-z]+\)", style))
+                mixed_families = sorted(used_families - allowed_families)
+                if mixed_families:
+                    rep.add("ERROR", "VSTYLE-2C-PALETTE-CROSS-MIX",
+                            f"2C section '{section_id}' must only use colors from its declared palette '{style_name}': "
+                            + ", ".join(mixed_families))
+
+        if "layout-distribution-multi" in html:
+            required_bits = {
+                "distribution-legend": "2C complex distribution must include a legend",
+                "snake-line": "2C complex distribution must include snake lines",
+                "snake-point": "2C complex distribution must include snake points",
+                "data-evidence=": "2C complex distribution points must keep evidence hover",
+            }
+            for bit, message in required_bits.items():
+                if bit not in html:
+                    rep.add("ERROR", "VSTYLE-2C-DISTRIBUTION", message)
+            distribution_css = [
+                (".snake-point-level-label", "font-size", "max(12px,var(--text-sm))", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
+                (".snake-level-name", "font-size", "12px", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
+            ]
+            for selector, prop, value, code in distribution_css:
+                if not _css_has_decl(css, selector, prop, value):
+                    rep.add("ERROR", code,
+                            f"2C distribution text must keep a 12px minimum: {selector} must include {prop}: {value}")
+
+        if "layout-2c-journey" in html:
+            journey_css = [
+                (".journey-cell", "font-size", "max(12px,var(--text-sm))"),
+                (".journey-stage-header", "color", "var(--color-text-inverse)"),
+                (".journey-stage-header", "background", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-dimension-label", "font-size", "12px"),
+                (".journey-dimension-label", "color", "var(--color-text-primary)"),
+                (".journey-dimension-label", "background", "var(--color-toc-surface, var(--color-bg-card-soft))"),
+                (".journey-cell-keyword", "font-size", "max(12px,var(--text-xs))"),
+                (".journey-cell-keyword", "color", "var(--color-text-primary)"),
+                (".journey-cell-summary", "font-size", "12px"),
+                (".journey-pain-highlight", "background", "color-mix(in srgb, var(--color-toc-primary, var(--color-accent)) 10%, var(--color-bg-card))"),
+                (".journey-pain-highlight", "border-left", "3px solid var(--color-toc-primary, var(--color-accent))"),
+                (".journey-pain-highlight .journey-cell-keyword", "background", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-pain-opportunity-tag", "font-size", "max(12px,var(--text-xs))"),
+                (".journey-pain-opportunity-tag", "color", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-cell-touchpoint", "font-size", "max(12px,var(--text-xs))"),
+                (".journey-cell-touchpoint .touchpoint-tag", "font-size", "max(12px,var(--text-xs))"),
+                (".emotion-label", "font-size", "max(12px,var(--text-xs))"),
+                (".emotion-label .label-text", "font-size", "12px"),
+            ]
+            for selector, prop, value in journey_css:
+                if not _css_has_decl(css, selector, prop, value):
+                    rep.add("ERROR", "VSTYLE-2C-JOURNEY-FONT-MIN",
+                            f"2C journey text must keep a 12px minimum: {selector} must include {prop}: {value}")
+            touchpoint_aux_css = [
+                (".journey-cell-touchpoint .touchpoint-tag", "background", "var(--color-toc-aux-bg,var(--color-toc-aux,var(--color-border-subtle)))"),
+                (".journey-cell-touchpoint .touchpoint-tag", "color", "var(--color-toc-aux-text,var(--color-text-primary))"),
+            ]
+            for selector, prop, value in touchpoint_aux_css:
+                if not _css_has_decl(css, selector, prop, value):
+                    rep.add("ERROR", "VSTYLE-2C-TOUCHPOINT-AUX-COLOR",
+                            f"2C journey touchpoint/tool/evidence tags must use the palette auxiliary color: {selector} must include {prop}: {value}")
+
+    is_2b_like = 'data-theme="2b"' in html or 'data-theme="2d"' in html
+    if is_2b_like:
+        required_2b_tokens = {
+            "--color-process-main": "#96befa",
+            "--color-primary-light": "#dcf0fa",
+            "--color-primary": "#6ea0dc",
+            "--color-primary-dark": "#3296ff",
+            "--color-warning": "#dc2828",
+            "--color-warning-soft": "#fae6e6",
+            "--color-success": "#8cbe6e",
+            "--color-border-subtle": "#dcdcdc",
+        }
+        for token, value in required_2b_tokens.items():
+            if _compact_css(f"{token}:{value}") not in compact:
+                rep.add("ERROR", "VSTYLE-2B-TOKEN-MISSING",
+                        f"2B visual token missing or wrong: {token} must be {value.upper()}")
+
+    if is_2b_like and "layout-2b-journey" in html:
+        required_css = [
+            (".l1-stage-tag", "font-size", "14px", "VSTYLE-L1-STAGE-SIZE"),
+            (".l1-substage-bar", "font-size", "12px", "VSTYLE-L1-SUBSTAGE-SIZE"),
+            (".l1-role-text", "font-size", "12px", "VSTYLE-L1-ROLE-SIZE"),
+            (".l1-node-label", "font-size", "12px", "VSTYLE-L1-NODE-SIZE"),
+            (".tob-l2-uml-hybrid .tob-stage-tag", "font-size", "14px", "VSTYLE-L2-STAGE-SIZE"),
+            (".tob-l2-uml-hybrid .tob-stage-tag", "border-right", "0", "VSTYLE-L2-STAGE-WEDGE"),
+            (".tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar", "font-size", "12px!important", "VSTYLE-L2-SUBSTAGE-SIZE"),
+            (".tob-l2-uml-hybrid .tob-substage-cell.l1-substage-bar", "border-right", "0", "VSTYLE-L2-SUBSTAGE-WEDGE"),
+            (".tob-l2-uml-hybrid .tob-tools-tag", "font-size", "12px!important", "VSTYLE-L2-TOOLS-SIZE"),
+            (".tob-l2-uml-hybrid .tob-l2-uml-cell", "border-bottom", "0", "VSTYLE-L2-UML-BORDER"),
+            (".tob-l2-uml-hybrid .tob-l2-uml-cell", "border-right", "0", "VSTYLE-L2-UML-BORDER"),
+        ]
+        for selector, prop, value, code in required_css:
+            if not _css_has_decl(css, selector, prop, value):
+                rep.add("ERROR", code,
+                        f"CSS contract missing: {selector} must include {prop}: {value}")
+
+
 ALL_CHECKS = [
     ("骨架", check_skeleton),
     ("accent token", check_accent_tokens),
@@ -588,6 +843,7 @@ ALL_CHECKS = [
     ("tab 数量", check_tab_count),
     ("画像 subtitle 重复", check_persona_subtitle_repeat),
     ("证据复用", check_evidence_duplication),
+    ("visual style contract", check_visual_style_contract),
 ]
 
 

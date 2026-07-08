@@ -1,5 +1,16 @@
 # Checkpoint Workflow
 
+## 2026-07-08 Gate Update
+
+Every execution path must run the same hard gates:
+
+1. `python scripts/validate_checkpoint_pairing.py --workdir <run-or-process-dir>` before entering the next step and before rendering.
+2. `python scripts/validate_field_alignment.py --workdir <run-or-process-dir>` before extraction and before rendering when `03-field-alignment.json` exists.
+3. `python scripts/validate_components_json.py --workdir <process-dir> 05-report.json` before HTML generation.
+4. `python scripts/validate_html.py --project-dir <run-dir> <delivery-dir>/report.html` after rendering.
+
+`render_report.py` now calls the checkpoint pairing gate when rendering from a workflow `05-report.json`. A report with missing paired MD/JSON checkpoints, only final HTML, or mismatched `processed/` and `extracted/` artifacts is not a valid delivery.
+
 本文件是弱模型稳定执行的流程门禁。任何执行用户画像 skill 的模型都必须先完成中间文件落盘,再进入下一步。
 
 ## 最高优先级原则

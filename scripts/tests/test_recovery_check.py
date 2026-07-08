@@ -45,6 +45,16 @@ class RecoveryCheckTests(unittest.TestCase):
             missing = audit_missing_artifacts(Path(tmp), "R2")
             self.assertNotIn("02-classification.json", [m["path"] for m in missing])
 
+    def test_checkpoint_pairing_errors_are_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = Path(tmp)
+            (proc / "05-report.json").write_text("{}", encoding="utf-8")
+            status = check_recovery(proc)
+            self.assertFalse(status["checkpoint_pairing_valid"])
+            codes = [item["code"] for item in status["checkpoint_pairing_errors"]]
+            self.assertIn("CHECKPOINT_PAIR_MISSING", codes)
+            self.assertIn("FINAL_WITHOUT_PREREQ", codes)
+
 
 if __name__ == "__main__":
     unittest.main()

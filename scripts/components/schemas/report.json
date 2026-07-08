@@ -77,7 +77,6 @@
                 "2c-red-orange",
                 "2c-green-gray",
                 "2c-yellow-orange",
-                "2c-high-contrast",
                 "2c-blue-yellow",
                 "2c-cyan-gold"
               ]
@@ -137,7 +136,8 @@
               "moss-green",
               "warm-orange",
               "clay-red",
-              "mustard"
+              "mustard",
+              "cyan-gold"
             ],
             "description": "2C 主题强调色 6 选 1。2B/2D 主题忽略本字段(可不填)。AI 类画像强制 purple;否则按 visual-system.md §4 哈希算法选"
           },

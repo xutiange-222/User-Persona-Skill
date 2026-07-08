@@ -9,7 +9,7 @@
   Slot 占位符(render_html.py 用 string replace 填充):
     {{theme}}            — "2b" / "2c" / "2d"
     {{density}}          — "high" / "mid" / "low"
-    {{accent_inline}}    — 2C 时填 "--color-accent: var(--accent-XXX)";其他主题填空字符串
+    {{accent_inline}}    — 2C 时填完整 palette pack: "--color-accent" + "--color-toc-*";其他主题填空字符串
     {{title}}            — <title> 标签内容
     {{report_title}}     — 顶部主标题
     {{report_meta_info}} — 顶部右侧元信息("X 个画像 · 来源 Y 份访谈 · 日期")
@@ -26,8 +26,8 @@
   <title>{{title}}</title>
 
   <!-- 开发期外链;发布期会被 render_html.py 内联进 <style> 块 -->
-  <link rel="stylesheet" href="_design-tokens.css">
-  <link rel="stylesheet" href="_components.css">
+  <link rel="stylesheet" href="_design-tokens.css?v=20260707-toc-palette-role-nav-10">
+  <link rel="stylesheet" href="_components.css?v=20260707-toc-palette-role-nav-10">
 
   <style>
     /* ============ _base 自己的样式(全局布局 + 共享外壳) ============ */
@@ -87,9 +87,9 @@
     }
 
     .nav-btn:hover {
-      background: var(--color-primary-light);
-      border-color: var(--color-accent);
-      color: var(--color-accent);
+      background: var(--nav-soft, var(--color-primary-light));
+      border-color: var(--nav-color, var(--color-accent));
+      color: var(--nav-color, var(--color-accent));
     }
 
 
@@ -113,9 +113,9 @@
       padding-right: var(--space-5);
     }
     .nav-btn.active {
-      background: var(--color-accent);
+      background: var(--nav-color, var(--color-accent));
       color: var(--color-text-inverse);
-      border-color: var(--color-accent);
+      border-color: var(--nav-color, var(--color-accent));
     }
 
     /* ---- 共享外壳:16:9 画布(内部布局由 _components.css 按主题定义) ---- */
@@ -299,6 +299,21 @@
         hideTimer = setTimeout(hideTooltip, 50);
       });
 
+      function syncNavPalette(targetId, navButton) {
+        if (!navButton) return;
+        const slide = document.getElementById(targetId);
+        if (!slide) {
+          navButton.style.removeProperty('--nav-color');
+          navButton.style.removeProperty('--nav-soft');
+          return;
+        }
+        const styles = window.getComputedStyle(slide);
+        const primary = styles.getPropertyValue('--color-toc-primary').trim() || styles.getPropertyValue('--color-accent').trim();
+        const soft = styles.getPropertyValue('--color-toc-soft').trim() || styles.getPropertyValue('--color-toc-surface').trim();
+        if (primary) navButton.style.setProperty('--nav-color', primary);
+        if (soft) navButton.style.setProperty('--nav-soft', soft);
+      }
+
       // ---- Tab 切换:多画像导航 + 矩阵象限跳转 ----
       document.body.addEventListener('click', function(e) {
         const trigger = e.target.closest('.nav-btn[data-target], .matrix-quadrant-label[data-target], .matrix-quadrant[data-target], [data-nav-target]');
@@ -309,17 +324,26 @@
         // 切换按钮。矩阵象限触发时,同步点亮对应 nav。
         const navTarget = document.querySelector('.nav-btn[data-target="' + targetId + '"]');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        let activeNav = null;
         if (trigger.classList.contains('nav-btn')) {
           trigger.classList.add('active');
+          activeNav = trigger;
         } else if (navTarget) {
           navTarget.classList.add('active');
+          activeNav = navTarget;
         }
+        syncNavPalette(targetId, activeNav);
 
         // 切换 slide
         document.querySelectorAll('.persona-slide').forEach(s => s.classList.remove('active'));
         const slide = document.getElementById(targetId);
         if (slide) slide.classList.add('active');
       });
+
+      const initialActiveNav = document.querySelector('.nav-btn.active[data-target]');
+      if (initialActiveNav) {
+        syncNavPalette(initialActiveNav.getAttribute('data-target'), initialActiveNav);
+      }
     })();
   </script>
 </body>

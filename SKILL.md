@@ -26,6 +26,11 @@ description: 从用户访谈逐字稿(docx/txt/xlsx)生成结构化用户画像�
 - 检查点模板: `templates/checkpoints/`
 - 配对校验: `python scripts/validate_checkpoint_pairing.py --workdir <过程稿目录>`
 
+2026-07-08 门禁更新:
+- `render_report.py` 从工作流 `05-report.json` 渲染时会先调用 checkpoint 配对校验。缺少任意成对 MD/JSON、只有最终 HTML、只有 `05-report.json`、或 `processed/` 与 `extracted/` 数量不一致时,禁止生成可交付报告。
+- `recovery_check.py` 输出 `checkpoint_pairing_valid` 和 `checkpoint_pairing_errors`,用于弱模型续跑前判断是否需要补齐中间产物。
+- 2C 报告执行“一画像一色卡”:同一画像的画像页、详情页、旅程页只能使用同一套 TO C palette pack。触点/工具/证据标签使用该色卡的辅助跳色,2C 分布和旅程文字最小 12px。
+
 ---
 
 ## ★ 九条硬约束(优先级最高,跨所有模型)
