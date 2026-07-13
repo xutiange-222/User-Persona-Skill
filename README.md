@@ -2,7 +2,7 @@
 
 把访谈、观察记录和研究资料转成可追溯的用户画像与用户旅程。工程目标是让参数量较小、长程规划能力较弱的模型，也能依靠检查点、schema 和脚本门禁稳定完成任务。
 
-[打开人类用户说明书](./人类用户说明书.html)
+[在线打开人类用户说明书](https://xutiange-222.github.io/User-Persona-Skill/%E4%BA%BA%E7%B1%BB%E7%94%A8%E6%88%B7%E8%AF%B4%E6%98%8E%E4%B9%A6.html)
 
 ## 五条运行原则
 
@@ -124,11 +124,11 @@ python -m pytest scripts/tests scripts/components/tests -q
 
 ## 参考报告
 
-- [2B 单画像](./docs/reference/reports/A-单画像/2B-保障型运维工程师/report.html)
-- [2C 单画像](./docs/reference/reports/A-单画像/2C-内行场景派/report.html)
-- [2B 多角色与总体旅程](./docs/reference/reports/B-多角色/2B-DevOps五角色/report.html)
-- [2C 二维矩阵](./docs/reference/reports/D-二维矩阵/2C-HiRes-2维/report.html)
-- [2C 多维分布](./docs/reference/reports/E-多维分布/2C-HiRes-多区分点/report.html)
+- [2B 单画像](https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/A-%E5%8D%95%E7%94%BB%E5%83%8F/2B-%E4%BF%9D%E9%9A%9C%E5%9E%8B%E8%BF%90%E7%BB%B4%E5%B7%A5%E7%A8%8B%E5%B8%88/report.html)
+- [2C 单画像](https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/A-%E5%8D%95%E7%94%BB%E5%83%8F/2C-%E5%86%85%E8%A1%8C%E5%9C%BA%E6%99%AF%E6%B4%BE/report.html)
+- [2B 多角色与总体旅程](https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/B-%E5%A4%9A%E8%A7%92%E8%89%B2/2B-DevOps%E4%BA%94%E8%A7%92%E8%89%B2/report.html)
+- [2C 二维矩阵](https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/D-%E4%BA%8C%E7%BB%B4%E7%9F%A9%E9%98%B5/2C-HiRes-2%E7%BB%B4/report.html)
+- [2C 多维分布](https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/E-%E5%A4%9A%E7%BB%B4%E5%88%86%E5%B8%83/2C-HiRes-%E5%A4%9A%E5%8C%BA%E5%88%86%E7%82%B9/report.html)
 
 刷新参考报告：
 
