@@ -52,3 +52,11 @@ def test_public_docs_urls_map_to_existing_repository_files() -> None:
                 f"GitHub Pages 参考报告页面数量异常：{relative}，"
                 f"至少 {MIN_REPORT_SLIDES[relative]} 页，实际 {slide_count} 页"
             )
+            for asset_name in ("_design-tokens.css", "_components.css"):
+                copied_asset = target.parent / asset_name
+                canonical_asset = ROOT / "assets" / "templates" / asset_name
+                assert copied_asset.is_file(), f"参考报告缺少配套样式：{relative} -> {asset_name}"
+                assert copied_asset.read_bytes() == canonical_asset.read_bytes(), (
+                    f"参考报告 HTML 与配套样式版本不一致：{relative} -> {asset_name}"
+                )
+                assert f'href="{asset_name}?v=20260713-reference-bundle-sync-11"' in html
