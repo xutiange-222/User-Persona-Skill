@@ -5,20 +5,48 @@
   "description": "防止模型在聚类确认后静默写一份 recommended_by_goal 假象 JSON 就进入抽取/渲染。所有必填字段必须含用户确认锚点。toB/toD 多角色另含 L1 组织同构判定字段(约束 14)。",
   "type": "object",
   "required": [
+    "checkpoint",
+    "context_snapshot",
+    "status",
     "version",
+    "research_type",
+    "persona_count",
     "fields_per_persona",
     "fields_display_names",
     "field_pool_presented",
     "user_confirmed",
+    "confirmation_user_message",
+    "confirmed_value_sections",
+    "alignment_md_sha256",
     "confirmation_message_summary",
     "add_on_pages",
-    "visual_assets"
+    "visual_assets",
+    "visual_spec"
   ],
-  "additionalProperties": true,
+  "additionalProperties": false,
   "properties": {
+    "checkpoint": {
+      "type": "string",
+      "const": "03-field-alignment"
+    },
+    "context_snapshot": {
+      "type": "object",
+      "required": ["research_question", "decision_use", "research_type", "paradigm"],
+      "additionalProperties": false,
+      "properties": {
+        "research_question": {"type": "string", "minLength": 8, "maxLength": 500},
+        "decision_use": {"type": "string", "minLength": 8, "maxLength": 500},
+        "research_type": {"enum": ["toB", "toC", "toD"]},
+        "paradigm": {"enum": ["R1", "R2", "R3", "R4", "R5"]}
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["confirmed", "validated"]
+    },
     "version": {
       "type": "string",
-      "description": "skill 版本,如 v8"
+      "description": "skill 数据契约版本,如 v9"
     },
     "field_pool_presented": {
       "type": "boolean",
@@ -65,17 +93,24 @@
     "persona_count": {
       "type": "integer",
       "minimum": 1,
-      "description": "可选;画像数量。≥2 且 toB/toD 时 add_on_pages 须含 journey_scope 等 L1 判定字段。"
+      "description": "画像数量。≥2 且 toB/toD 时 add_on_pages 须含 journey_scope 等 L1 判定字段。"
     },
     "persona_type": {
       "type": "string",
       "enum": ["toB", "toD", "toC"],
       "description": "可选;对象类型,用于校验 L1 字段是否齐全。"
     },
+    "confirmation_user_message": {"type": "string", "minLength": 2, "maxLength": 500},
+    "confirmed_value_sections": {"type": "array", "minItems": 5, "uniqueItems": true, "items": {"enum": ["fields", "modules", "journey", "visual_assets", "visual_spec"]}},
+    "alignment_md_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "research_type": {
+      "type": "string",
+      "enum": ["toB", "toD", "toC"]
+    },
     "add_on_pages": {
       "type": "object",
       "required": ["journey"],
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
         "journey": {
           "type": "boolean",
@@ -83,8 +118,8 @@
         },
         "journey_scope": {
           "type": "string",
-          "enum": ["L1_and_L2", "L2_only", "none"],
-          "description": "旅程范围。journey=false 时必须为 none;同组织且含 L1 时为 L1_and_L2;完全独立或仅单角色 L2 时为 L2_only。"
+          "enum": ["L1_and_L2", "L1_only", "L2_only", "none"],
+          "description": "旅程范围。journey=false 时为 none；只生成综合旅程为 L1_only；综合与单角色旅程为 L1_and_L2；完全独立或仅单角色旅程为 L2_only。"
         },
         "journey_l1_eligible": {
           "type": "boolean",
@@ -114,18 +149,76 @@
       "type": "object",
       "description": "用户视觉素材确认记录。assets_asked 必须为 true 才能进入抽取。见 steps/visual-assets.md",
       "required": ["assets_asked"],
+      "additionalProperties": false,
       "properties": {
         "assets_asked": {"type": "boolean", "const": true},
+        "assets_asked_at": {"type": "string"},
         "avatar_expected": {"type": "array", "items": {"type": "string"}},
         "avatar_assets_dir": {"type": "string"},
         "default_avatar_dir": {"type": "string", "const": "assets/default-avatars/"},
         "avatar_use_default": {"type": "boolean"},
         "avatar_provided": {"type": "boolean"},
         "avatar_deferred": {"type": "boolean"},
+        "avatar_mapping": {
+          "type": "object",
+          "description": "可选。画像名称或 persona id 到默认头像文件名的显式映射。",
+          "additionalProperties": {"type": "string", "pattern": "\\.png$"}
+        },
         "scenario_screenshots_enabled": {"type": "boolean"},
+        "scenario_screenshots_deferred": {"type": "boolean"},
         "scenario_screenshot_mapping": {"type": "object"},
         "screenshots_enabled": {"type": "boolean"},
-        "screenshot_mapping": {"type": "object"}
+        "screenshot_dir": {"type": "string"},
+        "screenshot_mapping": {"type": "object"},
+        "notes": {"type": "string"}
+      }
+    },
+    "visual_spec": {
+      "type": "object",
+      "required": ["template_id", "palette_id", "palette_reason"],
+      "additionalProperties": false,
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "enum": [
+            "2b-overall-journey",
+            "2c-persona",
+            "2c-journey",
+            "2c-complex-distribution-report"
+          ]
+        },
+        "palette_id": {
+          "type": "string",
+          "enum": [
+            "2b-process-blue",
+            "2c-purple-default",
+            "2c-red-orange",
+            "2c-green-gray",
+            "2c-yellow-orange",
+            "2c-blue-yellow",
+            "2c-cyan-gold"
+          ]
+        },
+        "palette_reason": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 120
+        },
+        "persona_palette_map": {
+          "type": "object",
+          "propertyNames": {"pattern": "^persona-[0-9]+$"},
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "2c-purple-default",
+              "2c-red-orange",
+              "2c-green-gray",
+              "2c-yellow-orange",
+              "2c-blue-yellow",
+              "2c-cyan-gold"
+            ]
+          }
+        }
       }
     },
     "layout_estimate": {"type": "object"},

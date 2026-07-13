@@ -41,9 +41,9 @@ def parse_frequency(freq: str) -> float:
 
 
 def render_emotion_row(emotion: list[dict], n_stages: int) -> str:
-    level_y = {"high": 20, "middle": 40, "low": 60}
+    level_y = {"high": 28, "middle": 50, "low": 72}
     viewbox_w = 500
-    viewbox_h = 80
+    viewbox_h = 100
     points = [((idx + 0.5) / n_stages * viewbox_w, level_y[e["level"]]) for idx, e in enumerate(emotion)]
     path_d = f"M {points[0][0]:.1f} {points[0][1]:.1f}"
     for i in range(1, len(points)):
@@ -59,7 +59,7 @@ def render_emotion_row(emotion: list[dict], n_stages: int) -> str:
         if emoji_name not in EMOJI_UNICODE_MAP:
             raise ValueError(f"invalid emoji: {emoji_name}(合法 33 个见 EMOJI_UNICODE_MAP)")
         emoji_char = EMOJI_UNICODE_MAP[emoji_name]
-        label_cls = "above" if y <= 46 else "below"
+        label_cls = "below" if y <= 42 else "above"
         nodes.append(
             f'<div class="journey-emotion-point" style="left:{x/viewbox_w*100:.1f}%;top:{y/viewbox_h*100:.1f}%">'
             '<span class="emotion-dot"></span>'
@@ -107,7 +107,7 @@ def render_journey_2c(props: dict) -> str:
     # schema 已强制 title minLength:1,title[:1] 永远非空
     initial = title[:1]
     illust_html = render_illust(props.get("illust_path"), title, placeholder=initial)
-    emotion_label = '<div class="journey-cell journey-dimension-label">情绪</div>'
+    emotion_label = '<div class="journey-cell journey-dimension-label journey-emotion-dimension-label">情绪</div>'
     return (
         '<div class="journey-header">'
         f'{illust_html}'

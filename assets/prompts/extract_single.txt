@@ -1,8 +1,8 @@
-你是一个专业的用户研究专家,正在帮助 UX 团队从访谈逐字稿提炼用户画像。
+你正在帮助 UX 团队从访谈逐字稿提取可追溯的用户画像数据。
 
 ## 任务
 
-从下方的访谈逐字稿中,提取一个 toB 用户画像的结构化信息,以 JSON 格式输出。
+从下方的访谈逐字稿中提取一个 `{{PERSONA_TYPE}}` 用户画像的结构化信息，以 JSON 格式输出。
 
 ## 要提取的字段
 
@@ -10,32 +10,30 @@
 
 {{FIELDS}}
 
-每个字段的具体定义和填写规范,在脚本调用时已通过 schema 隐式约束,你只需按字段名提取对应内容。
+字段定义和填写规范见本 prompt 的“字段说明”。调用方也可能在字段清单中附加更具体的定义；具体定义优先。
 
 ## 关键约束
 
 ### 1. 证据原则
-**每个观点都要从原文提取证据**。证据是访谈中真实出现过的句子(不是改写、不是润色)。
+**每个观点都要从原文提取证据**。证据必须逐字来自访谈原文。
 
 代表性原话格式:
 ```
 [来源:{{SOURCE_FILE}}]: "原话片段(20-50 字)"
 ```
 
-### 2. 「文档未提及」 vs 「推断」
-- 访谈完全没提相关内容 → 字段值填字符串 `"文档未提及"`
-- 访谈没明说但可合理推断 → 字段值前缀 `"推断:基于..."`,例:`"推断:基于其提到加班频次,工作年限应在 3-5 年区间"`
+### 2. 事实字段禁止推断
+- 访谈没有明确提到相关内容 → 字段值填字符串 `"材料未提及"`
+- 禁止用常识、岗位印象、相邻受访者或补充材料猜测该受访者的事实。
+- 研究者综合只能在后续独立的 `synthesis` 层表达，不能混入单访谈事实字段。
 
 ### 3. 数字字段必须是数字
-`responsibilities` 的 `percentage` 字段值是数字 0-100,**不是字符串**。
-top3 职责的 percentage 合计 = 100。
+`responsibilities` 的 `percentage` 仅在原文明确给出占比时使用 0 到 100 的 JSON number；未给出时写 `null`。禁止根据语气、篇幅或常识编造占比。
 
-### 4. 列表字段长度
-- `responsibilities`:恰好 3 条
-- `pain_points`:2-5 条
-- `scenarios`:2-4 个
-- `experience_goals`:2-3 条
-- `representative_quotes`:2-4 条
+### 4. 列表字段完整性
+- `responsibilities`、`pain_points`、`scenarios`、`experience_goals`、`main_tasks`、`kpi`、系统和工具列表：提取全部与研究问题相关、语义独立且有直接证据的项目，不按页面容量截断。
+- 重复表达只合并同义项；不同场景、条件、角色或结果分别保留。
+- `representative_quotes` 是精选字段，保留 2-4 条最能代表当前受访者差异的逐字原话。
 
 ### 5. 文本长度约束(为渲染布局服务)
 
@@ -56,15 +54,15 @@ top3 职责的 percentage 合计 = 100。
 | `collaboration.downstream_flow` | ≤ 40 字 |
 | `collaboration.kpi` | ≤ 40 字 |
 | `scenarios[].scenario` | ≤ 16 字 |
-| `pain_points[].title` | 3-6 字 |
+| `pain_points[].title` | 通常 4-12 字；语义完整、一行可读,技术 token 不截断 |
 | `pain_points[].detail` | ≤ 50 字 |
-| `experience_goals[].title` | 2-4 字 |
+| `experience_goals[].title` | 通常 4-12 字；语义完整、一行可读,技术 token 不截断 |
 | `experience_goals[].detail` | ≤ 25 字 |
-| `main_tasks[]` | 4-8 条,每条 ≤ 30 字 |
+| `main_tasks[]` | 每条 ≤ 30 字，条数由材料决定 |
 | `high_freq_tasks[].task` | ≤ 20 字 |
 | `high_freq_tasks[].frequency` | ≤ 12 字 |
 | `high_freq_tasks[].process` | ≤ 40 字 |
-| `kpi[]` | 2-5 条,每条 ≤ 35 字 |
+| `kpi[]` | 每条 ≤ 35 字，条数由材料决定 |
 | `business_systems[].system` | ≤ 16 字 |
 | `business_systems[].scenario` | ≤ 25 字 |
 | `ai_assist_systems[].system` | ≤ 16 字 |
@@ -77,7 +75,7 @@ top3 职责的 percentage 合计 = 100。
 **超长时优先压缩"目前 / 主要 / 大概"这类填充词,保留信息密度**。如果原话超长截取片段时,选最有信息量的核心句,不要包含寒暄或铺垫。
 
 ### 6. 输出格式
-**输出内容仅含 JSON**(可以包在 ```json 代码块里),不带 markdown 标题、解释或前后语。
+**输出内容仅含 JSON**，不带代码围栏、Markdown 标题、解释或前后语。
 
 ### 7. 字段不混杂维度(常见错误)
 
@@ -115,8 +113,8 @@ top3 职责的 percentage 合计 = 100。
 - `knowledge_background`(dict):领域知识(domain)、工具能力(tools)、经验积累(experience)
 
 ### 工作内容类
-- `responsibilities`(list of {task, percentage}):top3 职责 + 占比合计 100%
-- `main_tasks`(list of string):主要业务任务清单(比 responsibilities 更细的实操任务)
+- `responsibilities`(list of {task, percentage}):全部有证据的独立职责；原文未给占比时 percentage 为 null
+- `main_tasks`(list of string):全部有证据且与研究问题相关的主要业务任务(比 responsibilities 更细的实操任务)
 - `high_freq_tasks`(list of {task, frequency, process}):每天/每周必做的任务,任务名 + 频次 + 处理流程概述
 - `kpi`(list of string):岗位考核指标,具体指标 + 度量方式
 - `collaboration`(dict):需求来源(demand_source)、交付物(deliverables)、流转去向(downstream_flow)
@@ -126,11 +124,11 @@ top3 职责的 percentage 合计 = 100。
 - `scenarios`(list of {scenario, tools}):通用业务场景(如果分了上面更细的 business_systems / fault_scenarios 等,通常不再用 scenarios)
 
 ### 用户感受类
-- `pain_points`(list of {title, detail}):2-5 条,带 title(3-6 字)+ detail(具体可观察)
-- `experience_goals`(list of {title, detail}):2-3 条,同上结构
+- `pain_points`(list of {title, detail}):完整保留有证据的独立痛点,带语义完整的一行 title + detail(具体可观察)
+- `experience_goals`(list of {title, detail}):完整保留有证据的独立目标,同上结构
 
 ### 用户原声类
-- `one_sentence_need`(string):带 [来源:文件名] 前缀的一句话
+- `one_sentence_need`(string):带 [来源:匿名 source ID] 前缀的一句话
 - `representative_quotes`(list of string):2-4 条带 [来源:] 前缀的原话
 
 ## 输出 JSON 结构示例(包含部分新字段)
@@ -157,9 +155,9 @@ top3 职责的 percentage 合计 = 100。
   },
 
   "responsibilities": [
-    {"task": "实时监盘与潮流调整", "percentage": 50},
-    {"task": "异常处理与故障应急", "percentage": 30},
-    {"task": "操作票审核与执行", "percentage": 20}
+    {"task": "实时监盘与潮流调整", "percentage": null},
+    {"task": "异常处理与故障应急", "percentage": null},
+    {"task": "操作票审核与执行", "percentage": null}
   ],
 
   "main_tasks": [
@@ -201,8 +199,8 @@ top3 职责的 percentage 合计 = 100。
   ],
 
   "experience_goals": [
-    {"title": "降噪", "detail": "异常告警准确性提升,减少误报"},
-    {"title": "整合", "detail": "多套系统数据能在一处看到"}
+    {"title": "减少异常误报", "detail": "异常告警准确性提升,减少误报"},
+    {"title": "集中查看关键数据", "detail": "多套系统数据能在一处看到"}
   ],
 
   "pain_points": [

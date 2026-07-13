@@ -1,6 +1,6 @@
 """8 个 layout 的 assemble 函数(P8 C 阶段)。
 
-契约见 scripts/components/layouts/CONTRACTS.md。统一接口:
+契约见 layout_rules.py、组件 schema 与 scripts/components/REGISTRY.md。统一接口:
 
     def assemble_layout_XXX(persona: dict, metadata: dict) -> list[str]
 """
@@ -45,9 +45,23 @@ def assemble_layout_2b_grid(persona: dict, metadata: dict) -> list[str]:
         )
         return [slide]
 
+    metadata["_internal_density_override"] = "mid"
     page1 = [p for p in placements if p.page == 1]
     page2 = [p for p in placements if p.page == 2]
     page1_html = render_grid_placements(page1)
+
+    # One overflow module creates a visually empty detail tab. Never delete it
+    # silently: the missing information may be more important than whitespace.
+    # Stop at 05 so the model must show a keep/remove recommendation in
+    # 05-report.md and obtain the user's explicit content decision.
+    if len(page2) == 1:
+        raise ValueError(
+            f"layout-2b-grid: {pid} would create a sparse detail tab containing only "
+            f"{page2[0].component_type}. Return to 05-report.md, show the user which "
+            "core modules to keep and what information would be removed or merged, "
+            "then update 05-report.json only after explicit confirmation."
+        )
+
     page2_html = render_grid_placements(page2)
 
     core_id, detail_id = _dual_page_ids(pid)

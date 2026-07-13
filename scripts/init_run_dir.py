@@ -28,6 +28,12 @@ def main():
         "process_dir": str(run_dir / PROCESS_DIR_NAME),
         "avatar_assets_dir": str(run_dir / AVATAR_ASSETS_DIR_NAME),
         "screenshot_dir": str(run_dir / INTERFACE_SCREENSHOTS_DIR_NAME),
+        "reduced_dir": str(run_dir / PROCESS_DIR_NAME / "reduced"),
+        "user_message": (
+            f"本次项目工作目录：{run_dir}\n"
+            f"过程稿目录：{run_dir / PROCESS_DIR_NAME}\n"
+            "我会把每一步的 MD 与 JSON 都保存在过程稿目录，并在画像和旅程内容确认后再渲染。"
+        ),
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

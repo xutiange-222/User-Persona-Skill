@@ -1,10 +1,20 @@
 {
   "checkpoint": "02-classification",
   "status": "confirmed",
+  "context_snapshot": {"research_question": "", "decision_use": "", "research_type": "", "paradigm": ""},
+  "not_applicable_reason": "",
   "classification_basis": "",
-  "categories": [],
   "boundary_rules": [],
   "evidence_summary": [],
   "uncertainties": [],
+  "groups": [],
+  "respondent_mapping": {},
+  "value_variables": [],
+  "empty_groups": [],
+  "user_confirmed": true,
+  "label_confirmed": false,
+  "confirmed_value_sections": [],
+  "confirmation_user_message": "",
+  "alignment_md_sha256": "",
   "confirmation_message_summary": ""
 }

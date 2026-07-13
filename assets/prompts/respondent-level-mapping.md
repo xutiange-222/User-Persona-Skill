@@ -1,5 +1,7 @@
 # Prompt:受访者档位映射(R4/R5 范式)
 
+执行本 prompt 前先读取 `assets/prompts/_shared-language-contract.txt`。
+
 ## 用途
 
 R4/R5 范式下,模型读每位受访者的访谈,在每个价值变量上判断属于哪个档位 + 给出原话证据。

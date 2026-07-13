@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "00-research-goal",
+  "type": "object",
+  "required": ["checkpoint", "status", "audience", "research_question", "decision_use", "research_type", "source_count", "constraints", "workspace_notice", "user_confirmed", "confirmation_user_message", "confirmed_value_sections", "alignment_md_sha256", "confirmation_message_summary"],
+  "additionalProperties": false,
+  "properties": {
+    "checkpoint": {"const": "00-research-goal"},
+    "status": {"enum": ["confirmed", "validated"]},
+    "audience": {"type": "string", "minLength": 2, "maxLength": 200},
+    "research_question": {"type": "string", "minLength": 8, "maxLength": 500},
+    "decision_use": {"type": "string", "minLength": 8, "maxLength": 500},
+    "research_type": {"enum": ["toB", "toC", "toD"]},
+    "source_count": {"type": "integer", "minimum": 1, "maximum": 200},
+    "constraints": {"type": "array", "items": {"type": "string", "minLength": 2, "maxLength": 300}},
+    "workspace_notice": {
+      "type": "object",
+      "required": ["run_dir", "process_dir", "user_notified"],
+      "additionalProperties": false,
+      "properties": {
+        "run_dir": {"type": "string", "minLength": 3, "maxLength": 500},
+        "process_dir": {"type": "string", "minLength": 3, "maxLength": 500},
+        "user_notified": {"const": true}
+      }
+    },
+    "user_confirmed": {"const": true},
+    "confirmation_user_message": {"type": "string", "minLength": 2, "maxLength": 500},
+    "confirmed_value_sections": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"enum": ["goals", "scope", "constraints", "workspace"]}},
+    "alignment_md_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "confirmation_message_summary": {"type": "string", "minLength": 10, "maxLength": 500}
+  }
+}

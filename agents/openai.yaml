@@ -1,0 +1,6 @@
+interface:
+  display_name: "User Persona Skill"
+  short_description: "将研究资料转成可追溯的用户画像、旅程与视觉报告"
+  default_prompt: "请使用 $user-persona 逐步分析我的研究资料，先落盘并确认每个检查点，再生成有证据支撑的用户画像、旅程和报告。"
+policy:
+  allow_implicit_invocation: true

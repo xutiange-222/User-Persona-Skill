@@ -2,7 +2,7 @@
 
 这份文档定义 toC 画像的 JSON schema、可选字段池、默认推荐字段集。
 
-`extract_single.py` 和 `merge.py` 按这个 schema 产出 JSON,`validate.py` 按这个 schema 校验。
+`extract_single.py` 逐份抽取，`reduce_field.py` 按字段归并，`validate.py` 校验确认后的画像 JSON。
 
 ---
 
@@ -128,7 +128,7 @@
 }
 ```
 
-注意:toC 画像的 basic_profile 通常是**虚构的抽象人**,字段值是研究员/模型基于该类受访者的平均水平给的代表性数值,**不是某个真实受访者的数据**。
+toC 画像名称和头像可以是脱敏的代表性设定。年龄、收入、家庭、职业、教育和城市等事实字段必须有材料证据；材料未提及时写“材料未提及”。需要代表性区间时标记 `synthesis`，写清样本与计算依据，并在 04 让用户确认。
 
 ### B. lifestyle / consumption_pattern
 
@@ -221,7 +221,7 @@ LLM 根据**研究目标 + 画像特征**决定挑哪些 label,目标是让读�
 
 ### section_block 的 title 是开放字段 + body 有最低深度
 
-`section_block.title` 是 LLM 自决文案(3-6 字),要**贴合该画像的语义**(如音乐画像里写「对音质的追求」而不是「行为习惯」)。
+`section_block.title` 由 LLM 根据内容生成，要求语义完整、简洁、可独立理解并尽量一行呈现。中文通常 4-12 字，技术 token 保持完整；标题要贴合该画像的语义。
 
 但 schema 强约束**内容深度**(防敷衍):
 - `title.minLength: 3, maxLength: 6`
@@ -231,9 +231,9 @@ LLM 根据**研究目标 + 画像特征**决定挑哪些 label,目标是让读�
 
 body 内容必须含**具体动作 / 具体场景 / 具体程度词**,而不是抽象描述。
 
-### section_blocks_grid 数量必须是 2 / 4 / 6
+### section_blocks_grid 数量必须是 4 / 5 / 6
 
-`blocks` 数量被 `oneOf` 限制为 **2、4 或 6**(对应拼贴布局)。3 个或 5 个会被事前校验拦截。
+`blocks` 数量被 `oneOf` 限制为 **4、5 或 6**。4 个适合 2×2，5 个适合 2×2 加一行整宽总结，6 个适合 2×3。其他数量会被事前校验拦截。
 
 ### emoji 必须从 33 个枚举名选(不输出 Unicode 字符)
 

@@ -1,0 +1,11 @@
+{
+  "checkpoint": "04-personas",
+  "status": "draft",
+  "context_snapshot": {"research_question": "", "decision_use": "", "research_type": "", "paradigm": ""},
+  "user_confirmed": false,
+  "persona_count": 0,
+  "personas": [],
+  "merge_rules": [],
+  "evidence_map": {},
+  "risks": []
+}

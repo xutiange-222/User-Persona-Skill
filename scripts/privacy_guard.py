@@ -13,13 +13,24 @@ from pathlib import Path
 from typing import Any, Iterable
 
 try:
-    from path_utils import resolve_process_dir
+    from scripts.path_utils import iter_artifacts, resolve_process_dir
 except ImportError:
-    resolve_process_dir = None  # type: ignore
+    try:
+        from path_utils import iter_artifacts, resolve_process_dir
+    except ImportError:
+        resolve_process_dir = None  # type: ignore
+        iter_artifacts = None  # type: ignore
 
 # 展示层允许的脱敏形态(含其一即不视为「裸真名」)
 _MASK_MARKERS = ("*", "（", "(", "医生", "同学", "经理", "主管", "工程师", "调度员", "负责人", "运维", "运营", "先生", "女士")
 _BARE_NAME_RE = re.compile(r"^[一-鿿]{2,4}$")
+_DIRECT_IDENTIFIER_PATTERNS = (
+    ("P0-PRIVACY-PHONE", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)"), "手机号"),
+    ("P0-PRIVACY-LANDLINE", re.compile(r"(?<!\d)0\d{2,3}-?\d{7,8}(?!\d)"), "固定电话"),
+    ("P0-PRIVACY-EMAIL", re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[a-z0-9.-]+\.[a-z]{2,}(?![\w.-])"), "邮箱"),
+    ("P0-PRIVACY-ID", re.compile(r"(?<!\d)\d{6}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[0-9Xx](?!\d)"), "身份证号"),
+    ("P0-PRIVACY-ADDRESS", re.compile(r"[一-鿿]{2,}(?:省|市|区|县)[一-鿿]{0,12}(?:路|街|巷|道|小区)\d{1,5}号(?:\d{1,4}(?:栋|单元|室))?"), "精确地址"),
+)
 
 # 扫描 JSON 时跳过「仅内部」的键; quote 内若出现他人真名仍报错
 _INTERNAL_JSON_KEYS = frozenset({
@@ -30,7 +41,15 @@ _INTERNAL_JSON_KEYS = frozenset({
     "file_stem",
 })
 
-# 必须脱敏的展示字段键名(值会做裸名/禁词表检测)
+_BARE_NAME_CHECK_KEYS = frozenset({
+    "display_name",
+    "source",
+    "representative",
+    "representatives",
+    "respondent_names",
+})
+
+# 必须脱敏的展示字段键名(值会做禁词表检测;裸两字名仅查人物字段)
 _DISPLAY_JSON_KEYS = frozenset({
     "display_name",
     "source",
@@ -92,14 +111,16 @@ def collect_forbidden_real_names(process_dir: Path) -> set[str]:
 
     processed = process_dir / "processed"
     if processed.is_dir():
-        for p in processed.glob("*.txt"):
+        files = iter_artifacts(processed, ".txt") if iter_artifacts else processed.rglob("*.txt")
+        for p in files:
             stem = p.stem.strip()
             if len(stem) >= 2:
                 names.add(stem)
 
     extracted = process_dir / "extracted"
     if extracted.is_dir():
-        for p in extracted.glob("*.json"):
+        files = iter_artifacts(extracted, ".json") if iter_artifacts else extracted.rglob("*.json")
+        for p in files:
             stem = p.stem.strip()
             if len(stem) >= 2:
                 names.add(stem)
@@ -131,7 +152,7 @@ def _collect_names_from_obj(obj: Any, out: set[str]) -> None:
     if isinstance(obj, dict):
         for k, v in obj.items():
             lk = str(k).lower()
-            if lk in {"name", "respondent_name", "real_name", "full_name", "file", "source_file", "filename"}:
+            if lk in {"respondent_name", "real_name", "full_name", "file", "source_file", "filename"}:
                 if isinstance(v, str) and 2 <= len(v.strip()) <= 8:
                     out.add(v.strip())
                     stem = Path(v.strip()).stem
@@ -160,6 +181,14 @@ def _issue(level: str, code: str, path: str, message: str) -> dict:
     return {"level": level, "code": code, "path": path, "message": message}
 
 
+def _direct_identifier_issues(text: str, path: str) -> list[dict]:
+    issues: list[dict] = []
+    for code, pattern, label in _DIRECT_IDENTIFIER_PATTERNS:
+        if pattern.search(text):
+            issues.append(_issue("ERROR", code, path, f"用户可见文本含未脱敏{label}"))
+    return issues
+
+
 def validate_privacy_in_report(
     report: dict,
     process_dir: Path | None = None,
@@ -174,6 +203,8 @@ def validate_privacy_in_report(
     for path, key, text in _walk_strings(report):
         if not text or not text.strip():
             continue
+
+        issues.extend(_direct_identifier_issues(text, path))
 
         if key in ("display_name", "source") or path.endswith(".display_name") or path.endswith(".source"):
             if not _is_masked_display_name(text):
@@ -194,7 +225,7 @@ def validate_privacy_in_report(
                 ))
                 break
 
-        if key in _DISPLAY_JSON_KEYS and _BARE_NAME_RE.fullmatch(text.strip()):
+        if key in _BARE_NAME_CHECK_KEYS and _BARE_NAME_RE.fullmatch(text.strip()):
             if not _is_masked_display_name(text):
                 issues.append(_issue(
                     "ERROR",
@@ -217,8 +248,9 @@ def validate_privacy_in_html(
         root = resolve_process_dir(process_dir) if resolve_process_dir else process_dir
         forbidden = collect_forbidden_real_names(root)
 
-    visible = re.sub(r"<[^>]+>", "", html)
-    visible = re.sub(r"\s+", "", visible)
+    visible_text = re.sub(r"<[^>]+>", " ", html)
+    issues.extend(_direct_identifier_issues(visible_text, "html"))
+    visible = re.sub(r"\s+", "", visible_text)
 
     for pat in (re.compile(r">受访者\d+<"), re.compile(r">U\d+_[一-鿿]+<")):
         if pat.search(html):
@@ -283,6 +315,29 @@ def main() -> int:
     if args.html:
         html = Path(args.html).read_text(encoding="utf-8")
         all_issues.extend(validate_privacy_in_html(html, process_dir))
+
+    if process_dir is not None and not args.report and not args.html:
+        root = resolve_process_dir(process_dir) if resolve_process_dir else process_dir
+        write_forbidden_names_cache(root)
+        scanned = []
+        for name in ("04-personas.json", "04-journeys.json", "05-report.json"):
+            candidate = root / name
+            if not candidate.is_file():
+                continue
+            try:
+                payload = json.loads(candidate.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError) as exc:
+                all_issues.append(_issue("ERROR", "P0-PRIVACY-JSON-INVALID", name, str(exc)))
+                continue
+            all_issues.extend(validate_privacy_in_report(payload, root))
+            scanned.append(name)
+        if not scanned:
+            all_issues.append(_issue(
+                "ERROR",
+                "P0-PRIVACY-NO-CHECKPOINT",
+                str(root),
+                "未找到 04-personas.json、04-journeys.json 或 05-report.json，无法执行隐私检查。",
+            ))
 
     errors = [i for i in all_issues if i["level"] == "ERROR"]
     print(json.dumps({"success": not errors, "issues": all_issues}, ensure_ascii=False, indent=2))

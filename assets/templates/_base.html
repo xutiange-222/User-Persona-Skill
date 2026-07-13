@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <!--
-  user-persona-v8 共享骨架(v1)
+  User Persona Skill 共享骨架
   ------------------------------------------------------------
-  职责:HTML 文档框架 + meta-bar + persona-nav + tooltip + JS。
-  不负责:任何画像主体内容(单页/双页/tab/矩阵/旅程图)。
-        各种呈现方式通过 {{main_content}} slot 注入。
-
-  Slot 占位符(render_html.py 用 string replace 填充):
-    {{theme}}            — "2b" / "2c" / "2d"
-    {{density}}          — "high" / "mid" / "low"
-    {{accent_inline}}    — 2C 时填完整 palette pack: "--color-accent" + "--color-toc-*";其他主题填空字符串
-    {{title}}            — <title> 标签内容
-    {{report_title}}     — 顶部主标题
-    {{report_meta_info}} — 顶部右侧元信息("X 个画像 · 来源 Y 份访谈 · 日期")
-    {{persona_nav}}      — 多画像 tab,单画像时填空字符串
-    {{main_content}}     — 主体内容,具体子模板渲染产物
-
-  发布期:render_html.py 把 _design-tokens.css 和 _components.css 内联到 <style> 块,
-        产出单文件 HTML,可邮件分发/归档。
+  职责：HTML 文档框架、顶部信息、导航、tooltip 和共享脚本。
+  画像主体由 render_report.py 注入。模板中的每个真实占位符只能出现一次，
+  说明文字禁止重复书写带双花括号的占位符。
 -->
 <html lang="zh-CN" data-theme="{{theme}}" data-density="{{density}}" style="{{accent_inline}}">
 <head>
@@ -25,7 +12,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
 
-  <!-- 开发期外链;发布期会被 render_html.py 内联进 <style> 块 -->
+  <!-- render_report.py 会把这两份 CSS 复制到交付目录 -->
   <link rel="stylesheet" href="_design-tokens.css?v=20260707-toc-palette-role-nav-10">
   <link rel="stylesheet" href="_components.css?v=20260707-toc-palette-role-nav-10">
 

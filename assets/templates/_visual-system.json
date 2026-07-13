@@ -1,0 +1,229 @@
+{
+  "version": "2026-07-11",
+  "format": "user-persona-design-system/v1",
+  "description": "用户画像报告的机器可读设计系统。渲染器与校验器共同读取本文件。",
+  "layers": [
+    "foundations",
+    "semantic_tokens",
+    "themes",
+    "component_contracts"
+  ],
+  "foundations": {
+    "typography": {
+      "font_family_sans": "Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif",
+      "letter_spacing": "0",
+      "minimum_readable_font_px_by_theme": {
+        "2b": 10,
+        "2d": 10,
+        "2c": 12
+      }
+    },
+    "color": {
+      "white": "#FFFFFF",
+      "text_primary": "#282828",
+      "text_secondary": "#787878",
+      "text_tertiary": "#B4B4B4",
+      "border_subtle": "#DCDCDC"
+    }
+  },
+  "semantic_tokens": {
+    "page_background": "#FFFFFF",
+    "text_primary": "#282828",
+    "text_secondary": "#787878",
+    "border_subtle": "#DCDCDC",
+    "toc_primary": "--color-toc-primary",
+    "toc_secondary": "--color-toc-secondary",
+    "toc_surface": "--color-toc-surface",
+    "toc_soft": "--color-toc-soft",
+    "toc_alert": "--color-toc-alert",
+    "toc_aux": "--color-toc-aux"
+  },
+  "themes": {
+    "2b": {
+      "palette_id": "2b-process-blue",
+      "tokens": {
+        "--color-process-main": "#96BEFA",
+        "--color-primary-light": "#DCF0FA",
+        "--color-primary": "#6EA0DC",
+        "--color-primary-dark": "#3296FF",
+        "--color-warning": "#DC2828",
+        "--color-warning-soft": "#FAE6E6",
+        "--color-success": "#8CBE6E",
+        "--color-border-subtle": "#DCDCDC"
+      },
+      "journey": {
+        "view_box_width": 1180,
+        "role_rail_width": 87,
+        "stage_font_px": 14,
+        "substage_font_px": 12,
+        "role_font_px": 12,
+        "node_font_px": 12,
+        "stage_grid_rule": "role rail keeps role_rail_width; remaining view box width is divided equally by actual stage count",
+        "dense_cell_tracks": "minimum non-overlapping interval tracks",
+        "sparse_slots": "compact by order before geometry"
+      }
+    },
+    "2c": {
+      "tokens": {
+        "--color-bg-page": "#FFFFFF",
+        "--color-bg-canvas-left": "#FFFFFF",
+        "--color-bg-canvas-right": "#FFFFFF"
+      },
+      "minimum_font_px": {
+        "journey": 12,
+        "distribution": 12
+      },
+      "accent_map": {
+        "purple": "purple-default",
+        "mist-blue": "blue-yellow",
+        "moss-green": "green-gray",
+        "warm-orange": "red-orange",
+        "mustard": "yellow-orange",
+        "cyan-gold": "cyan-gold"
+      },
+      "palette_packs": {
+        "purple-default": {
+          "palette_id": "2c-purple-default",
+          "chart_color": "#9664FF",
+          "values": {
+            "--color-accent": "var(--accent-purple)",
+            "--color-toc-style": "purple-default",
+            "--color-toc-primary": "var(--palette-2c-purple-primary)",
+            "--color-toc-secondary": "var(--palette-2c-purple-soft)",
+            "--color-toc-surface": "var(--palette-2c-purple-bg)",
+            "--color-toc-bg": "var(--palette-2c-purple-bg)",
+            "--color-toc-soft": "var(--palette-2c-purple-soft)",
+            "--color-toc-alert": "var(--palette-2c-purple-alert)",
+            "--color-toc-aux": "var(--palette-2c-purple-aux)",
+            "--color-toc-aux-bg": "var(--palette-2c-purple-aux)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        },
+        "red-orange": {
+          "palette_id": "2c-red-orange",
+          "chart_color": "#F05A28",
+          "values": {
+            "--color-accent": "var(--accent-warm-orange)",
+            "--color-toc-style": "red-orange",
+            "--color-toc-primary": "var(--palette-2c-red-orange-primary)",
+            "--color-toc-secondary": "var(--palette-2c-red-orange-mid)",
+            "--color-toc-surface": "var(--palette-2c-red-orange-soft)",
+            "--color-toc-bg": "var(--palette-2c-red-orange-soft)",
+            "--color-toc-soft": "var(--palette-2c-red-orange-soft)",
+            "--color-toc-alert": "var(--palette-2c-red-orange-green)",
+            "--color-toc-aux": "var(--palette-2c-red-orange-mid)",
+            "--color-toc-aux-bg": "var(--palette-2c-red-orange-mid)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        },
+        "green-gray": {
+          "palette_id": "2c-green-gray",
+          "chart_color": "#82B4B4",
+          "values": {
+            "--color-accent": "var(--accent-moss-green)",
+            "--color-toc-style": "green-gray",
+            "--color-toc-primary": "var(--palette-2c-green-gray-primary)",
+            "--color-toc-secondary": "var(--palette-2c-green-gray-olive)",
+            "--color-toc-surface": "color-mix(in srgb, var(--palette-2c-green-gray-primary) 12%, #FFFFFF)",
+            "--color-toc-bg": "color-mix(in srgb, var(--palette-2c-green-gray-primary) 12%, #FFFFFF)",
+            "--color-toc-soft": "color-mix(in srgb, var(--palette-2c-green-gray-primary) 22%, #FFFFFF)",
+            "--color-toc-alert": "var(--palette-2c-green-gray-yellow)",
+            "--color-toc-aux": "var(--palette-2c-green-gray-yellow)",
+            "--color-toc-aux-bg": "var(--palette-2c-green-gray-yellow)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        },
+        "yellow-orange": {
+          "palette_id": "2c-yellow-orange",
+          "chart_color": "#FFB41E",
+          "values": {
+            "--color-accent": "var(--accent-mustard)",
+            "--color-toc-style": "yellow-orange",
+            "--color-toc-primary": "var(--palette-2c-yellow-orange-primary)",
+            "--color-toc-secondary": "var(--palette-2c-yellow-orange-lime)",
+            "--color-toc-surface": "var(--palette-2c-yellow-orange-soft)",
+            "--color-toc-bg": "var(--palette-2c-yellow-orange-soft)",
+            "--color-toc-soft": "var(--palette-2c-yellow-orange-lime)",
+            "--color-toc-alert": "var(--palette-2c-yellow-orange-primary)",
+            "--color-toc-aux": "var(--palette-2c-yellow-orange-bg)",
+            "--color-toc-aux-bg": "var(--palette-2c-yellow-orange-bg)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        },
+        "blue-yellow": {
+          "palette_id": "2c-blue-yellow",
+          "chart_color": "#5A8CFA",
+          "values": {
+            "--color-accent": "var(--accent-mist-blue)",
+            "--color-toc-style": "blue-yellow",
+            "--color-toc-primary": "var(--palette-2c-blue-yellow-primary)",
+            "--color-toc-secondary": "var(--palette-2c-blue-yellow-soft)",
+            "--color-toc-surface": "color-mix(in srgb, var(--palette-2c-blue-yellow-primary) 12%, #FFFFFF)",
+            "--color-toc-bg": "color-mix(in srgb, var(--palette-2c-blue-yellow-primary) 12%, #FFFFFF)",
+            "--color-toc-soft": "var(--palette-2c-blue-yellow-soft)",
+            "--color-toc-alert": "var(--palette-2c-blue-yellow-primary)",
+            "--color-toc-aux": "var(--palette-2c-blue-yellow-yellow)",
+            "--color-toc-aux-bg": "var(--palette-2c-blue-yellow-yellow)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        },
+        "cyan-gold": {
+          "palette_id": "2c-cyan-gold",
+          "chart_color": "#32B4DC",
+          "values": {
+            "--color-accent": "var(--accent-cyan-gold)",
+            "--color-toc-style": "cyan-gold",
+            "--color-toc-primary": "var(--palette-2c-cyan-gold-cyan)",
+            "--color-toc-secondary": "var(--palette-2c-cyan-gold-primary)",
+            "--color-toc-surface": "var(--palette-2c-cyan-gold-bg)",
+            "--color-toc-bg": "var(--palette-2c-cyan-gold-bg)",
+            "--color-toc-soft": "var(--palette-2c-cyan-gold-bg)",
+            "--color-toc-alert": "var(--palette-2c-cyan-gold-cyan)",
+            "--color-toc-aux": "var(--palette-2c-cyan-gold-gold)",
+            "--color-toc-aux-bg": "var(--palette-2c-cyan-gold-gold)",
+            "--color-toc-aux-text": "var(--color-text-primary)"
+          }
+        }
+      }
+    }
+  },
+  "component_contracts": {
+    "2c_journey_stage_header": {
+      "background": "var(--color-toc-surface, var(--color-bg-card-soft))",
+      "color": "var(--color-text-primary)",
+      "number_color": "var(--color-toc-primary, var(--color-accent))",
+      "minimum_font_px": 12,
+      "rule": "阶段表头与左侧维度栏使用同一浅色承载层，阶段编号使用当前画像主色。"
+    },
+    "2c_journey_touchpoint_tag": {
+      "background": "var(--color-toc-aux-bg, var(--color-toc-aux, var(--color-border-subtle)))",
+      "color": "var(--color-toc-aux-text, var(--color-text-primary))",
+      "minimum_font_px": 12
+    },
+    "2c_journey_pain": {
+      "background": "color-mix(in srgb, var(--color-toc-alert, var(--color-accent)) 12%, var(--color-bg-card))",
+      "border": "3px solid var(--color-toc-alert, var(--color-accent))",
+      "label_background": "var(--color-toc-alert, var(--color-accent))",
+      "minimum_font_px": 12,
+      "rule": "痛点、风险和冲突只使用当前 palette pack 的 alert 语义。"
+    },
+    "2c_distribution": {
+      "minimum_font_px": 12,
+      "page_background": "#FFFFFF"
+    },
+    "2c_journey_emotion": {
+      "minimum_font_px": 12,
+      "safe_area_top_px": 40,
+      "safe_area_bottom_px": 40,
+      "high_point_label_position": "below",
+      "low_point_label_position": "above",
+      "dimension_label_alignment": "center"
+    },
+    "2b_detail_page": {
+      "content_distribution": "balanced",
+      "maximum_internal_divider_px": 520,
+      "auto_delete_sparse_page": false,
+      "rule": "细节页填满可用内容区；内容过少时先展示核心模块建议和信息损失，用户确认后才删除页面或模块。"
+    }
+  }
+}

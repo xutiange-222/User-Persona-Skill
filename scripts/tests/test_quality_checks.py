@@ -99,7 +99,7 @@ class QualityCheckerTests(unittest.TestCase):
         self.assertIn("_base.html", text)
         self.assertNotIn("render_html", text)
 
-    def test_recovery_check_final_delivery(self):
+    def test_recovery_check_rejects_final_delivery_without_checkpoints(self):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = create_run_dir(Path(tmp), "恢复测试")
             process_dir = run_dir / "过程稿"
@@ -122,35 +122,9 @@ class QualityCheckerTests(unittest.TestCase):
             )
             self.assertEqual(proc.returncode, 0, proc.stderr or "")
             payload = json.loads(proc.stdout)
-            self.assertEqual(payload["status"], "completed")
+            self.assertEqual(payload["status"], "in_progress")
+            self.assertFalse(payload["checkpoint_pairing_valid"])
             self.assertIn("delivery_report", payload)
-
-    def test_cluster_personas_bad_r4_returns_error(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            run_dir = create_run_dir(Path(tmp), "聚类测试")
-            process_dir = run_dir / "过程稿"
-            bad = {
-                "paradigm": "R4",
-                "value_variables": [{"key": "x", "name": "X", "levels": [{"name": "左"}, {"name": "右"}]}],
-                "respondent_mapping": {}
-            }
-            (process_dir / "02-classification.json").write_text(json.dumps(bad, ensure_ascii=False), encoding="utf-8")
-            proc = subprocess.run(
-                [
-                    sys.executable,
-                    str(SKILL_ROOT / "scripts" / "cluster_personas.py"),
-                    "--workdir",
-                    str(run_dir),
-                ],
-                text=True,
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-                env=_UTF8_ENV,
-            )
-            self.assertEqual(proc.returncode, 2)
-            self.assertIn("错误", proc.stdout)
-
 
 if __name__ == "__main__":
     unittest.main()

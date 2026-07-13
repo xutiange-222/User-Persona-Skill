@@ -3,15 +3,30 @@ from __future__ import annotations
 import math
 
 from ._utils import escape, screenshot_exists
+from ..visual_system import tob_journey_contract
 
 
-L1_RAIL_WIDTH = 87
+_TOB_JOURNEY = tob_journey_contract()
+L1_RAIL_WIDTH = int(_TOB_JOURNEY["role_rail_width"])
+L1_SVG_WIDTH = int(_TOB_JOURNEY["view_box_width"])
+
+
+def _stage_grid_columns(stage_count: int, rail_w: int = L1_RAIL_WIDTH, svg_w: int = L1_SVG_WIDTH) -> str:
+    stage_w = (svg_w - rail_w) / stage_count
+    values = [rail_w / svg_w * 100]
+    values.extend(stage_w / svg_w * 100 for _ in range(stage_count))
+    return " ".join(f"{value:.6f}%" for value in values)
 
 
 def _split_role_label(label: str, max_chars: int = 4) -> list[str]:
     text = label.strip()
     if len(text) <= max_chars:
         return [text]
+    for suffix in ("工程师", "负责人", "管理者"):
+        if text.endswith(suffix):
+            prefix = text[: -len(suffix)]
+            if 2 <= len(prefix) <= max_chars + 1:
+                return [prefix, suffix]
     if len(text) <= max_chars + 2 and text[-2:].isascii() and not text[-2:].isdigit():
         return [text[:-2], text[-2:]]
     return [text[i:i + max_chars] for i in range(0, len(text), max_chars)]
@@ -28,6 +43,25 @@ def _render_role_label(cls: str, label: str, x: float, y: float, max_chars: int 
         dy = start_dy if idx == 0 else line_h
         tspans.append(f'<tspan x="{x:.1f}" dy="{dy:.1f}">{escape(line)}</tspan>')
     return f'<text class="{cls}" x="{x:.1f}" y="{y:.0f}">{"".join(tspans)}</text>'
+
+
+def _render_lane_role(name: str, tag: str, rail_w: float, lane_y: float, lane_h: float) -> str:
+    """Render a stable two-level role label inside the 2B journey rail."""
+    role_x = rail_w / 2
+    role_mid_y = lane_y + lane_h / 2
+    name_lines = _split_role_label(name, 4)
+    line_h = 14
+    tag_gap = 14
+    tag_h = 11 if tag else 0
+    total_h = len(name_lines) * line_h + (tag_gap + tag_h if tag else 0)
+    name_start_y = role_mid_y - total_h / 2 + line_h / 2
+    parts = [
+        _render_role_label("l1-role-text", name, role_x, name_start_y, max_chars=4)
+    ]
+    if tag:
+        tag_y = name_start_y + (len(name_lines) - 1) * line_h + tag_gap
+        parts.append(_render_role_label("l1-role-tag", tag, role_x, tag_y, max_chars=4))
+    return "".join(parts)
 
 
 def _render_banner(title: str, subtitle: str) -> str:
@@ -150,8 +184,11 @@ def _render_l2_uml_hybrid(props: dict) -> str:
     focuses = props.get("focuses", [])
     reserve_image_slot = props.get("focus_mode") == "image_placeholder"
     focus_cells = _render_focus_cell(focuses, "l2", reserve_image_slot) if focuses else ""
+    workflow_height = max(220, len(props["lanes"]) * 120)
     return (
-        f'<div class="tob-l2-uml-hybrid" style="--stages:{len(stages)};--rail-rows:42px 42px 42px 180px 1fr;--main-rows:42px 42px 42px 180px 1fr;">'
+        f'<div class="tob-l2-uml-hybrid" style="--stages:{len(stages)};'
+        f'--rail-rows:42px 42px 42px {workflow_height}px 1fr;'
+        f'--main-rows:42px 42px 42px {workflow_height}px 1fr;">'
         f'{_render_banner(props["banner_title"], props["banner_subtitle"])}'
         '<div class="tob-body"><div class="tob-rail">'
         '<div class="tob-rail-cell tob-rail-stages">阶段</div>'
@@ -170,12 +207,10 @@ def _render_l2_uml_hybrid(props: dict) -> str:
 
 def _render_stage_board(stages: list[dict]) -> str:
     n = len(stages)
-    if n == 3:
-        row_style = ""
-        cell_style = ""
-    else:
-        row_style = f' style="grid-template-columns:{L1_RAIL_WIDTH}px repeat({n}, 1fr);"'
-        cell_style = ' style="grid-column:span 1;"'
+    # CSS consumes this per-journey variable with !important. This keeps any
+    # stage count aligned instead of pushing stage 6 onto an implicit row.
+    row_style = f' style="--l1-grid-columns:{_stage_grid_columns(n)};"'
+    cell_style = ' style="grid-column:span 1;"'
     stage_cells = "".join(
         f'<div class="l1-stage-cell"{cell_style}>'
         f'<div class="l1-stage-tag"><span class="l1-stage-num">{i + 1}</span>{escape(stage["name"])}</div>'
@@ -366,7 +401,7 @@ def _render_node(pos: dict) -> str:
 # 只对「多角色全景 L1」(lanes >= 3 且 stages >= 3)生效;L2 单泳道 / 小流程豁免。
 #
 # 定位:这是「反退化下限」,不是「真值上限」。阈值刻意标在 skill 现有合格样例
-# (golden_samples / gallery 里的 tob_journey_l1)之下 —— 那些样例 decision 2~3 /
+# (组件测试夹具里的 tob_journey_l1)之下 —— 那些样例 decision 2~3 /
 # doc 1~2 / dashed 2 / 跨泳道 20~53%,真值(电力调度员)更高(5/8/11/46%),
 # 退化的「N 条平行流水线」则全是 0。门禁负责挡住「全是 0」的退化(被 4 个维度
 # 独立命中);把图拉到真值级丰富度是 REGISTRY §3.0 协同语义清单 + 真值范例的活,
@@ -384,6 +419,8 @@ L2_MAX_NODES_PER_CELL = 4
 
 # L1 多角色与 L2 单角色 UML 共用几何常量(密度/协同门禁除外)
 TRACK_MIN_GAP = 4
+TRACK_VERTICAL_GAP = 6
+TRACK_VERTICAL_PADDING = 8
 STAGGER_ROW_Y_TOP = 0.34
 STAGGER_ROW_Y_BOTTOM = 0.66
 
@@ -641,79 +678,47 @@ def _assign_tracks_for_cell(
     """
     if not sorted_nodes:
         return {}
-    cell_slots = [int(n.get("slot", 0)) for n in sorted_nodes]
-    n_slots = max(max(cell_slots) + 1, len(sorted_nodes))
+    # Slot values define order. Numeric holes carry no semantic information,
+    # so compact 0,1,2,4 to four evenly spaced positions.
+    n_slots = len(sorted_nodes)
     x_left, x_right = node_x_ranges[stage_id]
     slot_w = (x_right - x_left) / n_slots
     wide_uml = len(stages) == 3 and len(lanes) == 4
     intervals = []
-    for n in sorted_nodes:
-        slot = int(n.get("slot", 0))
+    for slot, n in enumerate(sorted_nodes):
         w, _ = _uml_node_size(
             n["type"],
             n["label"],
             "wide_uml" if wide_uml else "dense",
         )
         x_center = x_left + (slot + 0.5) * slot_w
-        preferred = int(n.get("track", n.get("row", 0))) % 2
         intervals.append(
             {
                 "id": n["id"],
                 "left": x_center - w / 2,
                 "right": x_center + w / 2,
-                "preferred": preferred,
             }
         )
     intervals.sort(key=lambda item: (item["left"], item["right"], item["id"]))
-    conflicts = []
-    for i, left_item in enumerate(intervals):
-        for j in range(i + 1, len(intervals)):
-            right_item = intervals[j]
-            if right_item["left"] - left_item["right"] >= TRACK_MIN_GAP:
-                break
-            conflicts.append((i, j))
-    if not conflicts:
-        return {item["id"]: 0 for item in intervals}
-
-    n = len(intervals)
-    best_mask = None
-    best_score = None
-    if n <= 18:
-        for mask in range(1 << n):
-            valid = True
-            for i, j in conflicts:
-                if ((mask >> i) & 1) == ((mask >> j) & 1):
-                    valid = False
-                    break
-            if not valid:
-                continue
-            second_row_count = mask.bit_count()
-            preferred_penalty = sum(
-                1
-                for idx, item in enumerate(intervals)
-                if ((mask >> idx) & 1) != item["preferred"]
-            )
-            score = (second_row_count, preferred_penalty)
-            if best_score is None or score < best_score:
-                best_score = score
-                best_mask = mask
-    if best_mask is not None:
-        return {
-            item["id"]: (best_mask >> idx) & 1
-            for idx, item in enumerate(intervals)
-        }
-
-    row_ends = [-10_000.0, -10_000.0]
+    # Greedy interval partitioning yields the minimum track count. Unlike the
+    # old binary coloring, it can allocate a third track when four wide nodes
+    # cannot fit in two rows.
+    row_ends: list[float] = []
     assignment: dict[str, int] = {}
     for item in intervals:
-        if item["left"] - row_ends[0] >= TRACK_MIN_GAP:
-            row = 0
-        elif item["left"] - row_ends[1] >= TRACK_MIN_GAP:
-            row = 1
+        row = next(
+            (
+                idx
+                for idx, right_edge in enumerate(row_ends)
+                if item["left"] - right_edge >= TRACK_MIN_GAP
+            ),
+            len(row_ends),
+        )
+        if row == len(row_ends):
+            row_ends.append(item["right"])
         else:
-            row = 0 if row_ends[0] <= row_ends[1] else 1
+            row_ends[row] = item["right"]
         assignment[item["id"]] = row
-        row_ends[row] = max(row_ends[row], item["right"])
     return assignment
 
 
@@ -728,6 +733,18 @@ def _render_uml_journey(
     lanes = props["lanes"]
     nodes = props["nodes"]
     edges = props["edges"]
+
+    stage_ids = [stage["id"] for stage in stages]
+    duplicate_stage_ids = sorted({value for value in stage_ids if stage_ids.count(value) > 1})
+    if duplicate_stage_ids:
+        raise ValueError(
+            "tob_journey: stages[].id 必须唯一；重复 id 会覆盖阶段坐标："
+            f"{duplicate_stage_ids}"
+        )
+    lane_ids = [lane["id"] for lane in lanes]
+    duplicate_lane_ids = sorted({value for value in lane_ids if lane_ids.count(value) > 1})
+    if duplicate_lane_ids:
+        raise ValueError(f"tob_journey: lanes[].id 必须唯一：{duplicate_lane_ids}")
 
     svg_w = 1180
     rail_w = L1_RAIL_WIDTH if show_lane_rail else 0
@@ -751,14 +768,19 @@ def _render_uml_journey(
     stage_x_ranges = {}
     node_x_ranges = {}
     edge_pad = 40 if not (len(stages) == 3 and len(lanes) == 4) else 24
+    node_variant = "wide_uml" if len(stages) == 3 and len(lanes) == 4 else "dense"
     for idx, stage in enumerate(stages):
         x1 = rail_w + idx * stage_w
         x2 = x1 + stage_w
         stage_x_ranges[stage["id"]] = (x1, x2)
-        node_x1 = x1 + (edge_pad if idx == 0 else 0)
-        node_x2 = x2 - (edge_pad if idx == len(stages) - 1 else 0)
-        if node_x2 - node_x1 < stage_w * 0.72:
-            node_x1, node_x2 = x1, x2
+        stage_nodes = [node for node in nodes if node.get("stage") == stage["id"]]
+        max_half_width = max(
+            (_uml_node_size(node["type"], node["label"], node_variant)[0] / 2 for node in stage_nodes),
+            default=0,
+        )
+        internal_pad = min(max(edge_pad, max_half_width + 4), stage_w * 0.30)
+        node_x1 = x1 + internal_pad
+        node_x2 = x2 - internal_pad
         node_x_ranges[stage["id"]] = (node_x1, node_x2)
 
     lane_y_ranges = {}
@@ -780,19 +802,51 @@ def _render_uml_journey(
     valid_lane_ids = sorted(lane_y_ranges.keys())
     valid_stage_ids = sorted(stage_x_ranges.keys())
     node_track_assignments: dict[str, int] = {}
+    cell_track_counts: dict[tuple[str, str], int] = {}
     for (cell_lane_id, cell_stage_id), raw_cell_nodes in by_cell.items():
         if cell_stage_id not in stage_x_ranges:
             continue
         sorted_nodes = sorted(raw_cell_nodes, key=lambda item: int(item.get("slot", 0)))
-        node_track_assignments.update(
-            _assign_tracks_for_cell(
-                sorted_nodes,
-                cell_stage_id,
-                node_x_ranges,
-                stages=stages,
-                lanes=lanes,
-            )
+        assignments = _assign_tracks_for_cell(
+            sorted_nodes,
+            cell_stage_id,
+            node_x_ranges,
+            stages=stages,
+            lanes=lanes,
         )
+        node_track_assignments.update(assignments)
+        cell_track_counts[(cell_lane_id, cell_stage_id)] = max(assignments.values(), default=0) + 1
+
+    # Dense cells may need four vertical tracks. Grow only the affected lane so
+    # every track keeps its full node height and the overall L1 page can expand.
+    if not (len(stages) == 3 and len(lanes) == 4):
+        for lane_index, lane in enumerate(lanes):
+            required_lane_height = lane_heights[lane_index]
+            for (cell_lane_id, _cell_stage_id), cell_nodes in by_cell.items():
+                if cell_lane_id != lane["id"]:
+                    continue
+                track_count = cell_track_counts.get((cell_lane_id, _cell_stage_id), 1)
+                track_heights = [0 for _ in range(track_count)]
+                for node in cell_nodes:
+                    track = node_track_assignments.get(node["id"], 0)
+                    _w, node_h = _uml_node_size(node["type"], node["label"], node_variant)
+                    track_heights[track] = max(track_heights[track], node_h)
+                required = (
+                    sum(track_heights)
+                    + TRACK_VERTICAL_GAP * max(0, track_count - 1)
+                    + TRACK_VERTICAL_PADDING * 2
+                )
+                required_lane_height = max(required_lane_height, required)
+            lane_heights[lane_index] = required_lane_height
+
+        svg_h = sum(lane_heights)
+        viewbox = f"0 0 {svg_w} {svg_h}"
+        lane_y_ranges = {}
+        y_cursor = 0
+        for idx, lane in enumerate(lanes):
+            y1 = y_cursor
+            y_cursor += lane_heights[idx]
+            lane_y_ranges[lane["id"]] = (y1, y_cursor)
 
     node_positions: dict[str, dict] = {}
     for (lane_id, stage_id), cell_nodes in by_cell.items():
@@ -819,25 +873,30 @@ def _render_uml_journey(
                 f"tob_journey: 同一 (lane={lane_id}, stage={stage_id}) cell 内 slot 重复,"
                 f"涉及节点 {dup_ids},slot 值 {cell_slots}"
             )
-        n_slots = max(max(cell_slots) + 1, len(cell_nodes))
+        n_slots = len(cell_nodes)
         x_left, x_right = node_x_ranges[stage_id]
         y_top, y_bottom = lane_y_ranges[lane_id]
         lane_h = y_bottom - y_top
         slot_w = (x_right - x_left) / n_slots
         # 按 (lane, stage) cell 判断是否启用双行(与 L1 多角色同一算法)
-        use_stagger_tracks = (
-            not (len(stages) == 3 and len(lanes) == 4)
-            and any(node_track_assignments.get(n["id"], 0) % 2 == 1 for n in cell_nodes)
-        )
+        track_count = cell_track_counts.get((lane_id, stage_id), 1)
+        track_heights = [0 for _ in range(track_count)]
         for node in cell_nodes:
-            slot = int(node.get("slot", 0))
+            track = node_track_assignments.get(node["id"], 0)
+            _node_w, node_h = _uml_node_size(node["type"], node["label"], node_variant)
+            track_heights[track] = max(track_heights[track], node_h)
+        packed_height = sum(track_heights) + TRACK_VERTICAL_GAP * max(0, track_count - 1)
+        track_top = y_top + (lane_h - packed_height) / 2
+        track_centers: list[float] = []
+        for height in track_heights:
+            track_centers.append(track_top + height / 2)
+            track_top += height + TRACK_VERTICAL_GAP
+        for slot, node in enumerate(cell_nodes):
             w, h = _uml_node_size(node["type"], node["label"], "wide_uml" if len(stages) == 3 and len(lanes) == 4 else "dense")
             x_center = x_left + (slot + 0.5) * slot_w
-            if use_stagger_tracks:
+            if track_count > 1 and not (len(stages) == 3 and len(lanes) == 4):
                 track = node_track_assignments.get(node["id"], 0)
-                y_center = y_top + lane_h * (
-                    STAGGER_ROW_Y_TOP if track % 2 == 0 else STAGGER_ROW_Y_BOTTOM
-                )
+                y_center = track_centers[track]
             else:
                 y_center = (y_top + y_bottom) / 2
             node_positions[node["id"]] = {
@@ -877,12 +936,7 @@ def _render_uml_journey(
         lane_h = lane_heights[idx]
         y_cursor += lane_h
         if show_lane_rail:
-            role_x = rail_w / 2
-            role_mid_y = y + lane_h / 2
-            tag_y = role_mid_y + 20 if len(lane["name"]) > 4 else role_mid_y + 10
-            bg_parts.append(_render_role_label("l1-role-text", lane["name"], role_x, role_mid_y - 8))
-            if lane.get("tag"):
-                bg_parts.append(_render_role_label("l1-role-tag", lane["tag"], role_x, tag_y, max_chars=4))
+            bg_parts.append(_render_lane_role(lane["name"], lane.get("tag", ""), rail_w, y, lane_h))
     for idx in range(1, len(stages)):
         x = rail_w + idx * stage_w
         bg_parts.append(f'<line class="l1-lane-line" x1="{x:.0f}" y1="{head_h}" x2="{x:.0f}" y2="{svg_h}" stroke-dasharray="3 3"/>')

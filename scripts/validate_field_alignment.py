@@ -19,6 +19,11 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 try:
+    from jsonschema import validate as validate_json_schema
+except ImportError:
+    from scripts._jsonschema_fallback import validate as validate_json_schema
+
+try:
     from scripts.path_utils import resolve_process_dir
 except ImportError:
     resolve_process_dir = None  # type: ignore
@@ -45,6 +50,7 @@ _ALLOWED_VISUAL_TEMPLATES = {
     "2b-overall-journey": {"2b", "2d", "tob", "tod"},
     "2c-persona": {"2c", "toc"},
     "2c-journey": {"2c", "toc"},
+    "2c-complex-distribution-report": {"2c", "toc"},
 }
 
 _ALLOWED_PALETTES = {
@@ -57,17 +63,29 @@ _ALLOWED_PALETTES = {
     "2c-cyan-gold": {"2c", "toc"},
 }
 
+_SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "03-field-alignment.schema.json"
+
 
 def _normalize_summary(text: str) -> str:
     return re.sub(r"\s+", "", (text or "").strip())
 
 
-def validate_field_alignment(data: dict[str, Any]) -> list[str]:
+def validate_field_alignment(
+    data: dict[str, Any],
+    *,
+    require_assets_ready: bool = False,
+) -> list[str]:
     """返回错误信息列表;空列表表示通过。"""
     errors: list[str] = []
 
     if not isinstance(data, dict):
         return ["根对象必须是 JSON object"]
+
+    try:
+        schema = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
+        validate_json_schema(instance=data, schema=schema)
+    except Exception as exc:
+        errors.append(f"03-field-alignment schema 未通过: {exc}")
 
     # --- 基础必填 ---
     for key in (
@@ -122,6 +140,7 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
     if not isinstance(fields_map, dict) or not fields_map:
         errors.append("fields_per_persona 必须是非空对象")
     else:
+        selected_fields: set[str] = set()
         for persona_key, fields in fields_map.items():
             if not isinstance(fields, list) or not fields:
                 errors.append(f"fields_per_persona['{persona_key}'] 须为非空数组")
@@ -130,6 +149,14 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
                 errors.append(
                     f"fields_per_persona['{persona_key}'] 不能全是占位符"
                     "(须为具体 schema 字段 key 列表)"
+                )
+            selected_fields.update(str(field).strip() for field in fields if str(field).strip())
+        if isinstance(display_names, dict):
+            undisclosed = sorted(selected_fields - set(display_names))
+            if undisclosed:
+                errors.append(
+                    "fields_per_persona 含未在 fields_display_names 展示确认的字段: "
+                    f"{undisclosed[:8]}"
                 )
 
     # alignment_mode  alone 不能代替用户确认
@@ -145,6 +172,15 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
         errors.append("add_on_pages 必须是对象")
     elif "journey" not in add_on:
         errors.append("add_on_pages.journey 必填(布尔,表示用户是否加旅程页)")
+    else:
+        journey = add_on.get("journey")
+        scope = add_on.get("journey_scope")
+        if journey is False and scope != "none":
+            errors.append("add_on_pages.journey=false 时 journey_scope 必须为 none")
+        if journey is True and scope in (None, "none"):
+            errors.append("add_on_pages.journey=true 时 journey_scope 必须为 L1_and_L2、L1_only 或 L2_only")
+        if add_on.get("organizational_cohesion") == "uncertain":
+            errors.append("organizational_cohesion=uncertain 时须继续询问用户,不能完成 03")
 
     # 抽取前素材门禁
     visual = data.get("visual_assets")
@@ -152,6 +188,20 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
         errors.append(
             "visual_assets.assets_asked 必须为 true — 字段对齐 Step 5.0 须问过头像/截图"
         )
+    elif not any(
+        visual.get(key) is True
+        for key in ("avatar_use_default", "avatar_provided", "avatar_deferred")
+    ):
+        errors.append("visual_assets 必须明确头像策略:默认头像、已提供或稍后补充三选一")
+    elif not isinstance(visual.get("scenario_screenshots_enabled"), bool):
+        errors.append("visual_assets.scenario_screenshots_enabled 必须记录用户对典型场景截图的明确选择")
+    elif visual.get("scenario_screenshots_enabled") is False and visual.get("scenario_screenshots_deferred") is True:
+        errors.append("典型场景截图不能同时记录为不启用和稍后补充")
+    elif isinstance(add_on, dict) and add_on.get("journey") is True and not isinstance(visual.get("screenshots_enabled"), bool):
+        errors.append("已启用旅程时，visual_assets.screenshots_enabled 必须记录用户对旅程截图的明确选择")
+    elif require_assets_ready and visual.get("avatar_deferred") is True:
+        if visual.get("avatar_provided") is not True and visual.get("avatar_use_default") is not True:
+            errors.append("头像仍标记为 deferred;渲染前须补齐自定义头像或确认使用默认头像")
 
     visual_spec = data.get("visual_spec")
     if not isinstance(visual_spec, dict):
@@ -185,7 +235,7 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
 
     # toB/toD 多角色 L1 判定
     persona_count = int(data.get("persona_count") or 0)
-    persona_type = str(data.get("persona_type") or "").lower()
+    persona_type = str(data.get("persona_type") or data.get("research_type") or "").lower()
     if persona_count >= 2 and persona_type in ("tob", "tod"):
         if not isinstance(add_on, dict):
             pass
@@ -199,6 +249,13 @@ def validate_field_alignment(data: dict[str, Any]) -> list[str]:
                     errors.append(
                         f"toB/toD 多角色(≥2)时 add_on_pages.{jkey} 必填"
                     )
+
+    if persona_count >= 2 and persona_type == "toc" and isinstance(visual_spec, dict):
+        palette_map = visual_spec.get("persona_palette_map")
+        if not isinstance(palette_map, dict) or len(palette_map) != persona_count:
+            errors.append(
+                "toC 多画像时 visual_spec.persona_palette_map 必须逐画像记录且数量等于 persona_count"
+            )
 
     return errors
 

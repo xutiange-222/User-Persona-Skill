@@ -3,7 +3,7 @@
    ------------------------------------------------------------
    两套主题:
      [data-theme="2b"] / [data-theme="2d"]  → 深蓝高密度(企业/开发者)
-     [data-theme="2c"]                       → 暖米黄低密度(消费者,清爽插画风)
+     [data-theme="2c"]                       → 白底低密度(消费者,清爽插画风)
 
    三档密度(可与主题正交组合,直接覆盖具体 token,组件 CSS 不用关心密度):
      [data-density="high"]  → 2B/2D 默认,信息密度最高
@@ -197,32 +197,11 @@
 
 
 /* ============================================================
-   4. 主题:2C —— 暖米黄低密度,清爽插画风
+   4. 主题:2C，白底低密度、清爽插画风
    ------------------------------------------------------------
-   强调色选择规则(写给 LLM 看):
-
-     Step 1. 判断画像是否"AI 相关"
-       触发条件:画像核心场景涉及 AI 工具/AI 决策/AI 辅助/大模型/智能助手等
-       是 → 强制使用 --accent-purple(雾紫 #9B7BC4)
-       否 → 进 Step 2
-
-     Step 2. 单画像:对画像中文名字做哈希,从 5 个非紫色候选中取一个
-       规则:画像名所有中文字 unicode 求和 % 5,索引下表:
-         0 → --accent-mist-blue   (雾蓝)
-         1 → --accent-moss-green  (苔绿)
-         2 → --accent-warm-orange (暖橙)
-         3 → --accent-mustard     (黄橙)
-         4 → --accent-mist-blue   (蓝黄,原 TO C-5 顺位前移)
-         5 → --accent-cyan-gold   (青金,原 TO C-6 顺位前移)
-       哈希让同一画像名永远是同一色,可复现
-
-     Step 3. 多画像并存(tab/矩阵/多维分布图):按顺序循环,避免相邻同色
-       第 1 个画像:用 Step 2 哈希结果作为起点
-       第 2-N 个画像:在 5 色环上顺时针取下一色,跳过紫色(留给 AI 类)
-       色环顺序:雾蓝 → 苔绿 → 暖橙 → 陶红 → 芥末 →(回到雾蓝)
-       如果某画像是 AI 类,强制紫,不参与循环计数
-
-   禁忌:高饱和、明亮刺眼。色相必须莫兰迪、低饱和、温和。
+   模型只在 05-report.json 中选择六个白名单 accent。
+   Python 根据 _visual-system.json 注入完整 palette pack。
+   页面不使用未注册别名，不允许跨 palette pack 借色。
    ============================================================ */
 [data-theme="2c"] {
   /* 6 色候选板(LLM 按上面规则选用)
@@ -233,7 +212,6 @@
   --accent-warm-orange: #F05A28;  /* 2c-red-orange */
   --accent-mustard:     #FFB41E;  /* 2c-yellow-orange */
   --accent-cyan-gold:   #32B4DC;  /* 2c-cyan-gold */
-  --accent-clay-red:    var(--accent-mist-blue);  /* deprecated: TO C-4 high-contrast removed, keep as safe alias */
 
   --palette-2c-purple-primary: #9664FF;
   --palette-2c-purple-soft:    #DCD2FF;
@@ -265,20 +243,6 @@
   --palette-2c-cyan-gold-cyan:    #32B4DC;
   --palette-2c-cyan-gold-gold:    #FFC846;
   --palette-2c-cyan-gold-bg:      #DCF0F0;
-
-  /* ---- 防御性别名:LLM 反复用错的短名也能 resolve(2026-05-21 P7) ----
-     真实回归出现过:LLM 写 var(--accent-blue),CSS 解析不到→静默 white
-     这里把 5 个常见错名都 alias 到正确 token,避免静默坏掉 */
-  --accent-blue:           var(--accent-mist-blue);
-  --accent-green:          var(--accent-moss-green);
-  --accent-orange:         var(--accent-warm-orange);
-  --accent-red:            var(--accent-warm-orange);
-  --accent-yellow:         var(--accent-mustard);
-  --accent-mustard-yellow: var(--accent-mustard);
-  --accent-mist:           var(--accent-mist-blue);
-  --accent-moss:           var(--accent-moss-green);
-  --accent-warm:           var(--accent-warm-orange);
-  --accent-clay:           var(--accent-mist-blue);
 
   /* 默认值:留空让 LLM 必须在渲染时显式设置;
      LLM 渲染时通过 <html style="--color-accent: var(--accent-XXX)"> 注入 */

@@ -1,0 +1,31 @@
+## 任务
+
+合并自定义字段 `{{FIELD_NAME}}` 的多份抽取值。输入共来自 {{TOTAL}} 份资料。
+
+## 输入
+
+{{INPUTS}}
+
+## 合并规则
+
+1. 只合并语义相同的内容，保留冲突、少数观点和适用条件。
+2. `mentioned_by` 只使用输入中的匿名 source ID。
+3. `evidence_quotes` 保留逐字原话及匿名 source，禁止补写原文没有的证据。
+4. 无法确定统一值时，把不同值写入 `conflicts`，不要强行多数表决。
+5. 严格满足 `mention_count = mentioned_by.length = evidence_quotes.length`，同一 source 只计一次。
+
+## 输出
+
+只输出一个 JSON object：
+
+```json
+{
+  "field": "{{FIELD_NAME}}",
+  "value": "合并后的值，结构可与输入字段保持一致",
+  "mention_count": 2,
+  "total": {{TOTAL}},
+  "mentioned_by": ["P1234ABCD"],
+  "evidence_quotes": [{"source": "P1234ABCD", "quote": "逐字原话"}],
+  "conflicts": []
+}
+```

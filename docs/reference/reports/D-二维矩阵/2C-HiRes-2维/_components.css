@@ -1162,18 +1162,19 @@
 }
 
 .journey-stage-header {
-  background: var(--color-toc-primary, var(--color-accent));
+  background: var(--color-toc-surface, var(--color-bg-card-soft));
   font-weight: var(--font-semibold);
-  color: var(--color-text-inverse);
+  color: var(--color-text-primary);
   text-align: center;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  border-bottom: 2px solid var(--color-toc-primary, var(--color-accent));
 }
 
 [data-theme="2c"] .persona-slide .journey-stage-header {
-  color: var(--color-text-inverse) !important;
-  background: var(--color-toc-primary, var(--color-accent)) !important;
+  color: var(--color-text-primary) !important;
+  background: var(--color-toc-surface, var(--color-bg-card-soft)) !important;
 }
 
 /* 阶段编号(① ② ③ ④ ⑤),与阶段名同行 */
@@ -1184,7 +1185,7 @@
   font-family: var(--font-family-display);
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-text-inverse);
+  color: var(--color-toc-primary, var(--color-accent));
   line-height: 1;
   margin-right: 4px;
 }
@@ -1235,13 +1236,13 @@
 
 /* ---- 痛点行高频共识高亮("💡 机会点"色块) ---- */
 .journey-pain-highlight {
-  background: color-mix(in srgb, var(--color-toc-primary, var(--color-accent)) 10%, var(--color-bg-card));
-  border-left: 3px solid var(--color-toc-primary, var(--color-accent));
+  background: color-mix(in srgb, var(--color-toc-alert, var(--color-accent)) 12%, var(--color-bg-card));
+  border-left: 3px solid var(--color-toc-alert, var(--color-accent));
   padding-left: calc(var(--space-4) - 3px);
 }
 
 .journey-pain-highlight .journey-cell-keyword {
-  background: var(--color-toc-primary, var(--color-accent));
+  background: var(--color-toc-alert, var(--color-accent));
   color: var(--color-text-inverse);
 }
 
@@ -1251,7 +1252,7 @@
   gap: 3px;
   font-size: max(12px, var(--text-xs));
   font-weight: var(--font-semibold);
-  color: var(--color-toc-primary, var(--color-accent));
+  color: var(--color-toc-alert, var(--color-accent));
   margin-top: 2px;
 }
 
@@ -1286,8 +1287,8 @@
   grid-column: 2 / -1;
   background: var(--color-bg-card);
   position: relative;
-  min-height: 150px;
-  padding: 32px var(--space-4) 32px;
+  min-height: 176px;
+  padding: 40px var(--space-4);
 }
 
 .journey-emotion-svg {
@@ -1316,8 +1317,8 @@
 /* ---- 节点 overlay:与 SVG 内容区对齐(同 padding inset),允许 point 直接用 cx/cy 百分比 ---- */
 .journey-emotion-points-overlay {
   position: absolute;
-  top: 32px;
-  bottom: 32px;
+  top: 40px;
+  bottom: 40px;
   left: var(--space-4);
   right: var(--space-4);
   pointer-events: none;
@@ -1362,11 +1363,17 @@
 }
 
 .emotion-label.above {
-  bottom: 8px;
+  bottom: 14px;
 }
 
 .emotion-label.below {
-  top: 8px;
+  top: 14px;
+}
+
+.journey-emotion-dimension-label {
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 
 .emotion-label .emoji {
@@ -1649,7 +1656,7 @@
 }
 
 .distribution-legend-count {
-  font-size: var(--text-xs);
+  font-size: max(12px, var(--text-xs));
   color: var(--color-text-tertiary);
   background: var(--color-toc-bg, var(--color-bg-card-soft));
   padding: 1px var(--space-2);
@@ -1743,7 +1750,7 @@
 
 /* ---- 底部:数据来源/聚类说明 ---- */
 .distribution-footer {
-  font-size: var(--text-sm);
+  font-size: max(12px, var(--text-sm));
   color: var(--color-text-tertiary);
   line-height: var(--leading-relaxed);
   padding-top: var(--space-3);
@@ -1755,7 +1762,7 @@
 }
 
 .distribution-footer-hint {
-  font-size: var(--text-xs);
+  font-size: max(12px, var(--text-xs));
   color: var(--color-text-tertiary);
   white-space: nowrap;
 }
@@ -2606,28 +2613,59 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 }
 
 .persona-slide.layout-2b-grid-detail.active {
-  display: block;  /* 不走 30/70 分栏。关键:必须含 .active,否则会覆盖 _base.html 的 :not(.active){display:none} 导致双页时第二页永远显示 */
-  padding: calc(var(--space-2) * 2 + 22px);  /* 上下左右 4 边都 = module-title 按钮高度(约 32/34/38 px,跟随密度) */
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: var(--space-6) var(--space-7);
 }
 .persona-slide.layout-2b-grid-detail .modules-panel {
   display: grid;
   grid-template-columns: repeat(var(--grid-cols), 1fr);
-  grid-template-rows: auto;
-  column-gap: var(--space-6);  /* 组件间横向 12px(high):缩短 */
-  row-gap: var(--space-9);     /* 组件间纵向 20px(high):增加 */
-  align-content: start;
+  grid-auto-rows: auto;
+  column-gap: var(--space-6);
+  row-gap: var(--space-6);
+  align-content: center;
   overflow: hidden;
-  padding: 0 var(--space-9);   /* 与主画像 .modules-panel 水平内边距同口径 */
+  padding: var(--space-2) 0;
 }
 
 .persona-slide.layout-2b-grid-detail .detail-page-banner {
-  padding: 0 var(--space-9);
+  padding: 0;
+  margin-bottom: var(--space-6);
 }
 
 /* detail 页: 左半栏贴左缘、右半栏贴右缘（与 banner 同宽） */
 .persona-slide.layout-2b-grid-detail .modules-panel > .grid-module {
   width: 100%;
   max-width: 100%;
+  align-self: stretch;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  overflow: visible;
+  background: #fbfcfe;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 10px rgba(34, 62, 94, 0.04);
+}
+
+.persona-slide.layout-2b-grid-detail .module-body {
+  flex: 0 1 auto;
+  overflow: visible;
+}
+
+.persona-slide.layout-2b-grid-detail .module-title {
+  gap: var(--space-2);
+  padding: 0;
+  background: transparent;
+  color: var(--color-toc-primary, var(--color-accent));
+  border-radius: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+}
+
+.persona-slide.layout-2b-grid-detail .module-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--color-toc-primary, var(--color-accent));
 }
 
 .persona-slide.layout-2b-grid-detail .grid-module.grid-anchor-start,
@@ -2644,6 +2682,33 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 
 .persona-slide.layout-2b-grid-detail .grid-module.grid-anchor-full {
   justify-self: stretch;
+}
+
+.persona-slide.layout-2b-grid-detail .generic-list-item {
+  position: relative;
+  padding: var(--space-2) 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.persona-slide.layout-2b-grid-detail .generic-list-item:not(:last-child)::after {
+  content: none;
+}
+
+.persona-slide.layout-2b-grid-detail .painpoints-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.persona-slide.layout-2b-grid-detail .painpoint-item {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-card);
+  border-left: 3px solid var(--color-toc-primary, var(--color-accent));
+}
+
+.persona-slide.layout-2b-grid-detail .grid-anchor-full .painpoints-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .section-blocks-grid {
@@ -2745,6 +2810,25 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
   background:#FFFFFF !important;
 }
 
+.persona-slide.layout-2b-journey.is-l1 .l1-stage-board {
+  margin:0 !important;
+  border-radius:0 !important;
+}
+
+.persona-slide.layout-2b-journey.is-l1 .l1-row {
+  grid-template-columns:var(--l1-grid-columns) !important;
+}
+
+.persona-slide.layout-2b-journey.is-l1 {
+  aspect-ratio:auto;
+  min-height:720px;
+  overflow:visible;
+}
+
+.persona-slide.layout-2b-journey.is-l1 .l1-uml-wrap {
+  padding:0 !important;
+}
+
 .persona-slide.layout-2b-journey.is-l1 .l1-rail-cell,
 .persona-slide.layout-2b-journey.is-l1 .l1-row.stage-row .l1-rail-cell.head,
 .persona-slide.layout-2b-journey.is-l1 .l1-row.substage-row .l1-rail-cell.head {
@@ -2753,6 +2837,7 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 }
 
 .persona-slide.layout-2b-journey.is-l1 .l1-row.stage-row {
+  background:#96BEFA !important;
   border-bottom:1px solid #DCDCDC;
 }
 
@@ -2767,7 +2852,9 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 }
 
 .persona-slide.layout-2b-journey.is-l1 .l1-row.substage-row {
-  border-top:0;
+  background:#DCF0FA !important;
+  padding:0 !important;
+  border-top:0 !important;
   border-bottom:1px solid #DCDCDC;
 }
 
@@ -2938,7 +3025,8 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 
 .tob-l2-uml-cell .l1-uml-svg {
   border-radius: 4px;
-  max-height: 158px;
+  max-height: none;
+  height: 100%;
 }
 
 .tob-l2-uml-cell .l1-role-text {
@@ -2970,11 +3058,12 @@ body:not(.has-tooltip-js) [data-evidence]:not([data-evidence=""]):hover::after {
 }
 
 .tob-l2-uml-cell .l1-uml-wrap {
-  padding: 10px 12px 10px;
+  padding: 10px 0;
 }
 
 .tob-l2-uml-cell .l1-uml-svg {
-  max-height: 170px;
+  max-height: none;
+  height: 100%;
 }
 
 .tob-l2-uml-cell .l1-role-bg,

@@ -33,8 +33,8 @@
           "title": {
             "type": "string",
             "minLength": 2,
-            "maxLength": 6,
-            "description": "条目标题"
+            "maxLength": 16,
+            "description": "条目标题；优先保证动作与对象语义完整，尽量一行呈现，禁止字符截断或用省略号代替"
           },
           "detail": {
             "type": "string",

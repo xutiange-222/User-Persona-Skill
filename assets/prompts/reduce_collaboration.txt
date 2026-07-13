@@ -21,7 +21,7 @@ collaboration 是 dict 结构,包含 4 个子字段:
 1. **同义合并**:不同受访者用不同措辞描述同一来源/交付物/流向/指标,合并成一条
 2. **保留典型差异**:不同岗位职责差异大(省调 vs 地调 vs 电站)时,并列体现
 3. **统计提及**:每个子字段单独标明哪些受访者提过(用 source 字段值)
-4. **缺失处理**:如果某子字段所有受访者都没提,值填字符串「文档未提及」,mention_count = 0,mentioned_by 和 evidence_quotes 均为空数组
+4. **缺失处理**:如果某子字段所有受访者都没提,值填字符串「材料未提及」,mention_count = 0,mentioned_by 和 evidence_quotes 均为空数组
 
 ## 输出格式
 
@@ -31,44 +31,35 @@ collaboration 是 dict 结构,包含 4 个子字段:
 {
   "demand_source": {
     "value": "合并后的需求来源描述(≤ 30 字)",
-    "mention_count": 5,
-    "mentioned_by": ["孔老师", "刘老师", "冯老师", "邓老师", "碳中和老师"],
+    "mention_count": 2,
+    "mentioned_by": ["P11111111", "P22222222"],
     "evidence_quotes": [
-      "[来源:访谈_孔老师.txt]: \"孔老师原话\"",
-      "[来源:访谈_刘老师.txt]: \"刘老师原话\"",
-      "[来源:访谈_冯老师.txt]: \"冯老师原话\"",
-      "[来源:访谈_邓老师.txt]: \"邓老师原话\"",
-      "[来源:访谈_碳中和老师.txt]: \"碳中和老师原话\""
+      "[来源:P11111111]: \"逐字原话\"",
+      "[来源:P22222222]: \"逐字原话\""
     ]
   },
   "deliverables": {
     "value": "合并后的交付物描述(≤ 30 字)",
-    "mention_count": 4,
-    "mentioned_by": ["孔老师", "刘老师", "邓老师", "碳中和老师"],
+    "mention_count": 1,
+    "mentioned_by": ["P11111111"],
     "evidence_quotes": [
-      "[来源:访谈_孔老师.txt]: \"...\"",
-      "[来源:访谈_刘老师.txt]: \"...\"",
-      "[来源:访谈_邓老师.txt]: \"...\"",
-      "[来源:访谈_碳中和老师.txt]: \"...\""
+      "[来源:P11111111]: \"逐字原话\""
     ]
   },
   "downstream_flow": {
     "value": "合并后的流转去向(≤ 40 字)",
-    "mention_count": 3,
-    "mentioned_by": ["孔老师", "刘老师", "邓老师"],
+    "mention_count": 1,
+    "mentioned_by": ["P22222222"],
     "evidence_quotes": [
-      "[来源:访谈_孔老师.txt]: \"...\"",
-      "[来源:访谈_刘老师.txt]: \"...\"",
-      "[来源:访谈_邓老师.txt]: \"...\""
+      "[来源:P22222222]: \"逐字原话\""
     ]
   },
   "kpi": {
     "value": "交付物的 KPI 指标(≤ 40 字)",
-    "mention_count": 2,
-    "mentioned_by": ["孔老师", "刘老师"],
+    "mention_count": 1,
+    "mentioned_by": ["P11111111"],
     "evidence_quotes": [
-      "[来源:访谈_孔老师.txt]: \"...\"",
-      "[来源:访谈_刘老师.txt]: \"...\""
+      "[来源:P11111111]: \"逐字原话\""
     ]
   }
 }
@@ -76,7 +67,7 @@ collaboration 是 dict 结构,包含 4 个子字段:
 
 ## 关键约束
 
-- **4 个子字段都要输出**,即使没人提及也要保留 key,值用「文档未提及」+ mention_count = 0
+- **4 个子字段都要输出**,即使没人提及也要保留 key,值用「材料未提及」+ mention_count = 0
 - 每个子字段:mention_count = mentioned_by 数组长度 = evidence_quotes 数组长度,**三者必须严格相等**
 - mentioned_by 用受访者的 source 标识(就是输入里 source 字段的值)
 - **evidence_quotes 必须全量**:mentioned_by 里的每一位都要给出对应的最贴切原话。**全量是硬规则,不允许只挑代表性的几条**
@@ -86,7 +77,7 @@ collaboration 是 dict 结构,包含 4 个子字段:
 
 **错误 1:同义合并边界没把握**
 
-输入:孔老师说"业务方提需求",刘老师说"产品经理给排期",邓老师说"用户来的故障单"
+输入:受访者B说"业务方提需求",受访者C说"产品经理给排期",受访者A说"用户来的故障单"
 
 错误判断:三条都是"上游需求来源",硬合并成一条
 
@@ -98,4 +89,4 @@ collaboration 是 dict 结构,包含 4 个子字段:
 
 错误输出:JSON 里没有 kpi 这个 key(子字段静默缺失)
 
-正确输出:`kpi: {value: "...", mention_count: 2, mentioned_by: [...], evidence_quotes: [...]}`。若 0 人提及,则 `kpi: {value: "文档未提及", mention_count: 0, mentioned_by: [], evidence_quotes: []}`
+正确输出:`kpi: {value: "...", mention_count: 2, mentioned_by: [...], evidence_quotes: [...]}`。若 0 人提及,则 `kpi: {value: "材料未提及", mention_count: 0, mentioned_by: [], evidence_quotes: []}`

@@ -1,10 +1,18 @@
 {
+  "checkpoint": "03-field-alignment",
+  "status": "confirmed",
+  "context_snapshot": {"research_question": "", "decision_use": "", "research_type": "", "paradigm": ""},
   "version": "v9",
+  "research_type": "",
+  "persona_count": 0,
   "field_pool_presented": true,
   "fields_display_names": {},
   "fields_per_persona": {},
   "custom_fields": [],
   "user_confirmed": true,
+  "confirmation_user_message": "",
+  "confirmed_value_sections": ["fields", "modules", "journey", "visual_assets", "visual_spec"],
+  "alignment_md_sha256": "",
   "confirmation_message_summary": "",
   "add_on_pages": {
     "journey": false,
@@ -18,6 +26,7 @@
   "visual_spec": {
     "template_id": "",
     "palette_id": "",
-    "palette_reason": ""
+    "palette_reason": "",
+    "persona_palette_map": {}
   }
 }

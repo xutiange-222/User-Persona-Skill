@@ -41,6 +41,8 @@ def _make_props(n_lanes: int, n_stages: int, subs_per_stage: int, n_nodes: int) 
         for k, ntype in ((1, "decision"), (2, "decision"), (3, "doc")):
             if k < len(nodes):
                 nodes[k]["type"] = ntype
+                if ntype == "decision":
+                    nodes[k]["label"] = f"是否通过{k}?"
     edges = [{"from": nodes[i]["id"], "to": nodes[i + 1]["id"]} for i in range(len(nodes) - 1)]
     if edges:
         edges[0]["style"] = "dashed"

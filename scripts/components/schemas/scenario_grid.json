@@ -26,7 +26,7 @@
           "title": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 10,
+            "maxLength": 24,
             "description": "场景标题,使用动词+名词的完整语义词组,核心场景 3-10 字;极限情况按具体业务微调"
           },
           "description": {
@@ -43,7 +43,7 @@
             "items": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 12,
+              "maxLength": 32,
               "description": "工具或系统名"
             }
           },

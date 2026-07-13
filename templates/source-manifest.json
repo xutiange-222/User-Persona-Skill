@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "status": "reviewed",
+  "sources": [
+    {
+      "source_id": "P00000000",
+      "processed_files": ["角色组/访谈A.txt"],
+      "content_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "evidence_tier": "primary",
+      "assigned_personas": ["persona-1"],
+      "inclusion_reason": "该受访者属于画像的核心研究对象",
+      "supplemented_fields": []
+    }
+  ],
+  "reference_files": [],
+  "counts": {
+    "unique_primary_interviews": 1,
+    "unique_supplemental_sources": 0,
+    "analysis_assignment_count": 1
+  }
+}

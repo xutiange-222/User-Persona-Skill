@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "04-personas",
+  "type": "object",
+  "required": ["checkpoint", "status", "context_snapshot", "user_confirmed", "confirmation_message_summary", "confirmation_user_message", "confirmed_value_sections", "alignment_md_sha256", "persona_count", "personas", "merge_rules", "evidence_map", "risks"],
+  "additionalProperties": false,
+  "properties": {
+    "checkpoint": {"const": "04-personas"},
+    "status": {"enum": ["confirmed", "validated"]},
+    "context_snapshot": {
+      "type": "object", "required": ["research_question", "decision_use", "research_type", "paradigm"], "additionalProperties": false,
+      "properties": {
+        "research_question": {"type": "string", "minLength": 8, "maxLength": 500},
+        "decision_use": {"type": "string", "minLength": 8, "maxLength": 500},
+        "research_type": {"enum": ["toB", "toC", "toD"]},
+        "paradigm": {"enum": ["R1", "R2", "R3", "R4", "R5"]}
+      }
+    },
+    "user_confirmed": {"const": true},
+    "confirmation_message_summary": {"type": "string", "minLength": 10, "maxLength": 500},
+    "confirmation_user_message": {"type": "string", "minLength": 2, "maxLength": 500},
+    "confirmed_value_sections": {"type": "array", "minItems": 5, "uniqueItems": true, "items": {"enum": ["names", "persona_values", "evidence", "risks", "information_loss"]}},
+    "alignment_md_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "persona_count": {"type": "integer", "minimum": 1, "maximum": 12},
+    "personas": {
+      "type": "array", "minItems": 1, "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "user_count", "members", "fields", "field_decisions", "display_components"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^persona-[0-9]+$"},
+          "name": {"type": "string", "minLength": 2, "maxLength": 40},
+          "description": {"type": "string", "minLength": 8, "maxLength": 500},
+          "user_count": {"type": "integer", "minimum": 1},
+          "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^P[0-9A-F]{8}$"}},
+          "fields": {"type": "object", "minProperties": 1},
+          "field_decisions": {
+            "type": "array", "minItems": 1,
+            "description": "逐字段记录研究真值如何进入用户可见正文。condensed 或 omitted 必须说明信息损失，并在 04 获得用户确认。",
+            "items": {
+              "type": "object", "required": ["field", "presentation", "reason", "information_loss"], "additionalProperties": false,
+              "properties": {
+                "field": {"type": "string", "minLength": 1, "maxLength": 80},
+                "presentation": {"enum": ["full", "condensed", "omitted"]},
+                "reason": {"type": "string", "maxLength": 200},
+                "information_loss": {"type": "string", "maxLength": 300}
+              },
+              "allOf": [
+                {"if": {"properties": {"presentation": {"enum": ["condensed", "omitted"]}}}, "then": {"properties": {"reason": {"minLength": 4}, "information_loss": {"minLength": 4}}}}
+              ]
+            }
+          },
+          "display_components": {
+            "type": "array", "minItems": 1, "maxItems": 12,
+            "items": {
+              "type": "object", "required": ["type", "props", "source_fields"], "additionalProperties": false,
+              "properties": {
+                "type": {"type": "string", "minLength": 2},
+                "props": {"type": "object"},
+                "source_fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 80}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "merge_rules": {"type": "array", "items": {"type": "string", "minLength": 2, "maxLength": 500}},
+    "evidence_map": {"type": "object", "minProperties": 1},
+    "risks": {"type": "array", "items": {"type": "string", "minLength": 2, "maxLength": 500}}
+  }
+}

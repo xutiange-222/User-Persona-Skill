@@ -5,6 +5,16 @@
   "research_question": "",
   "decision_use": "",
   "research_type": "",
+  "source_count": 0,
   "constraints": [],
+  "workspace_notice": {
+    "run_dir": "",
+    "process_dir": "",
+    "user_notified": false
+  },
+  "user_confirmed": true,
+  "confirmation_user_message": "",
+  "confirmed_value_sections": ["goals", "scope", "constraints", "workspace"],
+  "alignment_md_sha256": "",
   "confirmation_message_summary": ""
 }

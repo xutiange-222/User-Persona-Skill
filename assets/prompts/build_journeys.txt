@@ -1,0 +1,24 @@
+你正在把已确认的用户画像和访谈证据整理为用户旅程。先输出 04-journeys.draft.json，再调用官方脚本生成 04-journeys.md，并在用户确认前停止。禁止自行拼接 Markdown。
+
+## 事实边界
+
+1. 先读取 `source-manifest.json`。`primary` 是核心访谈，`supplemental` 只能补充指定字段，不能单独定义画像或核心旅程节点。
+2. 节点、触点、工具、痛点、交接和情绪必须来自材料。材料没有提到时写入 `quality_review.evidence_gaps`，禁止补齐常识流程。
+3. 阶段名、子阶段和顺序可做研究综合，`evidence_type` 写 `synthesis`，`quote_or_basis` 解释如何从已证实节点归纳。阶段名使用完整活动短语，例如“接收算子需求”“完成精度验收”，避免“算子”“客户”这类孤立名词。
+4. 技术术语按 `terminology-glossary.json` 使用。术语未收录且无法从原文确认时保留原词，并加入证据缺口，禁止猜测或自动纠错。
+
+## 证据绑定
+
+每个旅程对象都写 `evidence_bindings`：
+
+- L1/L2：覆盖 `stage:<stage id>`、`node:<node id>`、`edge:<from>><to>`，以及存在时的 `focus:<数组下标>`、`tool:<阶段下标>:<标签下标>`。
+- 2C：覆盖 `stage:<下标>`、`cell:<行下标>:<列下标>`、`emotion:<下标>`。
+- `primary` / `supplemental` 必须填写 source-manifest 中的 `source_ids` 和逐字原话。
+- `synthesis` / `user_context` 的 `source_ids` 必须为空，`quote_or_basis` 写清综合依据或用户输入。
+- 行为节点、2C 单元格和痛点卡至少有一条 `primary` 证据。只有补充材料时把内容列为证据缺口，等待用户决定。
+
+## 与用户对齐
+
+03 中“是否需要 L1 综合旅程、是否需要 L2 单角色旅程”的回答只确认生成范围，永远不能写入 04 的 `confirmation_user_message`，也不能据此设置 `user_confirmed: true`。
+
+04-journeys.md 通过 `workflow.py prepare-04 --stem 04-journeys` 生成。2B/2D 先展示旅程总览地图，并为每条局部旅程显示“你现在在这里”。MD 出现“分轮确认进度”时，严格按当前轮运行 `workflow.py journey-review`，一次只讨论全局地图、角色责任、单角色旅程、分支与证据中的一项。脚本返回下一轮，禁止提前请求总确认。2C 按“维度 × 阶段”展示全部单元格。人类正文使用中文名称，阶段 ID、泳道 ID、节点 ID、组件类型和英文枚举只保留在草稿 JSON。分轮全部完成或一次确认模式核对完成后，用户明确回复“确认旅程内容”，再运行 `workflow.py seal`。用户表达不确认、看不懂、看得头晕或要求直接继续时，保持待确认并缩小当前轮范围。

@@ -52,3 +52,25 @@ def test_effective_avatar_by_persona_name(monkeypatch):
     with tempfile.TemporaryDirectory() as tmp:
         monkeypatch.setenv("PROJECT_DIR", tmp)
         assert effective_avatar_filename(None, persona) == f"{persona}.png"
+
+
+def test_toc_unknown_names_receive_stable_default_assignments(tmp_path, monkeypatch):
+    from scripts.avatar_assets import preview_default_avatar_assignments
+
+    monkeypatch.setenv("PROJECT_DIR", str(tmp_path))
+    (tmp_path / "03-field-alignment.json").write_text(
+        '{"visual_assets":{"avatar_use_default":true}}', encoding="utf-8"
+    )
+    report = {
+        "metadata": {"theme": "2c"},
+        "personas": [
+            {"id": "persona-1", "name": "认价内行派"},
+            {"id": "persona-2", "name": "认价朦胧派"},
+            {"id": "persona-3", "name": "价敏模糊派"},
+        ],
+    }
+    mapping = preview_default_avatar_assignments(report, tmp_path)
+    assert len(mapping) == 3
+    assert len(set(mapping.values())) == 3
+    assert mapping["认价内行派"] == "内行场景派.png"
+    assert mapping["认价朦胧派"] == "认价检索派.png"

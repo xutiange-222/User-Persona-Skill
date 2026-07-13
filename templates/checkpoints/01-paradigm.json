@@ -1,10 +1,17 @@
 {
   "checkpoint": "01-paradigm",
   "status": "confirmed",
+  "context_snapshot": {"research_question": "", "decision_use": "", "research_type": ""},
   "paradigm": "",
   "research_type": "",
   "reason": "",
   "alternatives_considered": [],
   "known_groups": [],
+  "user_confirmed": true,
+  "confirmation_user_message": "",
+  "confirmed_value_sections": ["paradigm", "reason", "alternatives", "groups"],
+  "alignment_md_sha256": "",
+  "choice_label": "",
+  "choice_reason": "",
   "confirmation_message_summary": ""
 }

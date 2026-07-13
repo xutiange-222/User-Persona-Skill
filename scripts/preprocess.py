@@ -1,7 +1,7 @@
 """
 preprocess.py — 访谈文件格式归一化
 
-把用户上传的 docx/txt/xlsx 转成统一的 .txt 文件,放到工作目录的 processed/ 下。
+把用户上传的 docx/txt/xlsx/json 转成统一的 .txt 文件,放到工作目录的 processed/ 下。
 
 用法:
     python preprocess.py \\
@@ -19,6 +19,7 @@ groups 参数格式:
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -39,6 +40,39 @@ def sanitize_filename(name: str) -> str:
     # 替换空格、斜杠、反斜杠、冒号
     stem = re.sub(r"[\s/\\:*?\"<>|]+", "_", stem)
     return f"{stem}.txt"
+
+
+def sanitize_group_name(name: str) -> str:
+    """Keep a model-provided group label inside processed/."""
+    cleaned = re.sub(r'[\\/:*?"<>|]+', "_", str(name or "").strip())
+    cleaned = re.sub(r"\s+", "_", cleaned).strip("._")
+    return cleaned[:64] or "default"
+
+
+def choose_output_path(group_dir: Path, source: Path, reserved: set[Path]) -> Path:
+    """Return a stable, collision-free destination for one source file."""
+    candidate = group_dir / sanitize_filename(source.name)
+    key = candidate.resolve()
+    if key not in reserved:
+        reserved.add(key)
+        return candidate
+    digest = hashlib.sha256(str(source.resolve()).encode("utf-8")).hexdigest()[:8]
+    candidate = group_dir / f"{candidate.stem}-{digest}.txt"
+    key = candidate.resolve()
+    if key in reserved:
+        raise ValueError(f"输入清单重复包含同一文件: {source}")
+    reserved.add(key)
+    return candidate
+
+
+def is_generated_artifact(path: Path, process_dir: Path) -> bool:
+    """Return True for skill outputs that must never re-enter as research input."""
+    resolved = Path(path).resolve()
+    process = Path(process_dir).resolve()
+    if resolved.is_relative_to(process):
+        return True
+    blocked_parts = {"用户画像报告输出", "过程稿", "__pycache__", ".git"}
+    return any(part in blocked_parts or part.startswith("最终交付件-") for part in resolved.parts)
 
 
 def extract_docx(file_path: Path) -> str:
@@ -139,7 +173,7 @@ def process_file(file_path: Path, output_path: Path) -> bool:
     try:
         if suffix == ".docx":
             content = extract_docx(file_path)
-        elif suffix in (".xlsx", ".xls"):
+        elif suffix == ".xlsx":
             content = extract_xlsx(file_path)
         elif suffix == ".txt":
             content = extract_txt(file_path)
@@ -182,8 +216,11 @@ def main():
         # 默认:所有文件归到 default 组
         input_dir = Path(args.input_dir)
         files = []
-        for ext in (".docx", ".txt", ".xlsx", ".xls", ".json"):
-            files.extend(input_dir.glob(f"**/*{ext}"))
+        for ext in (".docx", ".txt", ".xlsx", ".json"):
+            files.extend(
+                path for path in input_dir.glob(f"**/*{ext}")
+                if not is_generated_artifact(path, workdir)
+            )
         groups = [{"name": "default", "files": [str(f) for f in files]}]
     else:
         logger.error("必须提供 --input-dir 或 --groups")
@@ -192,9 +229,10 @@ def main():
     error_log = []
     success_count = 0
     total_count = 0
+    reserved_outputs: set[Path] = set()
 
     for group in groups:
-        group_name = group["name"]
+        group_name = sanitize_group_name(group.get("name", "default"))
         group_dir = processed_root / group_name
         group_dir.mkdir(parents=True, exist_ok=True)
 
@@ -206,7 +244,17 @@ def main():
                 error_log.append(f"{file_path}: 不存在")
                 continue
 
-            output_path = group_dir / sanitize_filename(file_path.name)
+            try:
+                output_path = choose_output_path(group_dir, file_path, reserved_outputs)
+            except ValueError as exc:
+                logger.error(str(exc))
+                error_log.append(str(exc))
+                continue
+
+            if is_generated_artifact(file_path, workdir):
+                logger.error(f"拒绝把 skill 生成物重新当作输入: {file_path}")
+                error_log.append(f"{file_path}: 属于过程稿或交付目录")
+                continue
             if process_file(file_path, output_path):
                 success_count += 1
             else:

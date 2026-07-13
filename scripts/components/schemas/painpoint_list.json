@@ -26,7 +26,7 @@
           "title": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 12,
+            "maxLength": 16,
             "description": "痛点标题"
           },
           "detail": {

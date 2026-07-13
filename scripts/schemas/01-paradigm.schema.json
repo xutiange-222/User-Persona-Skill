@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "01-paradigm",
+  "type": "object",
+  "required": ["checkpoint", "status", "context_snapshot", "paradigm", "research_type", "reason", "alternatives_considered", "known_groups", "user_confirmed", "confirmation_user_message", "confirmed_value_sections", "alignment_md_sha256", "confirmation_message_summary"],
+  "additionalProperties": false,
+  "properties": {
+    "checkpoint": {"const": "01-paradigm"},
+    "context_snapshot": {"type": "object", "required": ["research_question", "decision_use", "research_type"], "additionalProperties": false, "properties": {
+      "research_question": {"type": "string", "minLength": 8, "maxLength": 500},
+      "decision_use": {"type": "string", "minLength": 8, "maxLength": 500},
+      "research_type": {"enum": ["toB", "toC", "toD"]}
+    }},
+    "status": {"enum": ["confirmed", "validated"]},
+    "paradigm": {"enum": ["R1", "R2", "R3", "R4", "R5"]},
+    "research_type": {"enum": ["toB", "toC", "toD"]},
+    "reason": {"type": "string", "minLength": 8, "maxLength": 500},
+    "alternatives_considered": {"type": "array", "items": {"type": "string", "minLength": 2, "maxLength": 200}},
+    "known_groups": {"type": "array", "items": {"oneOf": [
+      {"type": "string", "minLength": 1, "maxLength": 100},
+      {"type": "object", "required": ["id", "name", "members"], "additionalProperties": false, "properties": {
+        "id": {"type": "string", "pattern": "^persona-[0-9]+$"},
+        "name": {"type": "string", "minLength": 2, "maxLength": 40},
+        "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^P[0-9A-F]{8}$"}},
+        "basis": {"type": "string", "minLength": 4, "maxLength": 300}
+      }}
+    ]}},
+    "user_confirmed": {"const": true},
+    "confirmation_user_message": {"type": "string", "minLength": 2, "maxLength": 500},
+    "confirmed_value_sections": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"enum": ["paradigm", "reason", "alternatives", "groups", "toc_choice"]}},
+    "alignment_md_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "choice_label": {"enum": ["", "A", "B", "C", "D", "E"]},
+    "choice_reason": {"type": "string", "maxLength": 500},
+    "confirmation_message_summary": {"type": "string", "minLength": 10, "maxLength": 500}
+  },
+  "allOf": [
+    {"if": {"properties": {"research_type": {"const": "toC"}}}, "then": {"required": ["choice_label", "choice_reason"], "properties": {"choice_label": {"enum": ["A", "B", "C", "D", "E"]}, "choice_reason": {"minLength": 8}}}},
+    {"if": {"properties": {"paradigm": {"enum": ["R1", "R2"]}}}, "then": {"properties": {"known_groups": {
+      "minItems": 1,
+      "items": {"type": "object", "required": ["id", "name", "members"], "additionalProperties": false, "properties": {
+        "id": {"type": "string", "pattern": "^persona-[0-9]+$"},
+        "name": {"type": "string", "minLength": 2, "maxLength": 40},
+        "members": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^P[0-9A-F]{8}$"}},
+        "basis": {"type": "string", "minLength": 4, "maxLength": 300}
+      }}
+    }}}},
+    {"if": {"properties": {"paradigm": {"const": "R2"}}}, "then": {"properties": {"known_groups": {"minItems": 1, "maxItems": 1}}}}
+  ]
+}

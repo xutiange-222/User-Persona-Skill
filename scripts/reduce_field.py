@@ -34,11 +34,12 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 DEFAULT_BASE_URL = "https://api.anthropic.com"
 DEFAULT_MODEL = "claude-opus-4-5"
 PROMPTS_DIR = Path(__file__).parent.parent / "assets" / "prompts"
+SHARED_CONTRACT_PATH = PROMPTS_DIR / "_shared-language-contract.txt"
 
 _PRIVACY_P0_BLOCK = """
 ## P0 脱敏(最强约束,与 SKILL.md 约束 8 同级)
 - 聚合后的 title/detail/正文描述中**禁止出现访谈真名**(如刘宇、刘军、完整文件名)。
-- mentioned_by 与 evidence 的 source 只用脱敏名: 姓氏+*、身份(张医生)、U1。
+- mentioned_by 与 evidence 的 source 只用抽取产物中的稳定匿名 _source_id，例如 P12AB34CD。
 - 禁止在一条描述里用真名对比多人;用「部分受访者」「该类型用户」或脱敏指代。
 """
 
@@ -113,17 +114,42 @@ def extract_json(text: str) -> dict:
 def load_extractions(input_paths: list) -> list:
     """加载多份抽取结果"""
     extractions = []
-    for p in input_paths:
+    normalized = sorted({str(Path(p).resolve()) for p in input_paths}, key=str.casefold)
+    if len(normalized) != len(input_paths):
+        raise ValueError("--inputs 含重复路径，可能导致同一受访者被重复计数")
+    process_dirs = []
+    for value in normalized:
+        path = Path(value)
+        if "extracted" in path.parts:
+            process_dirs.append(path.parents[len(path.parts) - path.parts.index("extracted") - 1])
+    process_dir = process_dirs[0] if process_dirs and len({str(p) for p in process_dirs}) == 1 else None
+    tier_by_source: dict[str, dict] = {}
+    manifest_path = process_dir / "source-manifest.json" if process_dir else None
+    if manifest_path and manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        tier_by_source = {str(item.get("source_id")): item for item in manifest.get("sources") or [] if isinstance(item, dict)}
+    seen_source_ids: set[str] = set()
+    for p in normalized:
         path = Path(p)
         if not path.exists():
-            logger.warning(f"文件不存在: {p}")
-            continue
+            raise FileNotFoundError(f"抽取文件不存在: {p}")
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
+        if not isinstance(data, dict) or not data:
+            raise ValueError(f"抽取文件必须是非空 JSON object: {path}")
+        source_id = str(data.get("_source_id") or "").strip()
+        if not re.fullmatch(r"P[0-9A-F]{8}", source_id):
+            raise ValueError(f"抽取文件缺少稳定匿名 _source_id: {path}")
+        if source_id in seen_source_ids:
+            raise ValueError(f"多个抽取文件使用同一内容来源 {source_id}，禁止重复计数")
+        seen_source_ids.add(source_id)
+        source_rule = tier_by_source.get(source_id, {})
         extractions.append({
-            "source": path.stem,
+            "source": source_id,
             "source_file": data.get("_source_file", path.stem),
             "data": data,
+            "evidence_tier": source_rule.get("evidence_tier", "primary"),
+            "supplemented_fields": source_rule.get("supplemented_fields", []),
         })
     return extractions
 
@@ -134,35 +160,44 @@ def reduce_field(field_name: str, extractions: list) -> dict:
     返回: {"value": ..., "mention_count": N, "total": M, "mentioned_by": [...]}
           或对于列表字段: {"items": [{value, mention_count, mentioned_by}, ...]}
     """
-    prompt_filename = FIELD_REDUCER_PROMPT.get(field_name)
-    if not prompt_filename:
-        raise ValueError(f"未为字段 '{field_name}' 配置 reducer prompt")
+    prompt_filename = FIELD_REDUCER_PROMPT.get(field_name, "reduce_generic.txt")
 
     prompt_template_path = PROMPTS_DIR / prompt_filename
     if not prompt_template_path.exists():
         raise FileNotFoundError(f"reducer prompt 不存在: {prompt_template_path}")
 
-    prompt_template = prompt_template_path.read_text(encoding="utf-8")
+    if not SHARED_CONTRACT_PATH.exists():
+        raise FileNotFoundError(f"共享语言契约不存在: {SHARED_CONTRACT_PATH}")
+    prompt_template = (
+        SHARED_CONTRACT_PATH.read_text(encoding="utf-8").strip()
+        + "\n\n"
+        + prompt_template_path.read_text(encoding="utf-8").strip()
+    )
 
-    # 收集所有抽取里这个字段的内容
+    # 从同一过程目录读取证据层级。补充材料只进入明确授权的字段，且不计主访谈频次。
     items = []
     for e in extractions:
         v = e["data"].get(field_name)
         if v is None:
             continue
+        tier = e.get("evidence_tier", "primary")
+        if tier == "supplemental" and field_name not in set(e.get("supplemented_fields") or []):
+            continue
         items.append({
             "source": e["source"],
+            "evidence_tier": tier,
             "value": v,
         })
 
     if not items:
         return None
 
-    total = len(extractions)
+    total = sum(1 for e in extractions if e.get("evidence_tier", "primary") == "primary")
     inputs_json = json.dumps(items, ensure_ascii=False, indent=2)
 
     full_prompt = (
         _PRIVACY_P0_BLOCK
+        + "\n## 证据层级计数\nmention_count、mentioned_by 和分母只计算 primary。supplemental 可补充已授权字段的细节，不能增加频次，也不能单独形成核心结论。\n\n"
         + prompt_template
         .replace("{{FIELD_NAME}}", field_name)
         .replace("{{TOTAL}}", str(total))
@@ -189,8 +224,17 @@ def main():
 
     result = reduce_field(args.field, extractions)
     if result is None:
-        logger.warning(f"字段 '{args.field}' 在所有抽取中都不存在,跳过")
-        sys.exit(0)
+        primary_total = sum(1 for item in extractions if item.get("evidence_tier", "primary") == "primary")
+        result = {
+            "field": args.field,
+            "status": "not_mentioned",
+            "value": None,
+            "mention_count": 0,
+            "total": primary_total,
+            "mentioned_by": [],
+            "evidence_quotes": [],
+        }
+        logger.warning(f"字段 '{args.field}' 在所有抽取中都不存在,写入明确缺失状态")
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -12,11 +12,20 @@
       "description": "报告级元信息,填顶部 meta-bar 和 _base.html 的 slot",
       "required": [
         "report_title",
+        "context_snapshot",
         "theme",
         "density",
         "source_count",
+        "source_summary",
         "persona_count",
-        "generated_at"
+        "page_count",
+        "field_coverage",
+        "user_confirmed",
+        "confirmation_user_message",
+        "confirmed_value_sections",
+        "alignment_md_sha256",
+        "generated_at",
+        "visual_spec"
       ],
       "additionalProperties": false,
       "properties": {
@@ -46,7 +55,28 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 200,
-          "description": "有效访谈份数"
+          "description": "去重后的独立主访谈数；不得包含补充材料或重复分配"
+        },
+        "context_snapshot": {
+          "type": "object",
+          "required": ["research_question", "decision_use", "research_type", "paradigm"],
+          "additionalProperties": false,
+          "properties": {
+            "research_question": {"type": "string", "minLength": 8, "maxLength": 500},
+            "decision_use": {"type": "string", "minLength": 8, "maxLength": 500},
+            "research_type": {"enum": ["toB", "toC", "toD"]},
+            "paradigm": {"enum": ["R1", "R2", "R3", "R4", "R5"]}
+          }
+        },
+        "source_summary": {
+          "type": "object",
+          "required": ["unique_primary_interviews", "unique_supplemental_sources", "analysis_assignment_count"],
+          "additionalProperties": false,
+          "properties": {
+            "unique_primary_interviews": {"type": "integer", "minimum": 1},
+            "unique_supplemental_sources": {"type": "integer", "minimum": 0},
+            "analysis_assignment_count": {"type": "integer", "minimum": 1}
+          }
         },
         "persona_count": {
           "type": "integer",
@@ -54,6 +84,55 @@
           "maximum": 12,
           "description": "画像数量。tab 数量上限 12(visual-system.md §3.2)"
         },
+        "field_coverage": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "description": "逐画像记录 03 已确认字段如何进入 05。未进入报告的字段必须逐项说明原因，禁止静默丢失。",
+          "items": {
+            "type": "object",
+            "required": ["persona_id", "included_fields", "omitted_fields"],
+            "additionalProperties": false,
+            "properties": {
+              "persona_id": {"type": "string", "pattern": "^persona-[0-9]+$"},
+              "included_fields": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {"type": "string", "minLength": 1, "maxLength": 80}
+              },
+              "omitted_fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["field", "reason"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "field": {"type": "string", "minLength": 1, "maxLength": 80},
+                    "reason": {"type": "string", "minLength": 4, "maxLength": 200}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "page_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40,
+          "description": "用户确认后的最终 HTML 页数。工作流渲染时必须与 assembler 实际输出一致"
+        },
+        "user_confirmed": {"type": "boolean"},
+        "confirmation_message_summary": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 500
+        },
+        "confirmation_user_message": {"type": "string", "minLength": 2, "maxLength": 500},
+        "confirmed_value_sections": {
+          "type": "array", "minItems": 3, "uniqueItems": true,
+          "items": {"enum": ["page_plan", "modules", "visual_spec", "information_loss"]}
+        },
+        "alignment_md_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "generated_at": {
           "type": "string",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}( \\d{2}:\\d{2})?$",
@@ -67,7 +146,12 @@
           "properties": {
             "template_id": {
               "type": "string",
-              "enum": ["2b-overall-journey", "2c-persona", "2c-journey"]
+              "enum": [
+                "2b-overall-journey",
+                "2c-persona",
+                "2c-journey",
+                "2c-complex-distribution-report"
+              ]
             },
             "palette_id": {
               "type": "string",
@@ -85,6 +169,22 @@
               "type": "string",
               "minLength": 12,
               "maxLength": 120
+            },
+            "persona_palette_map": {
+              "type": "object",
+              "description": "2C 多画像中 persona 基础 id 到色板 ID 的固定映射。画像页、详情页、旅程页共用。",
+              "propertyNames": {"pattern": "^persona-[0-9]+$"},
+              "additionalProperties": {
+                "type": "string",
+                "enum": [
+                  "2c-purple-default",
+                  "2c-red-orange",
+                  "2c-green-gray",
+                  "2c-yellow-orange",
+                  "2c-blue-yellow",
+                  "2c-cyan-gold"
+                ]
+              }
             }
           }
         }
@@ -112,7 +212,7 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 20,
-            "description": "画像名;短优先(2-6 字),允许英文头衔拼接如'交付型 Scrum Master'(15 字);R4 象限画像名仍需 ≤ 5 字(SKILL.md 约束 10,由 schema 层不可强约束,paradigm 提示)"
+            "description": "画像名以语义完整和可区分为先，同时尽量一行呈现；允许英文头衔拼接如'交付型 Scrum Master'。R4 象限名遵循范式确认结果。"
           },
           "layout": {
             "type": "string",
@@ -135,7 +235,6 @@
               "mist-blue",
               "moss-green",
               "warm-orange",
-              "clay-red",
               "mustard",
               "cyan-gold"
             ],
@@ -153,8 +252,12 @@
             "description": "本画像里要渲染的组件序列。LLM 不写 grid 坐标,只按重要性排序;Python solver 自动布局。注意:容器型 layout(matrix_2d / distribution_multi / journey_2c / tob_journey_l1/l2)整个 layout 通常只放 1 个容器组件,可选附 matrix_guidance_strip 等独立组件",
             "items": {
               "type": "object",
-              "required": ["type", "props"],
+              "required": ["type"],
               "additionalProperties": false,
+              "oneOf": [
+                {"required": ["props"], "not": {"required": ["content_ref"]}},
+                {"required": ["content_ref"], "not": {"required": ["props"]}}
+              ],
               "properties": {
                 "type": {
                   "type": "string",
@@ -188,6 +291,11 @@
                 "props": {
                   "type": "object",
                   "description": "组件的属性。具体字段约束在 schemas/<type>.json,由 validate_components_json.py 二次校验"
+                },
+                "content_ref": {
+                  "type": "string",
+                  "pattern": "^/personas/[0-9]+/display_components/[0-9]+$",
+                  "description": "画像页和细节页引用 04-personas.json 已确认的组件真值"
                 }
               }
             }

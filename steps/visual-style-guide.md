@@ -3,8 +3,11 @@
 本文件是画像最终交付物的视觉规范。模型必须先选业务类型、模板和色板，再填写内容。规范落点分三层：
 
 - 规则文档：`steps/visual-style-guide.md`
+- 机器可读设计系统：`assets/templates/_visual-system.json`
 - CSS token：`assets/templates/_design-tokens.css`
 - 组件样式：`assets/templates/_components.css`
+
+设计系统采用四层结构：基础属性、语义 token、主题 palette pack、组件契约。`_visual-system.json` 是渲染器与校验器的共同事实源；本文件负责告诉模型如何选择，CSS 负责呈现。三者出现冲突时禁止渲染，先修复契约漂移。
 
 ## 最高优先级原则
 
@@ -67,10 +70,14 @@
 - 标题和说明在同一块浅灰蓝底上，背景 `#EDF3F7`，左对齐。
 - 标题文字 `#282828`，说明文字 `#787878`。
 - 阶段、子阶段、左侧角色列共用中性层级，用灰线 `#DCDCDC` 分隔。
-- 左侧表头列宽必须与下方角色列一致，当前 CSS 锁定为 `87px`。
+- 阶段表头、子阶段表头、下方 SVG 泳道必须使用同一个几何源。L1 viewBox 为 `1180`，左侧 rail 为 `87`；其余宽度必须按实际阶段数等分，并由 renderer 写入 `--l1-grid-columns`。禁止把 5 阶段比例固化到 CSS，因为 4、6 或更多阶段会换行错位。
+- 同一泳道与阶段内的节点按 `slot` 顺序等距排布；`slot` 有数字空洞时先压紧。节点发生横向碰撞时，renderer 必须计算最少无碰撞轨道，可从两轨自动扩展到三轨或更多轨道。禁止依靠删节点、截断标题或缩小到不可读字号解决碰撞。
+- 左侧表头列宽必须与下方角色列一致，当前 CSS 锁定为 viewBox 中的 `87/1180`。禁止用 `92px`、`repeat(...)`、`fr` 手调模拟。
 - 阶段头使用主流程蓝 `#96BEFA`，文字白色，字号 `14px`。
 - 子阶段使用浅蓝底 `#DCF0FA`，文字和分隔符均为黑色，字号 `12px`。
-- 左侧角色名称横排显示，字号 `12px`，允许换行，必须显示完整。
+- 阶段行底色必须承接 `#96BEFA`，子阶段行底色必须承接 `#DCF0FA`，避免箭头裁切后露出白色条或白色三角。
+- 左侧角色栏固定在 `87px` 轨道内居中排版。角色名横排显示，字号 `12px`，必须完整显示；超过 4–5 个汉字时用 `tspan` 自然断成两行，优先按 `工程师`、`负责人`、`管理者` 等语义后缀断行。
+- 左侧角色动作标签是独立下一行，字号不低于 `11px`，与角色名至少保持 14px 纵向间距。禁止使用旧的 `x=36` 角色名 + `x=60` 标签坐标写法，因为长角色名会和标签重叠。
 - 普通步骤节点使用节点蓝 `#6EA0DC`，文字白色，不加边框。
 - 操作类节点使用浅灰底 `#F3F3F3`，蓝色描边 `#6EA0DC`。
 - 起止节点使用完成绿 `#8CBE6E`，不加边框。
@@ -88,13 +95,24 @@
 - L2 子阶段使用 `#DCF0FA`，字号 `12px`，分隔符 `›` 也是黑色。
 - L2 工具触点标签字号为 `12px`。
 - L2 工作流 SVG 外层不得出现细灰色整体边框。
+- L2 工作流行高必须按泳道数计算，SVG 使用完整宽度与对应高度。禁止用固定 `max-height` 同比缩小整张流程图。
 - L2 内嵌 UML 节点沿用 L1 节点规则，普通节点、判断节点、文档节点不额外加边框。
+- 渲染完成后必须运行 `scripts/validate_html.py`。若出现 `P10-2B-L1-ROLE-RAIL-OVERLAP`、`P10-2B-L1-ROLE-NO-WRAP` 或 `P10-2B-L1-STAGE-GRID-MISMATCH`，说明 L1 总体旅程几何会错乱，必须回到 `05-report.json` 或 renderer 修复后重渲染。
 
 ### 2B 画像页重点色
 
 - 模块标题胶囊、关键状态、选中态使用重点蓝 `#3296FF` 或 token `--color-primary-dark`。
 - 不得使用过浅蓝作为重点色，避免与弱信息层混淆。
 - 侧栏身份底色使用浅蓝底 `#DCF0FA` 或 token `--color-bg-canvas-left`。
+
+### 2B 细节页疏密规则
+
+- 细节页使用两列轻量卡片，组件行高随内容自适应；组件组在标题下方的剩余区域垂直居中，避免内容缩在左上角。
+- 页面外边距小于模块间距与两侧内容宽度之和；卡片必须有稳定内边距、浅边框和明确边界。
+- 模块内部只使用卡片宽度内的短实线分隔，不使用跨过大片空白的长虚线。
+- 同义或高度重复的模块先在 05 中向用户说明合并方案。用户确认后合并为一个模块，保留所有独有信息。
+- 四个模块优先排成稳定的 `2 × 2`；奇数模块按阅读顺序排列，最后一个核心模块可以占满整行。
+- 内容不足时先在 05 向用户建议保留核心模块，并写清删除页面或模块的信息损失。用户确认前不得自动删除细节 tab。
 
 ## 2C 规范：画像与旅程
 
@@ -136,6 +154,7 @@
 - 身份卡、头像底等大面积色块使用 `--color-toc-surface`，不能直接铺 `--color-toc-focus`。
 - 浅底、阴影、代表原话底色由色卡语义 token 自动生成，不能写固定紫色或固定蓝色。
 - 多画像报告中，每个画像 section 必须同时写入 `--color-accent` 与 `--color-toc-surface`，两者来自同一套 2C 色板。
+- 弱模型只在 `05-report.json` 中选择白名单 `accent`。完整 palette pack 由 Python 渲染器从 `_visual-system.json` 注入，模型不得手写 CSS 变量。
 
 ### 模板 `2c-persona`
 
@@ -193,7 +212,10 @@
 - 多维分布图节点、图例、线条必须沿用画像 accent，不能临时写新色。
 - 多维分布图内所有文字最小字号为 `12px`。已有 13px、14px 等较大文字保持原尺寸，不统一压到 12px。
 - 2C 旅程页所有文字最小字号为 `12px`。正文摘要和左侧维度标签使用固定 `12px`；关键词、触点标签和情绪标签都不能低于 `12px`；标题、阶段名等较大字号保持原尺寸。
+- 2C 旅程阶段表头与左侧维度栏使用同一套当前画像浅色承载层 `--color-toc-surface`，文字使用 `--color-text-primary`。阶段编号使用 `--color-toc-primary`。禁止整行使用高饱和主色底。
 - 旅程页每个阶段必须有差异化行为或证据，不能只换画像名。
+- 情绪曲线为上下标签预留至少 `40px` 安全区。高位节点的标签放在点下方，低位节点的标签放在点上方，曲线、表情和文字均不得被页面边界或相邻单元格遮挡。
+- “情绪”维度标签在左侧栏水平、垂直居中。
 
 ## 交付前校验清单
 
@@ -254,8 +276,8 @@ python scripts/validate_html.py --project-dir <项目目录> <最终输出目录
 - 身份卡、头像底、大面积色块使用 `--color-toc-surface` 或 `--color-toc-bg`。
 - icon、标题胶囊、重点词、描边使用 `--color-toc-primary`。
 - 图表辅助线、装饰符号可使用 `--color-toc-secondary`。
-- 痛点、风险、价格敏感、冲突信息在旅程中使用当前色卡主色：痛点行浅底由 `--color-toc-primary` 混白得到，痛点标签和左边线直接使用 `--color-toc-primary`。不得把当前画像痛点行渲染成另一张色卡的对比色。
-- 禁止只写 `--color-accent` 后让 CSS 自动混白，弱模型必须显式写完整 palette pack。
+- 痛点、风险、价格敏感、冲突信息使用当前色卡的 `--color-toc-alert`。浅底、标签和左边线都从同一 palette pack 的 alert 语义生成，禁止借用其他色卡或退回固定红色。
+- 禁止只输出 `--color-accent` 后依赖 CSS 自动混白。渲染器必须从 `_visual-system.json` 注入完整 palette pack。
 - 禁止跨色卡借色。例：`green-gray` 角色不能调用旧废弃色卡或 `--palette-2c-purple-*`。
 ## 2C Palette Pack 同色系执行规则
 
@@ -267,7 +289,7 @@ python scripts/validate_html.py --project-dir <项目目录> <最终输出目录
 | 元素 | 必须使用的 token |
 | --- | --- |
 | 头像底、身份卡底、大块引用底 | `--color-toc-surface` 或 `--color-toc-soft` |
-| 旅程阶段表头底 | `--color-toc-primary`，文字使用 `--color-text-inverse` |
+| 旅程阶段表头底 | `--color-toc-surface`，文字使用 `--color-text-primary`，阶段编号使用 `--color-toc-primary` |
 | icon、引用边框、卡片边框、强调句、重点词 | `--color-toc-primary` |
 | 模块标题、小标题、旅程维度文字、旅程关键词文字 | `--color-text-primary`，色彩通过底色表达 |
 | 胶囊标签、小标签、轻强调底色 | `--color-toc-soft` |
@@ -276,14 +298,14 @@ python scripts/validate_html.py --project-dir <项目目录> <最终输出目录
 | 痛点、风险、价格敏感、冲突信息 | `--color-toc-alert` |
 
 示例：
-- 角色选择紫色默认色卡时，引用块边框、引号 icon、强调句、旅程阶段表头都必须是紫色系；旅程阶段表头使用紫色底白字。
-- 角色选择绿色色卡时，身份卡底、引用块底、旅程关键词底、旅程阶段表头都必须来自绿色色卡；旅程阶段表头使用绿色主色底白字。
+- 角色选择紫色默认色卡时，引用块边框、引号 icon、强调句使用紫色主色；旅程阶段表头使用紫色浅底深色字，阶段编号使用紫色主色。
+- 角色选择绿色色卡时，身份卡底、引用块底、旅程关键词底、旅程阶段表头都必须来自绿色色卡；旅程阶段表头使用绿色浅底深色字。
 - 角色选择紫色默认色卡时，关键词胶囊使用紫色浅底黑字，触点标签使用同色板定义的米黄色辅助区隔色黑字，避免所有标签都变成紫色。
 - 红橙、蓝黄、青金同理，各自只允许使用本色卡内的主色、浅底、辅助色和警示色。
 - `TO C-4.png` 对应的旧 `high-contrast` 色卡已废弃，不得再作为新报告的可选色卡。旧 `TO C-5.png` 顺位前移为 TO C-4，旧 `TO C-6.png` 顺位前移为 TO C-5。
 
 生成约束：
-- `layout-2c-portrait`、`layout-2c-detail`、`layout-2c-journey` 必须显式写入完整 `--color-toc-*` 变量。
+- `layout-2c-portrait`、`layout-2c-detail`、`layout-2c-journey` 的最终 HTML 必须由渲染器显式写入完整 `--color-toc-*` 变量。
 - 同一 `persona.id` 的三类页面必须使用同一个 `--color-toc-style`。
 - 同一 section 中出现的 `--palette-2c-*` 变量必须全部属于该 section 声明的 `--color-toc-style`。
 - 校验时如果出现跨色系混用，如紫色角色中出现蓝色强调或黄色旅程表头，应阻塞交付。
@@ -315,7 +337,7 @@ These rules are mandatory for weak-model execution and validator review.
 5. Header, border, icon, large quote mark, quote border, emphasis phrase, active nav, and major outline use `--color-toc-primary`.
 6. Large soft backgrounds, identity cards, avatar panels, quote blocks, journey dimension cells, and table header light areas use `--color-toc-surface`, `--color-toc-bg`, or `--color-toc-soft`.
 7. Touchpoint, tool, evidence, and auxiliary tags use the palette jump color: `--color-toc-aux-bg` and `--color-toc-aux-text`. They must not reuse the primary color capsule.
-8. Journey stage headers use the current palette primary color with inverse text. Journey dimension labels and keyword text use normal dark text; color expression comes from their background.
+8. Journey stage headers and the left dimension rail use the current palette surface color with dark text. Stage numbers use the current palette primary color.
 9. Pain or risk highlight blocks must be derived from the current persona palette. The block background may mix the current primary with white; the left border and pain tag use the current primary.
 10. Minimum text size in 2C distribution and 2C journey pages is 12px. Existing larger labels remain larger; do not normalize everything down to 12px.
 11. Deprecated palette: old `high-contrast` / old `TO C-4.png` is removed. Old TO C-5 becomes current TO C-4. Old TO C-6 becomes current TO C-5.

@@ -1,209 +1,127 @@
-# 公共步骤:抽取 + 合并(map-reduce)
+# 抽取与归并
 
-把访谈逐字稿变成结构化画像数据的核心步骤。采用 map-reduce 架构。
+本阶段把已确认范围内的每份资料独立抽取，再按字段归并。归并结果先写入 `04-personas.draft.json`，随后由官方脚本生成中文 `04-personas.md`。用户确认后封存为 `04-personas.json`。
 
----
+## 进入条件
 
-## 为什么用 map-reduce
+- `00` 至 `03` 的 MD/JSON 已配对并通过校验。
+- `02-classification.json` 已包含用户确认的分组，或状态为 `not_applicable`。
+- `03-field-alignment.json` 已固化字段清单、研究类型、素材选择和旅程范围。
+- 输入范围已经记录在 `00-research-goal.json`。
 
-如果一次性把所有访谈塞给模型让它"自己归纳",单次输入太大,弱模型 hold 不住,且容易丢细节。
+## 第一步：逐份预处理
 
-map-reduce 架构:
-- **map**:每份访谈独立抽取一次(单次输入小,质量高)
-- **reduce**:每个字段独立合并一次(每次只看一个字段的多份输出,语义聚类精准)
-
-总 token 消耗高,但单次调用都不大,弱模型也能跑。
-
----
-
-## 前置条件
-
-- `03-field-alignment.json` 已存在(字段已对齐)
-- `03-field-alignment.json` 必须包含以下字段(2026-05-28 加固,缺一则视为未完成,**不能进入抽取**):
-  - `field_pool_presented: true`(已向用户展示完整字段池)
-  - `fields_display_names`(对象,字段 key → 中文展示名)
-  - `fields_per_persona`(对象,每个画像选了哪些字段)
-  - `user_confirmed: true`(布尔,表示用户已认可字段池)
-  - `confirmation_message_summary`(字符串,≥ 10 字,用户原话摘要锚点)
-  - `visual_assets.assets_asked: true`
-  - 抽取前执行:`python scripts/validate_field_alignment.py --workdir <过程稿>`
-  - `add_on_pages.journey`(布尔,toC 多画像 / toB 多角色场景必填,见 SKILL.md 约束 14 + 旅程确认规则)
-  - toB/toD 且画像数 ≥ 2 时另必填:`add_on_pages.journey_scope`、`journey_l1_eligible`、`organizational_cohesion`
-  - 若 `alignment_mode` 字段存在且值为 `recommended_by_goal`,但无 `user_confirmed: true` → 视为未确认,回退到字段对齐 Step 1
-- `processed/` 目录已有标准化的 txt 文件(每位受访者一个)
-- 每个画像知道对应哪些受访者(从 `01-paradigm.json` 或 `02-classification.json` 读)
-
----
-
-## Step 1:单文档抽取(map 阶段)
-
-由 `scripts/extract_single.py` 执行,**调用模型**。
-
-对每位受访者:
-1. 读 `processed/{受访者名}.txt`
-2. 读 `03-field-alignment.json` 拿到该画像要的字段列表
-3. 拼装 prompt(基础 prompt 来自 `assets/prompts/extract-{tob|toc}.md` + 字段定义)
-4. 调用模型抽取
-5. 产物写入 `extracted/{受访者名}.json`
-
-### 抽取 prompt 的核心原则
-
-**正向引导,不要负向禁止**(SKILL.md 硬约束 + memory)。例:
-
-✗ 错误写法:"不要把领域知识写进 tools 字段"
-
-✓ 正确写法:"`tools` 字段放通用工具能力(Python、Excel、Photoshop 等),例:'熟练使用 Python 处理数据'。领域知识(熟悉电力调度业务、医疗术语等)放在 `domain_knowledge` 字段。"
-
-### 每个字段抽取产物的标准格式
-
-```json
-{
-  "field_name": "pain_points",
-  "items": [
-    {
-      "content": "调度过程中要同时盯 5 个监控屏,容易漏看告警",
-      "evidence_quote": "我们调度员有时候要看 5 个屏幕,我有一次就漏了一条告警,后面是同事提醒的"
-    },
-    {
-      "content": "夜班疲劳导致判断速度变慢",
-      "evidence_quote": "夜班三点多的时候,真的会愣神,有时候反应慢半拍"
-    }
-  ]
-}
+```powershell
+python scripts/preprocess.py --input-dir <输入目录> --workdir <项目目录>\过程稿
 ```
 
-每条 `content` 都必须附 `evidence_quote`(原话)。这是 SKILL.md 硬约束 5 的硬性要求。
+要求：
 
-### 脱敏(约束 8 · 与约束 5 同级)
+- 每个输入文件在 `processed/` 中有且只有一个对应文本。
+- 文件名保持稳定，便于证据回溯。
+- 预处理失败的文件必须显式记录，禁止静默跳过。
+- 运行后用 `workflow.py status` 核对输入数和 processed 数。
 
-- `extracted/{名}.json` 文件名可用访谈原名,但写入 `05-report.json` 时**所有用户可见字段**必须脱敏。
-- **合并 reduce 正文**禁止用真名并列对比(如「刘宇…刘军…」);用脱敏指代或「部分受访者」。
-- 每位受访者在报告中的 `source` / `display_name` 在合并阶段就确定好,不要留到渲染再改。
-- 合并完成后建议执行:`python scripts/privacy_guard.py --workdir <过程稿>`(配合 `--report` 在写出 05 后)。
+预处理后立即运行 `build_source_manifest.py`。审核后必须满足：
 
-### 单值字段格式
+- 相同内容只保留一个 source_id，物理重复文件从 processed/extracted 移除。
+- 核心受访者标为 `primary`；背景材料、FAE 汇总或旁证标为 `supplemental`，并填写允许补充的字段。
+- `unique_primary_interviews` 是报告中唯一可称为“访谈数”的值。
+- `unique_supplemental_sources` 和 `analysis_assignment_count` 单独报告。
+- 术语审计 Markdown 属于权威 reference，不进入 processed，不计访谈数；用 `build_terminology_glossary.py` 编译。
 
-```json
-{
-  "field_name": "one_sentence_need",
-  "value": "希望 AI 帮我提前预警,而不是事后通知",
-  "evidence_quote": "现在的系统都是事后通知,我希望 AI 能提前 5 分钟告诉我哪个机组可能出问题"
-}
+## 第二步：逐份独立抽取
+
+```powershell
+python scripts/extract_single.py --input <processed文件> --output <相同相对路径的extracted文件.json> --fields '<03确认的字段JSON>' --persona-type <toB或toC或toD>
 ```
 
----
+运行时使用：
 
-## Step 2:逐字段合并(reduce 阶段)
+- 公共语言契约：`assets/prompts/_shared-language-contract.txt`
+- 抽取 prompt：`assets/prompts/extract_single.txt`
+- 字段定义：`--fields` 传入的已确认字段清单
 
-由 `scripts/reduce_field.py` 执行,**调用模型**。
+要求：
 
-对每个画像、每个字段:
-1. 收集这个画像下所有受访者在这个字段上的抽取产物
-2. 拼装 reduce prompt(来自 `assets/prompts/reduce-{字段名}.md`)
-3. 调用模型聚合:语义聚类 + 输出统一格式
-4. 写入该画像的 JSON 节点
+- 一份输入对应一份 extracted JSON，保留 `processed/` 下的分组相对路径。
+- 每份抽取只读取当前输入，禁止借用其他受访者信息。
+- 每条证据保留 source 和逐字原话。
+- source 使用抽取脚本生成的稳定匿名 `_source_id`，原文件名只留在内部 `_source_file`。
+- 未提及字段按 prompt 约定输出缺失状态，禁止补写合理猜测。
+- 每份输出立即落盘，禁止把多份结果只留在上下文中。
+- 默认按约 12k 输入 token 分段，模型上下文更小时使用 `--max-input-tokens` 下调，禁止把整份长访谈硬塞进一次调用。
 
-### Reduce 的核心约束
+## 第三步：按字段归并
 
-- **输出格式严格**:每个聚合后的观点必须有 `mentioned_by`(哪些受访者提到了)+ `evidence_quotes`(每位受访者的原话)
-- **聚类语义而非字面**:"AI 应该提前预警" 和 "我希望系统能提前告诉我" 是同一个意思,聚成一条
-- **保留差异**:5 个人有 4 种说法时,不能强行收敛成 1 条;真实的多样性要留下来
-- **toC 处理**:见 SKILL.md "toC 画像的内容处理原则"
-  - 多数派一致 → 归纳
-  - 分歧 → 基于研究目标选取一个表述
-  - 样本小 → 抽象表述,不堆细节
-
-### Reduce 产物标准格式
-
-```json
-{
-  "field_name": "pain_points",
-  "items": [
-    {
-      "content": "多屏监控容易漏看告警",
-      "mentioned_by": ["邓老师", "孔老师", "肖老师"],
-      "frequency": "3/5",
-      "evidence_quotes": [
-        {"source": "邓老师", "quote": "我们调度员有时候要看 5 个屏幕..."},
-        {"source": "孔老师", "quote": "屏幕太多了,有几次都没注意到红色告警..."},
-        {"source": "肖老师", "quote": "尤其是大风天,告警很多,屏幕看不过来..."}
-      ]
-    },
-    {
-      "content": "夜班疲劳导致判断变慢",
-      "mentioned_by": ["邓老师", "刘老师"],
-      "frequency": "2/5",
-      "evidence_quotes": [
-        {"source": "邓老师", "quote": "夜班三点多真的会愣神..."},
-        {"source": "刘老师", "quote": "凌晨两三点是我们最容易出错的时间..."}
-      ]
-    }
-  ]
-}
+```powershell
+python scripts/reduce_field.py --field <字段名> --inputs <同组全部extracted JSON> --output <过程稿目录>\reduced\<画像ID>\<字段名>.json
 ```
 
-**`mentioned_by` 里每一位都必须有对应的 `evidence_quote`**(SKILL.md 硬约束 5)。
+`reduce_field.py` 按字段选择固定 prompt：
 
----
+| 字段类型 | prompt |
+|---|---|
+| 基本资料 | `reduce_basic_profile.txt` |
+| 职责占比 | `reduce_responsibilities.txt` |
+| 协作关系 | `reduce_collaboration.txt` |
+| 场景列表 | `reduce_scenario_list.txt` |
+| 系统列表 | `reduce_system_list.txt` |
+| 标题加说明列表 | `reduce_titled_list.txt` |
+| 普通字符串列表 | `reduce_string_list.txt` |
+| 一句话需求 | `reduce_one_sentence.txt` |
+| 代表原声 | `reduce_quotes.txt` |
+| 自定义字段 | `reduce_generic.txt` |
 
-## Step 3:合并到 personas.json
+归并要求：
 
-由 `scripts/merge.py` 执行,**纯固化逻辑**(不调模型)。
+- `mention_count`、`mentioned_by`、`evidence_quotes` 三者严格一致。
+- 同一受访者在同一归并项中最多计数一次。
+- 原话不能改写，来源不能脱落。
+- 每条原话必须直接支撑当前结论。同一证据包完整复用于三个以上结论，或同一句原话支撑六个以上结论，会被视为机械复用并阻塞。
+- 冲突、少数观点和证据不足要显式保留。
+- 每个字段单独写文件，字段失败时只重跑该字段。
+- `reduced/` 只保存逐字段归并结果，禁止把归并结果混入一一配对的 `extracted/`。
+- `mention_count` 的分子和分母只计算 primary。supplemental 只补其 `supplemented_fields`，不能单独形成核心结论。
 
-把每个画像的所有字段 reduce 产物组装成最终 JSON:
+## 第四步：组装并确认画像
 
-```json
-{
-  "version": "v8",
-  "research_goal": { ... },
-  "paradigm": "R2",
-  "personas": [
-    {
-      "name": "电力调度员",
-      "members": ["邓老师", "孔老师", "肖老师", "刘老师", "碳中和老师"],
-      "fields": {
-        "basic_profile": { ... },
-        "responsibilities": { ... },
-        "pain_points": { ... },
-        ...
-      }
-    }
-  ]
-}
+1. 汇总同一画像的字段归并结果。
+2. 生成 `04-personas.draft.json`，再运行 `python scripts/workflow.py --workdir <过程稿> prepare-04 --stem 04-personas`。MD 字段标题必须使用 `03-field-alignment.json.fields_display_names` 中的中文名称。常用字段由脚本映射为中文。
+   `prepare-04` 会自动把每个画像的完整字段写入 `reduced/persona-N.json` 聚合快照。弱模型无需手工创建每字段一个文件；已有逐字段归并文件仍兼容。
+3. 停止并等待用户确认。
+4. 用户调整后更新 MD，再次确认。
+5. 为 03 的每个字段写 `field_decisions`：`full`、`condensed` 或 `omitted`。压缩与省略必须写原因和具体信息损失，并在 04 MD 展示给用户。
+6. 把所有最终展示模块完整写入 `04-personas.json.personas[].display_components`。这是报告正文唯一真值。
+7. 用户确认后运行封存脚本。脚本核对草稿与 MD 的内容指纹，再生成 `04-personas.json`。
+8. 运行 `python scripts/validate.py --input <过程稿目录>\04-personas.json`。
+
+禁止调用通用多数表决脚本直接生成画像。字段语义聚类由固定 reduce prompt 完成，用户拥有最终确认权。
+
+## 第五步：隐私与完整性检查
+
+```powershell
+python scripts/privacy_guard.py --workdir <过程稿目录>
+python scripts/workflow.py --workdir <过程稿目录> status
 ```
 
-写入 `04-personas.json`。
+进入旅程确认前必须满足：
 
----
+- 输入、processed、extracted 数量一致。
+- 每个画像的成员都来自 02 的确认映射。
+- 画像 MD/JSON 已配对。
+- 证据来源可以回到单份 extracted 文件。
+- `source-manifest.json` 的哈希、层级、字段授权和三类计数通过校验。
+- 每个 `display_components` 的 props 通过对应组件 schema。
+- 03 选中的全部字段都存在于 `fields` 和 `field_decisions`；`full`、`condensed` 字段进入 `source_fields`，`omitted` 字段不进入组件。
+- 展示层不含真实姓名、电话、邮箱、账号或未授权组织信息。
 
-## Step 4:Schema 校验
+## 模型接口配置
 
-由 `scripts/validate.py` 执行,**纯固化逻辑**。
-
-校验:
-- 每个字段是否符合 schema 定义
-- 每条 item 是否有 `evidence_quotes`
-- `mentioned_by` 里的每个人是否都在 `evidence_quotes` 里
-- 没有空字段(空字段在 reduce 阶段就该处理掉)
-
-校验不通过的字段,触发"模型修补该字段的 JSON",不全部重做。
-
----
-
-## 模型调用环境
-
-`extract_single.py` 和 `reduce_field.py` 通过环境变量读取 API 配置:
+`extract_single.py` 和 `reduce_field.py` 读取：
 
 - `ANTHROPIC_BASE_URL`
 - `ANTHROPIC_AUTH_TOKEN`
 - `ANTHROPIC_MODEL`
 
-在 cc switch 切到内部模型(如 MiniMax)时自动用该模型,普通 Claude Code 用 Anthropic 模型。
-
----
-
-## 边界情况
-
-- **某位受访者抽取失败**:重试 1 次,仍失败则标记「该受访者本字段抽取失败」,合并时跳过,在合并日志中提示
-- **整个字段全部受访者都没数据**:合并产物为空,渲染时该字段空白(允许);**不允许模型自己编内容补**
-- **受访者数量为 1**:跳过 reduce 阶段,直接把 map 产物按格式包装成 reduce 格式输出
+调用失败时保留已有中间文件，修复配置后从缺失的单份抽取或单字段归并继续。

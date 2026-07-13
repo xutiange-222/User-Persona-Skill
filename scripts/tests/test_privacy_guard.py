@@ -66,6 +66,36 @@ class PrivacyGuardTests(unittest.TestCase):
             names = collect_forbidden_real_names(proc)
             self.assertIn("刘宇", names)
 
+    def test_collect_from_nested_group(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = Path(tmp) / "过程稿"
+            (proc / "processed" / "运维组").mkdir(parents=True)
+            (proc / "processed" / "运维组" / "张伟.txt").write_text("", encoding="utf-8")
+            names = collect_forbidden_real_names(proc)
+            self.assertIn("张伟", names)
+
+    def test_persona_name_is_not_mistaken_for_real_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = Path(tmp)
+            (proc / "04-personas.json").write_text(
+                json.dumps({"personas": [{"name": "内行场景派"}]}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            self.assertNotIn("内行场景派", collect_forbidden_real_names(proc))
+
+    def test_direct_identifiers_are_blocked(self):
+        report = {
+            "personas": [{
+                "components": [{
+                    "type": "generic_text",
+                    "props": {"body": "联系邮箱 user@example.com，手机号 13800138000"},
+                }],
+            }],
+        }
+        codes = {item["code"] for item in validate_privacy_in_report(report, None)}
+        self.assertIn("P0-PRIVACY-EMAIL", codes)
+        self.assertIn("P0-PRIVACY-PHONE", codes)
+
 
     def test_html_structure_words_are_not_bare_names(self):
         html = "<div>阶段</div><div>发现</div><div>试听</div><div>旅程</div>"

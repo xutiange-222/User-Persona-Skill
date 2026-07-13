@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "report_title": "",
+    "context_snapshot": {"research_question": "", "decision_use": "", "research_type": "", "paradigm": ""},
+    "theme": "",
+    "density": "",
+    "source_count": 0,
+    "source_summary": {"unique_primary_interviews": 0, "unique_supplemental_sources": 0, "analysis_assignment_count": 0},
+    "persona_count": 0,
+    "page_count": 0,
+    "field_coverage": [],
+    "user_confirmed": false,
+    "confirmation_user_message": "待确认",
+    "confirmed_value_sections": ["page_plan", "modules", "information_loss"],
+    "alignment_md_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "generated_at": "",
+    "visual_spec": {"template_id": "", "palette_id": "", "palette_reason": "", "persona_palette_map": {}}
+  },
+  "personas": []
+}

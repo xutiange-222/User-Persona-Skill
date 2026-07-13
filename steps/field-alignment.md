@@ -243,7 +243,7 @@ toC 版话术结构类似,但用 `schemas/schema-toc.md` 的字段池。
 |---------|-----------|-----------------|----------------------|
 | 不要旅程 | `false` | `none` | `false` |
 | 要,且同组织,要整体+单角色 | `true` | `L1_and_L2` | `true` |
-| 要,且同组织,只要整体 | `true` | `L1_and_L2` | `true`(L2 可省略) |
+| 要,且同组织,只要整体 | `true` | `L1_only` | `true` |
 | 要,且同组织,只要单角色 | `true` | `L2_only` | `true` |
 | 要,但完全独立 | `true` | `L2_only` | `false` |
 | 要,但完全独立且用户也拒绝单角色 | `false` | `none` | `false` |
@@ -299,10 +299,10 @@ toC 多画像场景不能只生成一张“总旅程”。如果用户要旅程�
 - 情绪曲线必须按画像差异单独绘制,不能三页使用同一条 SVG path 和同一组情绪标签
 
 数据结构要求:
-- `04-personas.json` 或生成中间数据里,每个 persona 必须有自己的 `journey` 对象
-- `journey` 至少包含 `stages`、`rows.thinking`、`rows.behavior`、`rows.touchpoints`、`rows.pain_points`、`rows.opportunities`、`emotion.points`、`evidence_refs`
-- 禁止只在全局写一个 `journey = {...}` 再让 `render_journey(p)` 复用
-- `render_journey(persona)` 只能读取 `persona.journey`,不能读取全局 `journey` 或全局 `rows_data`
+- 03 只确认是否生成旅程、旅程范围、L1 资格和素材范围。
+- 每个画像的具体旅程在 `04-journeys.md/json` 中独立固化。
+- `04-journeys.json` 使用已注册的 `tob_journey_l1`、`tob_journey_l2` 或 `journey_2c` component props。
+- 禁止在 05 中创建全局旅程后复制给多个画像。
 
 交付前自检:
 - 去掉标题、画像名、颜色和头像后,任意两个 `layout-2c-journey` 的正文相似度不能超过 70%

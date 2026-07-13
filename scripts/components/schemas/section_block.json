@@ -15,8 +15,8 @@
     "title": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 6,
-      "description": "段卡标题,自由文本,贴合画像特征"
+      "maxLength": 16,
+      "description": "段卡标题；优先保证语义完整并尽量一行呈现，禁止字符截断或用省略号代替"
     },
     "summary": {
       "type": "string",

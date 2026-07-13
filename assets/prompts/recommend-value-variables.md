@@ -1,4 +1,6 @@
-﻿# Prompt:推荐区分点(R4/R5 范式)
+# Prompt:推荐区分点(R4/R5 范式)
+
+执行本 prompt 前先读取 `assets/prompts/_shared-language-contract.txt`。
 
 ## 用途
 

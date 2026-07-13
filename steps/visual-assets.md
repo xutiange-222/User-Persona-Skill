@@ -61,6 +61,8 @@
 
 **记录要求** — 写入 `03-field-alignment.json` 的 `visual_assets`(见 §5)。用户说「用默认库 / 不提供自定义头像」记 `avatar_use_default: true`;说「稍后放自定义」记 `avatar_deferred: true`,渲染前必须复检。
 
+03 MD 中头像、典型场景截图、旅程截图三个决定都必须填成已选择状态。存在任何未勾选项时封存脚本拒绝生成 03 JSON；禁止模型把未回答项自行写成 `false`。
+
 ---
 
 ## 3. 检查点 B — 渲染前（写 `05-report.json` / 调 `render_report.py` 之前）
@@ -71,7 +73,7 @@
    - `界面截图/` 下有哪些文件
 2. **对照 `visual_assets`**:
    - 用户说过要提供自定义头像但目录仍空 → **再次提醒**,给路径和命名规则,问「现在放、用默认库、还是先用占位继续渲染」
-   - 目录有新文件但 `screenshot_mapping` / `scenario_screenshot_mapping` 未确认 → **列出文件名**,请用户确认映射后再写 `05-report.json` 里的 `screenshot` / `image_path` / `illust_path`
+   - 目录有新文件但 `screenshot_mapping` / `scenario_screenshot_mapping` 未确认 → **列出文件名**,请用户确认映射后再写 `05-report.draft.json` 里的 `screenshot` / `image_path` / `illust_path`
 3. **禁止**:未问过用户就直接全部用占位符交付,且交付话术不提「可补图」
 
 **渲染前标准复检话术**:
@@ -178,7 +180,7 @@ Python 渲染层(`scripts/avatar_assets.py`)按 §1.1 优先级解析;`render_re
 - **用户说不要场景截图** → `scenario_screenshots_enabled: false`,scenario/mockup 用形态 B(文字+占位图标)
 - **2C mockup 多图高度不一** → 正常;交付层 CSS 统一帧高,宽按比例缩放,**不要求**用户裁成相同像素尺寸
 - **用户说不要旅程截图** → `screenshots_enabled: false`,旅程关注点不渲染截图槽
-- **目录有图但用户未确认映射** → **不得**写入 `05-report.json` 的 `screenshot` 字段
+- **目录有图但用户未确认映射** → **不得**写入 `05-report.draft.json` 的 `screenshot` 字段
 - **多画像(R1/R3/R4/R5)** → 每个画像单独列 `avatar_expected`;场景映射注明画像名
 
 ---

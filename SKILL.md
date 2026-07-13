@@ -1,1075 +1,314 @@
-﻿---
+---
 name: user-persona
-description: 从用户访谈逐字稿(docx/txt/xlsx)生成结构化用户画像报告,产出交互式 HTML 和可导出 PPT。当用户提到「用户画像」「persona」「访谈分析」「画像报告」「从访谈生成画像」「访谈聚类」时使用,即使用户没有明确说"画像"二字,只要场景是「有访谈记录,想提炼用户特征」也要使用本 skill。支持 toB/toD(企业用户、开发者)和 toC(消费者)两种画像类型,以及合并已知角色和从数据聚类未知角色两种工作方式。
+description: 从用户访谈逐字稿和研究资料生成可追溯的用户画像、用户旅程与交互式 HTML 报告。当用户提到「用户画像」「persona」「访谈分析」「画像报告」「用户旅程」「从访谈生成画像」「访谈分类」时使用。支持 toB、toD、toC，以及 R1 至 R5 五种画像构建方式。
 ---
 
 # User Persona Generator
 
-从用户访谈生成结构化画像报告的工作流。
-
----
-
-## ★ 弱模型稳定执行入口:先说原则,再行动
-
-本 skill 必须优先保证过程可续跑、用户可对齐、弱模型可遵循。DeepSeek V4、Qwen3.5-VL-35B 等 100B 以下模型执行时,先执行下面规则,再进入九条硬约束。
-
-1. **每一步都要落盘**:00 到 05 的关键节点必须成对输出 `.md` 和 `.json`。`.md` 给用户审阅和接手,`.json` 给系统续跑和脚本校验。
-2. **先用 MD 对齐用户**:研究目标、范式选择、分类依据、字段对齐、画像合并、报告组件都要先写用户可读 MD。用户可能到这一步停止,自行用 Keynote、PPT 或其它模型完成可视化。
-3. **JSON 只能在确认后写**:没有用户确认摘要,不得写入下一步 JSON。不得用"按推荐来"这类空泛句子代替确认摘要。
-4. **禁止只产最终报告**:只存在 `05-report.json` 或 `report.html`,但缺少前序 MD/JSON,视为失败交付。
-5. **视觉先选规范再填内容**:进入报告组件前,必须从 `steps/visual-style-guide.md` 选择固定模板、业务类型和色板,不得自创页面结构。
-6. **脚本门禁先于下一步**:进入下一步前运行检查点配对、字段对齐和组件 schema 校验。失败时回到当前步骤修正。
-
-执行文件:
-- 检查点流程: `steps/checkpoint-workflow.md`
-- 视觉规范与模板: `steps/visual-style-guide.md`
-- 检查点模板: `templates/checkpoints/`
-- 配对校验: `python scripts/validate_checkpoint_pairing.py --workdir <过程稿目录>`
-
-2026-07-08 门禁更新:
-- `render_report.py` 从工作流 `05-report.json` 渲染时会先调用 checkpoint 配对校验。缺少任意成对 MD/JSON、只有最终 HTML、只有 `05-report.json`、或 `processed/` 与 `extracted/` 数量不一致时,禁止生成可交付报告。
-- `recovery_check.py` 输出 `checkpoint_pairing_valid` 和 `checkpoint_pairing_errors`,用于弱模型续跑前判断是否需要补齐中间产物。
-- 2C 报告执行“一画像一色卡”:同一画像的画像页、详情页、旅程页只能使用同一套 TO C palette pack。触点/工具/证据标签使用该色卡的辅助跳色,2C 分布和旅程文字最小 12px。
-
----
-
-## ★ 九条硬约束(优先级最高,跨所有模型)
-
-任何模型读这份 skill 都必须遵守。违反任何一条都是不可接受的。
-
-### 约束 1:研究目标先锚定,再判断任何"重要性"
-
-任何"什么重要 / 怎么聚类 / 怎么选变量 / 突出什么"的判断,**锚必须从用户来,不能从数据找**。
-
-具体做法:
-- skill 启动后,**研究目标必须在做任何画像内容判断之前对齐**。研究目标包含三件事:
-  - **报告给谁看**(读者)
-  - **要回答什么问题**(研究问题)
-  - **要支持什么决策**(用途)
-- 锚一旦确认,后续每个判断都要**显式回扣**这个锚。例:"基于你说的『报告给产品团队、回答新功能定位问题』,我建议在画像里侧重职责和痛点。"
-- **禁止**:让模型"自己读访谈找重点"、"凭直觉推荐侧重点"、"从访谈数据归纳什么值得突出"。这种判断没有锚,得到的只是数据驱动的归纳,不是用户驱动的价值。
-
-### 约束 2:不替用户做选择,只问得更准
-
-- 不预设"听众类型"对应"必选字段"这种偏好规则
-- 不预设"某类岗位通常关心 X"
-- 未验证的偏好不能作为默认前提,除非证据足够强(例如:行业法规规定 KPI 必须有)
-- 给方案前先确认前提,或者把假设明示出来让用户判断
-
-### 约束 3:不在渲染层默默截断内容
-
-- 不允许任何组件因为视觉排版静默丢弃数据条目
-- 不允许用 `...` / `…` / `line-clamp` / `text-overflow: ellipsis` / 固定高度遮挡来制造
-- 数据条目超过组件物理上限时,**报错回到字段对齐阶段**,让用户决定砍哪些
-- 视觉密度可以加大、字号可以压、行内可以挤,但不允许组件占 2 行(12×3 网格是绝对边界)
-- 不允许出现垂直滚动条,挤不下就让用户删内容
-- toC 画像页如果文字放不下,优先切换到 `layout-2c-detail` 或增加画像绑定的详情页;不能在正文、画像标题、tab、矩阵标签里截断
-
-### 约束 4:跟用户沟通时屏蔽实现细节
-
-- 用户语言:"这个字段下有 7 个系统,放不下,要不要砍掉一些"
-- 禁用语言:"12×3 网格的物理上限是 4 个"
-- 涉及决策点时,直接给用户**可操作的选项**,不解释为什么有这个约束
-- 给用户的选项**绝不能出现** `[{...}]`、json、string list 这种代码符号
-- 默认假设用户对 skill 是陌生的,需要引导他合作补全画像,不要默认他知道自己要干嘛
-
-### 约束 5:证据必须全量,不能举例
-
-- 合并阶段每个聚合观点输出 `evidence_quotes`,**mentioned_by 里每一位都要有对应原话**
-- 渲染层 hover 把所有原话都列出,不挑代表
-- 这点直接关系 UXR 的可信度:UXR 要能看到原始数据,不是模型的二手归纳
-- toC 画像虽然内容简洁,但所有原始证据照样全量存储,渲染时通过 hover 可查看
-
-**2026-05-28 加固:per-component 证据绑定(不允许复用 quotes[0])**
-
-真实失败:DevOps 报告 5 个画像的工作职责环图(3 个 ring)、典型场景卡(3 个 scene)、痛点列表全部 hover 同一句话「我买了机器,我在这里应该是直接能看到的,现在却要手工去录」,7/10 处复用同一证据。根因:`build_report.py` 把所有 `evidence_quotes` 统一取 `p["quotes"][0]`。
-
-硬规则:
-- 每个 ring / scene / painpoint 必须用 **自己模块对应的原话** 作为 evidence,禁止全部复用画像的 `quotes[0]`
-- 若某模块确无证据,宁可 `evidence_quotes: []`(hover 不出现),也不要复用别人的
-- 同一原话**同时支撑两个观点**时可保留(validator WARNING 提示核对),复用 ≥3 次直接 ERROR
-- validator P9-DUPLICATE-EVIDENCE 守门(`scripts/validate_html.py`)
-
-### 约束 6:维度边界严格 + 维度歧义主动澄清
-
-**(a) 字段不混杂维度:**
-- 同一字段只放一个维度的信息
-- `role` 只放岗位通称("调度员"),不放工作内容("倒班 / 副值")
-- `knowledge_background.tools` 放通用工具能力(Python/Excel),不放业务系统(那是 `business_systems` 字段的事)
-
-**(b) 用户说"维度"时,必须根据上下文判断**:
-
-skill 里有两个核心概念都可能被用户简称为"维度":
-- **画像分类依据**:把受访者分成几群的依据(岗位 / 技能水平 / 生活方式)
-- **画像字段**:每个画像里展示什么信息块(职责 / 痛点 / KPI)
-
-当用户说"维度"时:
-- 在讨论"怎么把人分成几类" → 维度 = 画像分类依据
-- 在讨论"画像里展示什么内容" → 维度 = 画像字段
-- 判断不出来 → **主动反问**:"你说的是分类依据(怎么分群),还是画像字段(每个画像里展示什么)?"
-
-模型自己输出时,**始终使用全称**「画像分类依据」「画像字段」,不要用"维度"。
-
-### 约束 7:LLM 只产 components JSON,不直接产 HTML(P8 组件化,2026-05-25 升级)
-
-**P8 起,LLM 的最终产出是 `过程稿/05-report.json`(符合 `scripts/components/schemas/report.json` 的 components JSON),不是 HTML 字符串**。所有 HTML 由 `scripts/components/render_report.py` 拼装。
-
-**硬规则**:
-
-1. **不允许直接产 HTML**:不能在 chat 里 `cat <<EOF > report.html`、不能用 Edit 工具改 `report.html`、不能 string replace `_base.html` 的 `{{main_content}}`。这些底层操作由 Python 渲染层负责。
-2. **必须选 layout**,从下面 **8 个** 里选,**不准自创**:
-   - `layout-2b-grid` (toB/toD 单画像单页)
-   - `layout-2b-grid-detail` (**P8 新增** — toB/toD 双页第二页;**LLM 不主动选**,由 layout solver 自动拆出来)
-   - `layout-2b-journey` (toB/toD 用户旅程图,L1 全角色汇总 + L2 单角色,用 `is-l1`/`is-l2` 修饰类区分)
-   - `layout-2c-portrait` (toC 单画像主页)
-   - `layout-2c-detail` (toC 专题详情页)
-   - `layout-2c-journey` (toC 用户旅程图)
-   - `layout-matrix-2d` (R4 2D 矩阵)
-   - `layout-distribution-multi` (R5 多变量分布)
-3. **只能从 24 个组件 type 里挑**,**不准自创**。完整清单见 `scripts/components/REGISTRY.md` §9.2（以 `schemas/report.json` enum 为准）。每个组件的 props 字段必须严格匹配 `scripts/components/schemas/<type>.json`。
-4. **不写 grid 坐标 / SVG path / inline style**:`grid-column`、`grid-row`、`d="M ..."`、`style="--label-dx:..."` 这种几何参数全部由 Python 渲染层算,LLM 不接触。
-5. **由 Python 自动执行的底层约束(LLM 不操心)**:CSS 随包(`_design-tokens.css` + `_components.css`)、design tokens 强制、`_base.html` slot 填充、`grid_solver` 自动布局、双页 density 自动切 mid、nav-pair / nav-trio 按 id 自动配对。
-
-**正确流程**:
-
-```
-LLM 决策 → 05-report.json(layout + components + props)
-         ↓
-   validate_components_json.py(事前 schema 校验,拦坏 JSON)
-         ↓
-   render_report.py(Python 拼装 HTML + CSS 随包 + 体检)
-         ↓
-   report.html
-```
-
-**违反的样子**:
-
-- 直接在 chat 里写 `<section class="persona-slide">...</section>` 当作交付物
-- 给 schema 之外的字段(如自创 `dx` / `dy` / `style` 字段)
-- 选 `layout-custom` 这种 schema enum 之外的 layout 名
-- 在 components 数组里塞 `{"type": "my_custom_card"}` 这种 24 type 之外的类型
-
-**正确做法**:
-
-- 修改源数据(`过程稿/05-report.json`),重跑 `python scripts/components/render_report.py --input <input.json> --output report.html`
-- 如果觉得现有组件不够表达,**反馈到字段对齐阶段砍/换字段**,不要自创组件
-
-> **历史背景**:P7 之前 LLM 直接产 HTML,弱模型(DeepSeek v4Flash 等)反复在 token 名 / class 名 / 结构上"自由发挥",每次测试都触发新视觉问题。P8 起 LLM 产出范围严格收窄到 components JSON,从根因切断同类问题。
-
-### 约束 8:受访者信息脱敏(最强约束 · P0 · 交付硬门禁)
-
-**优先级与九条硬约束并列最高**。任何用户可见的交付物(HTML 正文、hover、矩阵标签、画像段卡、代表人群、旅程页)**禁止出现访谈真名**(如 `刘宇`、`刘军`、完整文件名主干)。
-
-**允许**:
-
-- 脱敏显示名:`张*（大专学生）`、`黄医生`、`米同学`、`黄先生`、`U1`
-- 画像类型名:`实用跟进派`(聚合角色,不是真人姓名)
-- `evidence_quotes[].quote` 内可保留受访者**自己说出的原话**,但同行的 `source` 仍须脱敏
-
-**禁止**(出现即 ERROR,`privacy_guard` + `validate_html` 阻断交付):
-
-- 正文/摘要/代表人群中用真名对比多人(如「刘宇…刘军…」)
-- `display_name` / `source` / 矩阵标签为裸 `XX` 两字名
-- `受访者1`、`U1_黄捷` 等内部代号或「代号_真名」
-- 从 `processed/刘宇.txt` 文件名原样写入报告
-
-**内部 vs 展示**:
-
-| 位置 | 可否保留真名 |
-|------|----------------|
-| `processed/`、`extracted/`、`04-personas.json` 内部映射 | 可以(仅排查) |
-| `05-report.json` 与 `report.html` 一切用户可见字段 | **禁止** |
-
-**流程硬要求**:
-
-1. 预处理完成后执行 `python scripts/privacy_guard.py --workdir <过程稿> --report /dev/null` 仅写缓存,或调用 `write_forbidden_names_cache` 生成 `.privacy_forbidden_names.json`
-2. 写 `05-report.json` 前:合并/归纳正文用「部分受访者」「该类型用户」「条件买家 A」等指代,**不得**用真名区分个体
-3. 渲染前:`validate_components_json.py --workdir <过程稿> 05-report.json` 与 `validate_html.py --project-dir <项目目录> report.html` 必须通过 **P0-PRIVACY** 检查
-
-脱敏显示名生成规则(与旧版一致):
-
-1. 有明确职业或身份 → `姓氏 + 身份`(张医生)
-2. 有姓氏身份不稳 → `姓氏 + 先生/女士`
-3. 仅有姓名 → `姓氏 + *`
-4. 无姓氏 → `U1`、`U2`
-
-若检出真名:回到抽取/合并/写 `05-report.json` 阶段改写,**不得**在 HTML 里手工替换蒙混过关。
-
-### 约束 14:toB/toD 多角色「整体旅程(L1)」须先做组织同构判定(2026-05-28)
-
-**适用范围**:toB/toD 报告 + **画像数 ≥ 2** + 用户确认需要旅程页(`add_on_pages.journey = true`)。
-
-**核心规则(L1 是否允许)**:
-
-| 组织关系 | 模型判定 | 是否允许 L1「整体旅程 / 多角色旅程图」 | 若用户要旅程,允许什么 |
-|---------|---------|--------------------------------------|----------------------|
-| **同组织协作** | 多角色在同一企业/同一产品平台/同一交付链路内分工,访谈中有**交接、协同、共同阶段** | **允许** | `journey_scope = L1_and_L2`(L1 总览 + 可选每角色 L2) |
-| **完全独立** | 不同组织、平行买方类型、无共同工作流/无跨角色交接 | **禁止** | 仅 `journey_scope = L2_only`(每角色各 1 页 L2)或 `journey = false` |
-| **不确定** | 证据互相矛盾或访谈未涉及组织边界 | **不得默认** | **必须先问用户**,问清后再写 `03-field-alignment.json` |
-
-**同组织的常见信号**(满足多条即可倾向 same_org,仍须在字段对齐阶段向用户说明):
-- 同一公司/部门/项目/产品名(如 DevOps 平台、CodeArts)
-- `collaboration` 字段里角色互为上下游
-- 逐字稿出现「交给 XX 角色」「等测试完再发布」类交接
-- 能归纳出**跨角色共享的阶段链**(需求→开发→测试→发布→运维)
-
-**完全独立的常见信号**:
-- 受访者来自不同企业/行业,彼此 workflow 无交集
-- 画像是「不同类型客户」而非「同一组织内岗位」
-- 无法从访谈归纳共同阶段,只能各写各的流程
-
-**流程时点(前后一致,禁止后置才出现)**:
-
-1. **范式确认后(Step 2 前)** — 若已识别为 toB/toD 多角色,用**一句话预告**组织关系初判(不替用户拍板 L1):
-   > "这几个角色看起来都在同一套 [产品/组织] 里协作 / 看起来是彼此独立的不同用户 — 如果后面加旅程,我会据此判断要不要做「整体旅程」那一页;拿不准会先问你。"
-2. **字段对齐 Step 5(必做)** — 在写 `03-field-alignment.json` **之前**:
-   - 先给出模型的 `organizational_cohesion` 判定与理由(1-3 句,用人话)
-   - 再问用户要不要旅程页;toB 多角色且 `same_org` 时,说明**可以**做整体旅程 + 单角色旅程
-   - toB 多角色且 `independent` 时,说明**不做**整体旅程,若需要只能每角色各做一页
-   - `uncertain` 时**必须先问**「这些角色是否在同一组织/同一产品协作?」
-3. **生成 05-report.json 时** — 严格读取 `add_on_pages.journey_scope`:
-   - `L1_and_L2` → 输出 `id=journey-l1` + 可选 `persona-N-journey`
-   - `L2_only` → **禁止**输出 `journey-l1`;仅输出各 `persona-N-journey`
-   - `journey=false` → 禁止任何 journey slide
-
-**JSON 必填( toB/toD 且画像数 ≥ 2 )**:
-
-```json
-"add_on_pages": {
-  "journey": true,
-  "journey_scope": "L1_and_L2",
-  "journey_l1_eligible": true,
-  "organizational_cohesion": "same_org",
-  "journey_l1_reason": "五角色均围绕 DevOps 平台分工,访谈有需求→测试→发布→运维交接",
-  "journey_reason": "用户希望看跨角色协同链路"
-}
-```
-
-`journey_scope` 枚举:`L1_and_L2` | `L2_only` | `none`(当 `journey=false` 时写 `none`)。
-
-**禁止**:
-- 仅因「多角色 + 研究目标提到流程/协同」就**静默**加 L1(旧规则已废弃,见 `steps/visual-system.md` Step C 修订)
-- 字段对齐写 `journey_l1_eligible: false` 却在 `05-report.json` 偷偷加 `journey-l1`
-- 范式阶段承诺「会做整体旅程」,字段对齐却不记录 L1 判定(前后矛盾)
-- 用 `build_dense_l1` 类模板**凑节点密度**代替访谈驱动的跨角色 UML(见 DevOps 真实失败)
-
-详细话术与问法见 `steps/field-alignment.md` Step 5.1。
-
-### 约束 15:用户视觉素材必问(头像 + 典型场景截图,2B/2C 一致)
-
-**禁止** skill 全程不向用户询问图片素材。必须在以下三处**同一套规则**执行(详见 `steps/visual-assets.md`):
-
-| 检查点 | 时机 | 动作 |
-|--------|------|------|
-| A | 字段对齐 Step 5.0,写 `03-field-alignment.json` 前 | 主动问头像 + 典型场景截图;启用旅程时再问旅程截图 |
-| B | 写 `05-report.json` / 调 `render_report.py` 前 | 扫描两目录,用户说过要补但未放 → 再次提醒;新文件未映射 → 列出文件名请确认 |
-| C | 渲染交付后 | 说明哪些用了用户自定义图、哪些用了 skill 默认库 `assets/default-avatars/`、哪些仍是占位、如何补图重跑 |
-
-**两类目录**:
-- `<项目运行目录>/画像头像素材/` — 用户自定义头像(同名覆盖默认库)
-- skill 内置 `assets/default-avatars/` — 未提供自定义头像时,按 `<画像中文名>.png` 自动匹配(约 14 张示例半身像)
-- `界面截图/` — 典型业务场景(2B `scenario_grid`,2C `mockup_list` 等) + 可选旅程关注点截图
-
-`03-field-alignment.json` 的 `visual_assets.assets_asked` 必须为 `true` 才能进入抽取。用户明确不要某类图时记 `*_enabled: false`,但**仍须问过**。
-
-### 约束 10:2C HiRes 真实回归样式锁定
-
-本约束来自 2026-05-20 HiRes 音乐专区真实失败。后续 2C R4/R5 报告必须把下面内容当成硬检查,不能只当建议:
-
-- 多画像 + 各自旅程页的 tab 必须用组合页签 `.nav-pair`:左侧是画像名,右侧小段固定写 `› 旅程`;禁止输出两个同等胶囊按钮,如 `内行深听派` 和 `内行深听派旅程`
-- 2D 矩阵象限标签必须用 `<button class="matrix-quadrant-label" data-target="persona-N">`,禁止用无语义的 `<div>`
-- 每个受访者点位必须同时有三角点 `.matrix-respondent-dot`、脱敏标签 `.respondent-label`、标签方向类 `label-right|label-left|label-top|label-bottom|label-top-right|label-bottom-right`
-- 同一象限有 2 人及以上时,标签方向必须轮换,不能都放在点位右侧
-- hover 的 `data-evidence` 必须含脱敏显示名、身份、对应用户类型和至少一条用户原声
-- 矩阵和画像页的用户类型名最多 5 个汉字,能一眼看懂,禁止“价值直觉型深度”这类抽象堆词
-### 约束 12:交付前必须跑双层校验(P7 体检 + P8 事前 schema)
-
-**P7 (2026-05-21) 引入 HTML validator;P8 (2026-05-25) 升级为双层**:
-
-```
-事前:scripts/validate_components_json.py --workdir <过程稿>  ← P8 + P0-PRIVACY
-                  ↓
-事中:render_report.py                       ← 渲染时挡 layout / type 不在白名单
-                  ↓
-事后:scripts/validate_html.py               ← P7,体检产物 HTML
-```
-
-P8 起 LLM 不直接接触 `validate_html.py` 的输出,**由 `render_report.py` 自动跑**。流程:
-
-```bash
-# 一条命令搞定校验 + 渲染 + 体检 + 头像随包
-python scripts/components/render_report.py \
-    --input "<过程稿/05-report.json>" \
-    --output "<最终交付件目录>/report.html" \
-    --project-dir "<项目运行目录>"
-```
-
-`--project-dir` 指向含 `过程稿/` 与可选 `画像头像素材/` 的项目运行目录;未指定时会尝试从 `--output` 路径推断。头像解析:用户目录 → `assets/default-avatars/` → 占位;实际用到的 png 会复制进交付件 `assets/画像头像素材/`。
-
-**硬规则**:
-
-1. 事前校验失败(`validate_components_json` 报 ERROR)→ `render_report.py` 直接 raise,**回去改 05-report.json**。不要改 HTML。
-2. 事后体检 ERROR(`validate_html` 报 ERROR)→ 检查是否是 renderer / CSS bug 而非数据问题;若是数据问题,**回去改 05-report.json**;若是渲染层 bug,**改 renderer 不改 HTML**。
-3. WARNING 给用户看,由用户决定。
-
-**模型不允许说**:
-
-- "validator 报的 WARNING 不影响最终效果,我跳过了" → 不行,WARNING 也要告诉用户
-- "ERROR 是验证脚本的问题,实际渲染没问题" → 不行,先验证 validator 自己是否有 bug;有 bug 改 validator,没 bug 改 05-report.json 或 renderer
-
-**真实回归(P7-P8 累积命中过的失败 code)**:
-
-- `P0-ILLEGAL-LAYOUT` — 出现 layout 白名单外的类名
-- `P5-NO-NAV-FOR-JOURNEY` — nav button 缺 `data-target` 切不动 slide
-- `P7-MISSING-SCRIPT` — _base.html script 块漏掉,hover 气泡消失
-- `P7-BANNED-COLLAB-LABEL` — 协作字段写"上游/核心/下游"
-- `P7-FLOW-CELL-NO-KEY` — `.flow-cell` 缺 `data-field-key`
-- `P8-COMPONENT-PROPS` — 组件 props 字段不符合 schema(P8 事前校验)
-- `P8-UNKNOWN-COMPONENT` — 用了 24 type 之外的类型名
-
-### 约束 13:LLM 不输出 SVG path、不输出 Unicode emoji 字符(P8 新增)
-
-**P8 起,所有几何参数和 emoji 字符由 Python 渲染层负责**:
-
-1. **不写 SVG path 字符串**:`<path d="M 0 40 Q 100 10 ...">` 这种由 `renderers/journey_2c.py`、`renderers/matrix.py`、`renderers/distribution.py` 按算法计算。LLM 给的是抽象语义(`level: "high" | "middle" | "low"`、`x: 80, y: 20`),Python 把它们映射成保证不超 viewBox 的 SVG 坐标。
-2. **不写 Unicode emoji 字符**:`🙂` `😕` `🎧` 这种由 `assets/icons/emoji/<name>.png` 内置图片库提供,LLM 只给 33 个语义名之一(`smile` / `confused` / `headphone` ...,完整清单见 REGISTRY §6.3)。这从根因切断「弱模型 emoji 映射不统一」「Codex 没 emoji 能力」两个问题。
-3. **不写 inline `--label-dx` / `--label-dy` 这类几何 var**:矩阵受访者标签方向 7 选 1(`label-right` / `label-left` / `label-top` ...)由 Python 算法自动避让,LLM 完全不接触。
-
-**违反的样子**:
-
-- 在 `journey_2c.emotion` props 里给 `path_d: "M 0 ..."` 这种字段
-- 在 `emotion[i].emoji` 里填字面字符 `"🙂"` 而非语义名 `"smile"`
-- 在 `matrix_2d.respondents[i]` 里给 `label_direction: "label-right"` 或 `dx: 18`(只应给 `x` / `y` 让算法选方向)
-
-### 约束 11:2C 多画像旅程禁止复用
-
-如果 toC 报告包含多个用户类型和各自旅程页,每个旅程页必须基于该用户类型自己的受访者和证据生成。阶段名称可以共用,正文内容不能复制。
-
-硬性失败条件:
-- `persona-1-journey`、`persona-2-journey`、`persona-3-journey` 去掉标题后正文相同
-- 3 个旅程页使用同一组思考、行为、触点、痛点、机会点和情绪标签
-- 渲染函数使用一个全局 `journey` 或全局 `rows_data` 生成所有画像旅程
-
-正确做法:
-- 每个 persona 都先产出自己的 `journey` 数据
-- 再把 `persona.journey` 渲染为 `layout-2c-journey`
-- 交付前用文本相似度检查,任意两页正文相似度超过 70% 就回到旅程分析阶段
-
-### 约束 9:最终报告文本必须做中文展示清洗
-
-报告正文、tab、矩阵、旅程图、tooltip、画像标题都必须使用中文标点。英文缩写如 UX、API、Hi-Res 可保留,但周围标点要中文化。
-
-- 英文逗号 `,` → 中文逗号 `，`
-- 英文问号 `?` → 中文问号 `？`
-- 英文冒号 `:` → 中文冒号 `：`
-- 英文分号 `;` → 中文分号 `；`
-- 英文括号用于中文句子时 → 中文括号 `（）`
-- 多个观点不要用英文分号挤在一行,改为中文分号、换行或分块
-
-**违反的典型例子**(P0 测试暴露,真实发生过):
-
-```html
-<!-- ❌ 错:凭空写新视觉系统 -->
-<style>
-  :root { --bg: #0f1729; --accent: #4f8cff; }
-  body { background: var(--bg); }
-  .persona-page { ... }
-  .identity-card { ... }
-  .main-grid { ... }
-</style>
-<div class="persona-page">...</div>
-```
-
-```html
-<!-- ✓ 对:link 骨架 + 用现有 layout 类 + 用 token -->
-<html data-theme="2b" data-density="high">
-<head>
-  <link rel="stylesheet" href="_design-tokens.css">
-  <link rel="stylesheet" href="_components.css">
-  <title>电力调度员画像</title>
-</head>
-<body>
-  <section class="persona-slide layout-2b-grid active" id="persona-1">
-    <div class="identity-panel">...</div>
-    <div class="modules-panel">...</div>
-  </section>
-</body>
-</html>
-```
-
-**渲染前必读**:`steps/visual-system.md`(完整执行手册)+ `assets/templates/_base.html`(slot 规范)。**不读这两份就开始渲染 = 违反硬约束 7**。
-
----
-
-## ★ 命名规范(给模型,不给用户)
-
-skill 内部讨论时严格使用这两个术语:
-
-- **画像分类依据**(persona segmentation basis):把受访者分成几群的依据
-- **画像字段**(persona fields):每个画像里展示的信息块
-
-**禁止使用**的容易混淆的词:
-- "维度"(单独使用,会和上述两个概念都重叠)
-- "类别变量"、"分群维度"(不一致的别名)
-
-**画像分类依据下面可以有子层**:一个分类依据可以包含 1~N 个**价值变量**(value variables)。例:分类依据是"用户使用笔记软件的方式",下面可能有 4 个价值变量:基本特征 / 记录习惯 / 使用深度 / 软件期待。这一层叫"价值变量",不会和"字段"混淆。
-
----
-
-## ★ 模型与人的职责边界(每一步都看这张表)
-
-**这是贯穿全流程的红线表 — 任何标"用户拍板"的步骤,模型不能自己决定**。
-
-| 步骤 | 自动化程度 | 谁拍板 |
-|------|----------|-------|
-| 文件预处理 | 全自动 | 脚本 |
-| 单文档抽取 | 全自动 | 模型(单调用) |
-| 多份合并 | 全自动 | 模型(map-reduce) |
-| **研究目标对齐** | **强制人机协同** | **用户拍板** |
-| **范式选择** | 模型推荐 + 用户拍板 | **用户拍板** |
-| **分类依据确认(R3)** | 模型推荐 + 用户拍板 | **用户拍板** |
-| **区分点选择(R4/R5)** | 模型推荐 + 用户拍板 | **用户拍板** |
-| **区分点档位划分(R4/R5)** | 模型推荐 + 用户拍板 | **用户拍板** |
-| **受访者映射(R4/R5)** | 模型映射 + **显性化展示让用户确认** | **用户拍板** |
-| **聚类成画像(R4/R5)** | 模型推荐 + 用户拍板 | **用户拍板** |
-| 画像字段选择 | 模型推荐 + 用户拍板 | **用户拍板** |
-| **是否加旅程页**(toB/toD 多角色 / toC 多画像) | 模型推荐 + 用户拍板 | **用户拍板** |
-| **toB/toD 多角色 L1 是否允许**(组织同构判定) | 模型判定;不确定则问 | **不确定时用户拍板** |
-| 字段填充 | 全自动 | 模型(map-reduce) |
-| 校验 | 全自动 | 脚本 |
-| 渲染 | 全自动 | 脚本 + 模型(布局判定) |
-
----
-
-## 报告读者画像
-
-**报告读者**:UX 研究员 / 设计师 / 产品经理(都熟悉用研术语,按熟练读者水平写,不需要解释 persona / journey / VoC 这种基础概念)。
-
----
-
-## 输出语言规范
-
-### 中文报告展示清洗
-
-生成最终 HTML 前必须过一遍展示文本清洗:
-
-- 画像名、tab、矩阵轴标签、象限标签、旅程单元格、正文、tooltip source 都要使用中文标点
-- 英文缩写保留,例如 Hi-Res、UX、API,但句子里的逗号、问号、冒号、括号改中文
-- 不把多个点用英文分号挤在一行;超过 2 个点就换行或拆成多个卡片
-- 受访者姓名只在内部证据里保留,展示层使用脱敏名
-
-- **可以直接用英文**:已成共识的缩写和术语 — persona、UX、KPI、UI、PPT、HTML、JSON、API、MVP、ROI、SaaS、ToB、ToC
-- **必须用中文**:有现成中文且中文不歧义的英文 — dimension(写「维度」)、voice of customer(写「受访者原话」或「VoC」并解释一次)、demand source(写「需求来源」)
-- **绝对避免**:中英混杂表达同一意思 — 例如「这个 painpoint 比较突出」要写「这个痛点比较突出」
-- **报告里展示给最终用户的字段名,绝不能出现英文/混拼**。自定义字段必须问中文显示名
-
----
-
-## 输入与产出
-
-**输入**:用户上传的访谈逐字稿,可能是 `.docx` / `.txt` / `.xlsx` / `.json`,数量从 1 份到几十份不等。
-
-**最终产出**:
-1. `最终交付件-<对象类型>-<项目名>-<样本数>用户-<构建方式>/report.html` — 交互式仪表盘,可切换多画像,点击模块展开 VoC 原文证据
-2. `report.pptx` — 静态版、保留核心字段、用于汇报(后续版本支持)
-
----
-
-## ★ skill 启动流程(模型必须按这个顺序走)
-
-### Step 0:不要直接开干,先做三件事
-
-skill 一启动,模型**严禁直接问用户"你想要什么"**。必须先:
-
-1. **扫一眼用户上传的文件**:数量、文件名、文件夹结构、随便读 1-2 份开头 50-100 字
-2. **形成自己的初判**(基于约束 1,初判**仅限于流程性判断**,不涉及内容侧重点):
-   - 这是 toB/toD 还是 toC?
-   - 文件组织程度如何?(文件夹分组 / 文件名带角色前缀 / 完全平铺)
-   - 倾向走哪条范式?(R1~R5,见下)
-3. **带着初判先告知工作目录,再问研究目标,最后解释并确认范式**
-
-### Step 1:用户对话(必带三问 + 初判)
-
-skill 入口的标准话术。**重要**:模型在 toB/toD 和 toC 场景下,能给出的初判精度不同。入口必须先让用户知道工作目录用途,再问研究目标三问,再解释 5 种构建方式。
-
-```
-我看了你上传的 X 份文件,大致的判断是:这是一个 [toB/toD / toC] 研究。
-[基于内容的一句话理由,如"受访者都在谈工作场景"或"受访者在谈购买和使用"]
-
-我会在当前操作目录下创建高层目录 `用户画像报告输出/`,并为本项目自动新建一个项目运行目录 `<项目名>-<日期时间>/`。这个项目运行目录里会有 `过程稿/`、`画像头像素材/`、`界面截图/` 和 `最终交付件-<对象类型>-<项目名>-<样本数>用户-<构建方式>/`。后面如果中断或换模型,保留该项目运行目录就能接着跑;对外发送时只复制 `最终交付件-*`。
-
-字段对齐阶段我会**主动问你**两类图片(2B/2C 一样):
-· **画像头像(自定义)** → `<项目运行目录>/画像头像素材/`(建议 `<画像中文名>.png`;同名会覆盖默认库)
-· **画像头像(默认库)** → 你不单独提供时,skill 按画像名自动用 `assets/default-avatars/` 里的示例半身像;只有匹配不到才用占位
-· **典型场景界面截图** → `<项目运行目录>/界面截图/`(业务系统/产品界面/专题详情用图;放好后我会请你确认每张对应哪个场景)
-若加旅程页,还会问旅程关注点要不要配图(同一 `界面截图/` 目录)。
-
-在开始之前,我需要先确认两件事。先确认研究目标,再看你适合哪种画像构建方式。
-
-(一)研究目标 —— 这个决定后面所有的侧重点
-  1. 这份画像报告主要给谁看?
-  2. 它要回答什么问题?
-  3. 它要支持什么决策?
-
-(二)画像构建方式 —— 下面 5 种是这套 skill 支持的做法,第一次出现时必须逐条解释
-
-  【方式 A】这批人是同一种角色(比如都是产品经理 / 都是宝妈)
-            → 全部合并出 1 份画像
-  【方式 B】已经把不同角色的访谈分文件夹/在文件名里分好了
-            → 每组出 1 份画像
-  【方式 C】这批人是不同角色,但文件没分好,你心里有按什么分的想法
-            → 我和你确认按什么分(岗位 / 技能水平 / 生活方式...),再分组
-  【方式 D】想从访谈分出几类用户,你心里有两个最关键的区分点
-            (比如年龄 vs 收入、专业度 vs 价格敏感度)
-            → 画一张坐标图,每个象限对应一类画像
-  【方式 E】想从访谈分出几类用户,区分点有三到五个
-            → 画一张多维分布图,像把几类用户放在同一张表里横向比较;每类用户在每个区分点上都有自己的位置
-```
-
-**对话连贯性硬规则**:
-- 只有在本轮消息里已经完整问过的问题,才能要求用户回复。不能突然说"看起来选择没有提交"。
-- 如果上一轮只问了研究目标,下一轮只能承接研究目标,再介绍构建方式;不能要求用户补一个自己从未看到过的 A/B/C/D/E 选择。
-- 当 A/B/C/D/E 首次出现时,必须附上解释和产出样貌,不能只写字母。
-- toC 场景在研究目标三问完成后,必须进入“路线选择等待态”:先把方式 A/B/C/D/E 用用户能听懂的话完整列出,再请用户选择。用户没有明确选择前,不能进入 Step 2,不能运行分类、聚类、字段对齐、抽取合并或渲染。
-- 禁止把研究目标中的“原因”“影响因素”“改版方向”自动解释成方式 D 或方式 E。研究目标只能帮助解释路线差异,不能替用户选择路线。
-
-**分类词显性确认硬规则**:
-- 只要流程需要用户确认分类依据、区分点或分组方式,模型必须同时显性展示并确认最终会出现在报告里的分类词。
-- 方式 C:必须展示每个类别名、类别解释、包含哪些受访者。用户确认类别名后才能写入 `groups[].name`。
-- 方式 D:必须展示两个区分点的每个档位名和含义。用户确认档位名后才能写入 `value_variables[].levels[].name`。
-- 方式 E:必须展示 3 到 5 个区分点的每个档位名和含义。用户确认档位名后才能写入 `value_variables[].levels[].name`。
-- 如果用户说“这个词不太好”“换个说法”“这个名字别扭”,模型必须先给 2 到 4 个替代命名让用户选,不能继续后续分类、聚类、画像合并或渲染。
-- `01-paradigm.json` 或 `02-classification.json` 必须记录 `label_confirmed: true`。没有这个字段时,不能进入画像合并和最终渲染。
-
-**初判逻辑分两种场景**:
-
-**toB/toD 场景** — 模型可以基于文件结构给出方式初判(A/B/C 为**常见建议**,不排斥 D/E):
-
-| 文件结构 / 用户选择 | 初判 | 模型话术 |
-|---------|------|---------|
-| 全部平铺,内容看是同一角色 | 方式 A | "你的研究是 toB/toD,方式 A/B/C 更常见。看文件平铺、内容都是同一岗位的工作场景,我倾向是【方式 A】(单角色合并)。这个对吗?" |
-| 文件夹分组 / 文件名带角色前缀 | 方式 B | "你的研究是 toB/toD,方式 A/B/C 更常见。文件已经按 [分组方式] 分好了,我倾向是【方式 B】(每组出 1 画像)。这个对吗?" |
-| 全部平铺,内容看是多角色 | 方式 C | "你的研究是 toB/toD,方式 A/B/C 更常见。看文件平铺但内容涉及多个岗位,我倾向是【方式 C】(需要和你确认按什么分类)。这个对吗?" |
-| 用户主动选方式 D | 方式 D | "toB 也支持 2 维矩阵:总览是坐标图(配色随 2B theme),四类画像仍走深蓝 2B 样式(`layout-2b-grid` + 可选 `tob_journey_l2`)。你确定用方式 D 吗?" |
-| 用户主动选方式 E | 方式 E | "toB 也支持多维分布:总览是分布图(配色随 2B theme),各类画像仍走 2B 样式。你确定用方式 E 吗?" |
-
-**禁止**写成「toB 不能用 D/E」;D/E 与 toC 一样可用,仅子页必须走 2B 组件族(见 §布局自动判断 主路由表)。
-
-**toC 场景** — 模型**不做方式初判**,只给真实可见的提示:
-
-| 文件结构 | 模型话术 |
-|---------|---------|
-| 文件平铺(toC 常态) | "你的研究是 toC,文件是平铺的,这在 toC 里很正常。toC 不能只凭文件结构判断构建方式。等你回答研究目标三问后,我会把 5 种方式逐条解释给你,再请你确认。" |
-| 文件分了文件夹(toC 少见) | "你的研究是 toC,你已经分了文件夹,这在 toC 里不太常见。等你回答研究目标三问后,我会先确认这些文件夹是不是正式分组,再把 5 种方式逐条解释给你。" |
-
-toC 在用户给出研究目标后,必须使用下面这段路线选择话术,然后停下等待用户回复:
+## 先执行这 18 条
+
+这些规则优先于后文和范式说明。每次启动、续跑、交接时都先读。
+
+参数小于 100B 的模型只调用 `scripts/workflow.py`，禁止自行组合内部脚本。每次只运行一个子命令：`status`、`prepare-04`、`journey-review`、`prepare-05`、`seal`、`check --auto-recover` 或 `recover`。
+
+1. 建好目录后的第一条用户可见消息必须原样发送 `init_run_dir.py` 返回的 `user_message`,显式告知本次工作目录和过程稿目录；并把路径写入 `00-research-goal.md/json`。
+2. 固定落盘 7 对检查点文件：`00`、`01`、`02`、`03`、`04-personas`、`04-journeys`、`05`。每个检查点必须同时有同名 `.md` 和 `.json`。
+3. 00 至 03 先写中文 MD 给用户确认，确认后固化 JSON。04 先写结构化草稿，再用 `workflow.py prepare-04` 生成中文 MD。05 先写 `05-report.draft.json`，再用 `workflow.py prepare-05` 生成只展示页面编排增量的中文 MD，用户确认后封存为 `05-report.json`。复杂 2B/2D 旅程按脚本提示运行四次 `journey-review`；简单 2C 和小型旅程一次确认。用户只需阅读中文语义，机器 ID、组件类型和枚举留在 JSON。
+4. 七个节点必须分别停下等待确认。单独的“继续”“开始”“渲染”不能确认任何节点内容。03 对是否生成 L1/L2 的回答只确认范围。用户说“不确认”“看不懂”“看得头晕”“直接继续”时，保持待确认，缩小范围或分层重排 MD。禁止把确认短语拼接到用户原话中。确认后运行 `workflow.py seal`。
+5. `02-classification` 对全部范式必交。R1/R2 写 `status: not_applicable` 和具体原因。
+6. 禁止跳步,禁止只产 `05-report.json`,禁止直接手写最终 HTML。
+7. 每次继续工作前先运行恢复检查,根据脚本给出的 `next_step` 续跑。
+8. `processed/` 和 `extracted/` 必须逐份对应,数量和文件主名都要一致。
+9. 渲染前必须通过检查点配对、字段对齐、组件 schema、HTML 合规四道门禁。公开渲染命令没有跳过校验参数。
+10. LLM 只生成结构化 JSON。HTML、SVG 几何和 CSS 由固定渲染器与模板生成。
+   `过程稿/` 只能保存数据文件。禁止创建自定义 Python、JavaScript、PowerShell、批处理或 HTML 构建器；禁止用 `[:N]` 等字符串切片拼装展示文案。
+11. 视觉实现以 `assets/templates/_visual-system.json` 为机器真源,以 `steps/visual-style-guide.md` 为人类可读规则。禁止自创布局、颜色和组件。
+12. 不得泄露受访者真实身份。证据要逐条可追溯,不得虚构、跨画像复用或用少量示例代替全量证据。
+13. 预处理后立即生成并审核 `source-manifest.json`。样本按内容哈希去重，只把 `unique_primary_interviews` 称为访谈数；补充材料和多画像分配不得增加访谈数或提及频次。
+14. 事实字段禁止推断。缺失统一写“材料未提及”。研究综合、用户补充和材料事实分别标为 `synthesis`、`user_context`、`primary/supplemental`。
+15. 归并数据保留全部相关真值。`04-personas.json` 用 `field_decisions` 明示完整展示、压缩或省略及信息损失，`display_components` 是用户确认后的画像正文唯一真值；05 的画像页和细节页只写 `content_ref`。旅程逐元素写证据绑定；术语审计表先编译为 `terminology-glossary.json`。
+16. 每个检查点结束只运行 `workflow.py check --target <当前节点> --auto-recover`。每个阻断必须同时返回恢复类型、官方恢复命令或安全降级路径。同一错误连续三次未解决，或错误总数连续三次没有下降时，生成恢复交付件并停止。错误数量持续下降视为有效进展。禁止在过程目录新增 `fix_*`、`sync_*`、`build_*` 临时脚本。
+17. 确认短语遵循“先交付，后请求”。只有当前检查点 MD 已生成、已落盘，并已在本轮对话中交付给用户审阅，才允许请求该检查点的确认短语。生成内容前只能说明当前正在处理什么，禁止预告“跑完后请回复确认……”；禁止提前介绍下一检查点及其确认话术。用户无需记住未来回复格式。
+18. 05 确认前必须运行完整渲染预检。`prepare-05` 一次返回全部上游硬错误；旅程证据、范式、归并快照、组件和 04/05 一致性未通过时，不生成 05 确认稿。渲染阶段只允许首次发现必须依赖真实 HTML 几何才能判断的视觉错误；失败时保留“预览-待修复”目录，禁止让任务无产物结束。机器可安全修复派生哈希和快照；涉及用户手改 MD、画像正文、旅程或证据的分叉必须保留两版并回到对应检查点，禁止自动覆盖。
+
+若任何一条不满足,停止渲染并修复当前检查点。
+
+开始任何范式前先读取 `steps/quality-contract.md`。九类质量标准适用于全部 R1-R5 分支，范式文件只能增加约束，不能降低该标准。
+随后读取 `steps/scenario-coverage.md`，只保留当前 research type 与当前范式这一条分支。
+每次执行和恢复还必须读取 `steps/recovery-workarounds.md`。门禁只负责发现问题，恢复文件规定如何继续、回退或安全交付。
+
+## 启动与恢复
+
+### 1. 建立工作目录
+
+在用户项目目录下建立：
 
 ```text
-我已经理解这次研究目标。下一步需要你选画像构建方式,因为 toC 不能由我自动替你决定路线。
-
-A. 合成 1 个典型用户画像:适合想要一个清晰代表人物,用于统一产品和设计理解。
-B. 按已有分组生成多画像:适合你已经按人群、场景、会员状态等分好组。
-C. 你指定分类依据后生成多画像:适合你心里有分类方向,但文件还没分好。
-D. 用 2 个关键区分点做坐标图:适合你最关心两个维度如何拉开人群差异。
-E. 用 3 到 5 个区分点做多维分布图:适合你想横向比较几类用户在多个维度上的差异。
-
-你选 A/B/C/D/E 哪一种? 如果不确定,我可以基于你的研究目标给建议,但仍需要你确认后再继续。
+<项目>/
+├── input/                 # 原始访谈,只读
+├── 过程稿/                # 用户对齐与系统续跑
+│   ├── 00-research-goal.md
+│   ├── 00-research-goal.json
+│   ├── 01-paradigm.md
+│   ├── 01-paradigm.json
+│   ├── 02-classification.md
+│   ├── 02-classification.json
+│   ├── 03-field-alignment.md
+│   ├── 03-field-alignment.json
+│   ├── 04-personas.md
+│   ├── 04-personas.json
+│   ├── 04-journeys.md
+│   ├── 04-journeys.json
+│   ├── 05-report.md
+│   ├── 05-report.json
+│   ├── source-manifest.json  # 去重、证据层级和三类计数
+│   ├── terminology-glossary.json # 存在术语审计表时必需
+│   ├── processed/
+│   ├── extracted/
+│   └── reduced/
+└── 交付件/                # report.html、CSS、头像等最终文件
 ```
 
-如果模型想给建议,只能这样表达:
+将 `templates/checkpoints/CHECKPOINTS.md` 复制到项目根目录，作为交接清单。
 
-```text
-基于你的目标,我建议优先考虑 [方式 X],理由是 [...];但这一步需要你确认。你要选 X,还是想看其他方式?
+### 2. 每次启动先恢复检查
+
+```powershell
+python scripts/workflow.py --workdir <项目目录> status
 ```
 
-禁止输出这类直接推进话术:
+只执行输出中的 `next_step`。若脚本报告缺 MD、缺 JSON、JSON 无效、配对失败、只有最终报告、数量不一致或主名不一致,先修复该异常。
 
-```text
-我会按多区分点方式跑测试。
-我接下来会直接进入坐标图/多维分布图。
-基于这个目标,我会自动选择方式 E。
+### 3. 每步都运行单节点门禁
+
+```powershell
+python scripts/workflow.py --workdir <过程稿目录> check --target <当前节点> --auto-recover
 ```
 
-**关键约束**:
-- toC 场景下,**模型不能凭文件结构猜 A/B/C/D/E 的字母**,这是研究员的方法论选择,不在文件结构里
-- 用户语境下**绝不使用** R1/R2/R3/R4/R5 这种代号
-- 用户语境下**绝不使用**旧的内部图名、"矩阵聚类""价值变量"这种内部术语,用"坐标图""区分点""多维分布图"这类人话。必须解释:"多维分布图就是把几类用户放在同一张图里,横向比较他们在 3-5 个区分点上的差异。"
+单节点门禁允许未来检查点尚未生成，不允许已出现的检查点存在空洞。只执行 `next_action`，不得同时修复其他错误。连续三次返回 `stopped_repeated_failure` 时停止自动修改。
 
-**旅程确认规则(2026-05-28 扩展到 toC;2026-05-28 加固 toB L1 组织同构判定,见约束 14)**:
+完整状态机、状态字段和恢复规则见 `steps/checkpoint-workflow.md`。执行任何检查点前必须读取该文件。
 
-**A. 通用:是否加旅程页(所有 toB/toD 多角色、toC 多画像必问)**
+## 00 到 05 的固定流程
 
-- 在 `steps/field-alignment.md` Step 5 **写 JSON 之前**完成,禁止静默补页。
-- 用户确认需要 → `add_on_pages.journey = true`;不需要 → `false`。
+| 节点 | 先写 MD 供用户确认 | 确认后写 JSON | 必须读取 |
+|---|---|---|---|
+| 00 研究目标 | 读者、核心问题、决策用途、范围 | `status: confirmed` | `steps/research-goal.md` |
+| 01 范式选择 | 2B/2C、R1 到 R5、判断依据 | `status: confirmed` | 下方范式路由 |
+| 02 分类依据 | 分类维度、边界、反例；R1/R2 写不适用原因 | `confirmed` 或 `not_applicable` | 对应范式文件 |
+| 03 字段对齐 | 字段池、纳入/排除、视觉选择 | `user_confirmed: true` | `steps/field-alignment.md`、`steps/visual-assets.md` |
+| 04 画像合并 | 官方脚本生成的中文画像全文 | 草稿 JSON 经确认后封存为 `status: confirmed` | `steps/extract-merge.md` |
+| 04 用户旅程 | 中文全局图、角色 × 阶段矩阵、单旅程细节、分支与证据缺口 | 草稿 JSON 经确认后封存；无旅程写 `not_applicable` | `steps/journey-alignment.md` |
+| 05 最终页面编排 | 只展示相对 03/04 新增的页数、详情页、内容分配和信息损失 | 草稿经确认后封存为 `05-report.json` | `steps/render-persona-page.md`、`steps/visual-style-guide.md` |
 
-**B. toB/toD 多角色:是否加 L1「整体旅程」(约束 14,与 A 同一步完成)**
+每一步严格执行：
 
-- **先**判定 `organizational_cohesion`(同组织 / 完全独立 / 不确定),**再**问旅程。
-- **同组织** → 可向用户推荐 L1+L2;用户同意后 `journey_scope = L1_and_L2`,`journey_l1_eligible = true`。
-- **完全独立** → **不得**推荐 L1;若用户要旅程,仅 `journey_scope = L2_only`,`journey_l1_eligible = false`。
-- **不确定** → 必须先问用户组织关系,不得默认 L1。
+1. 读取上一检查点 JSON 和本步说明。
+2. 生成本步中文 MD，明确列出待确认项。04 必须先写结构化草稿 JSON，再由官方脚本生成 MD；05 必须先写 `05-report.draft.json`，再运行 `workflow.py prepare-05`，禁止提前写最终 JSON。
+3. 在本轮对话中交付当前 MD 的路径和可审阅正文，然后才显示该 MD 内已经写明的当前确认短语。停止并等待用户明确确认或修改。
+4. 把用户原话逐字写入本步 JSON。不得补写、拼接或改写确认短语。
+5. 运行本步 schema 或校验脚本。
+6. 运行渐进配对门禁。
+7. 门禁通过后进入下一步。
 
-推荐话术(toB 同组织):
+用户说“按推荐来”时,仍需在 MD 中写出具体推荐及后果,再让用户确认该具体方案。
 
-> "这几个角色都在 [同一产品/组织] 里协作,如果加旅程,我建议做 1 页「整体旅程」看跨角色交接,再加每个角色各自的旅程页。你要加吗?"
+预处理完成后、开始抽取前执行：
 
-推荐话术(toB 完全独立):
-
-> "这几个角色看起来是彼此独立的不同用户,没有共同组织内工作流 — 这种不适合做「整体旅程」汇总页。如果你需要,我可以给每个角色各做 1 页单角色旅程。你要加吗?"
-
-**C. toC 多画像(无 L1,与 A 合并问)**
-
-- 推荐话术:"这次是多画像研究,我可以为每个画像各做 1 页用户旅程图(发现 → 试听 → 开通 → 使用 → 续费)。你要加旅程页吗?"
-- 不再走「研究目标涉及流程就自动加 layout-2c-journey」的旧规则。
-
-**D. toC 单画像(R2)**
-
-- 默认不加;研究目标明确含使用流程/上手时,可在 field-alignment Step 5 询问。
-
-**E. 写 JSON 与渲染**
-
-- 用户没有明确确认时,不能静默补旅程页(约束 2)。
-- `03-field-alignment.json` 必填字段见 Step 2 硬门禁;toB 多角色另必填 `journey_scope`、`journey_l1_eligible`、`organizational_cohesion`(见 `scripts/schemas/03-field-alignment.schema.json`)。
-- 真实失败(2026-05-28):HiRes toC R4 没问就生成 5 页旅程;DevOps 未走访谈就模板填 L1 节点。
-
-**2B/2D 旅程展示规则**:
-- 整体旅程和单角色旅程的每个工作流单元格都必须有 `data-evidence`,hover 后能看到真实用户原声。
-- 工作流单元格统一使用浅蓝样式,不能给第一列或第一阶段加深蓝高亮。
-- 单角色旅程只保留两行主体:`工作流程` 和 `关注点 / 痛点`。
-- 单角色旅程不再单独输出最后一行 `痛点`;痛点卡片必须并入对应阶段的 `关注点 / 痛点` 行。
-
-### Step 2:根据用户回答进入对应范式
-
-进入 Step 2 前必须满足:
-- toB/toD:已有用户确认“方式 A/B/C 是否正确”,或用户主动指定方式。
-- toC:用户已经明确回复 A/B/C/D/E 或完整说出对应路线。只有“你看着办”“按你建议来”时,模型必须再次确认一句“我建议选 X,请你确认是否按 X 继续”。
-- `01-paradigm.json` 必须记录 `user_confirmed: true`、`choice_label` 和 `choice_reason`。没有这三个字段时,不能继续后续脚本。
-
-**toB/toD 多角色(方式 B/C,画像数将 ≥ 2)范式确认后,必须追加一句组织关系预告(约束 14,不替用户拍板 L1)**:
-
-```
-[若初判同组织] 这几个角色看起来都在 [同一产品/组织] 里协作 — 如果后面你加旅程,我可以做「整体旅程」那一页;字段对齐时会再和你确认。
-[若初判独立] 这几个角色看起来是彼此独立的用户 — 如果后面加旅程,不适合做整体旅程汇总,只能各角色单独做。
-[若不确定] 我还不能确定是否同一组织 — 如果后面加旅程,会先问你这个问题。
+```powershell
+python scripts/build_source_manifest.py --workdir <过程稿目录>
 ```
 
-禁止在范式阶段承诺「一定会做整体旅程」却不经过字段对齐 Step 5.1 的正式判定与 JSON 记录。
+审核每个来源的证据层级、画像分配和补充字段，将 `status` 改为 `reviewed`。输入中存在 `术语审计表*.md` 时，再执行：
 
-**Step 2 → Step 3 之间的硬门禁(2026-05-28 加固,issue「字段对齐被跳过」)**:
-
-分类/聚类确认后,模型**必须**用以下标准过渡话术,**不能**用 `[字段对齐 → 抽取 → 合并 → 渲染]` 折叠记号一笔带过:
-
-```
-分类已确认。接下来请确认每个画像页要展示哪些信息字段。
-[展示 steps/field-alignment.md Step 1 的完整字段池 ★/□ 清单]
-你要哪些?
+```powershell
+python scripts/build_terminology_glossary.py --input-dir <原始资料目录> --workdir <过程稿目录>
 ```
 
-进入抽取阶段前,`03-field-alignment.json` 必须含:
-- `field_pool_presented: true`(已向用户展示完整字段池 ★/□ 并等待回复)
-- `fields_display_names`(对象,各 schema 字段 key → 画像页中文名)
-- `fields_per_persona`(对象,不能只写 "默认: 按推荐来")
-- `user_confirmed: true`
-- `confirmation_message_summary`(用户原话摘要,≥ 10 字)
-- `add_on_pages.journey`(布尔)
-- `visual_assets.assets_asked: true`(用户素材已按 `steps/visual-assets.md` 检查点 A 问过)
-- **toB/toD 且画像数 ≥ 2 时另必填**:`add_on_pages.journey_scope`、`add_on_pages.journey_l1_eligible`、`add_on_pages.organizational_cohesion`(见约束 14)
+## 范式路由
 
-**脚本硬门禁**:`python scripts/validate_field_alignment.py` — `recovery_check.py`、抽取前、`render_report.py` 渲染前(找到本文件时)均会调用;未通过不得进入抽取/渲染。
+根据研究输入选择一个主范式,不得把多个范式含混叠加。
 
-schema:`scripts/schemas/03-field-alignment.schema.json`。
+### toC 路线选择等待态
 
-真实失败(2026-05-28 三次测试):DevOps + HiRes 报告均在聚类确认后静默写 `"alignment_mode": "recommended_by_goal"` 字段对齐 JSON,**未展示字段池就进入生成**。修复后断点续跑会检测此假象 JSON 并回退到字段对齐 Step 1。
+toC 在 01 中必须把 A/B/C/D/E 五种路线及其适用条件展示给用户,并直接询问“你选 A/B/C/D/E 哪一种”。用户没有明确选择前,不能进入 Step 2。禁止把研究目标中的描述当作路线选择结果。`01-paradigm.json` 必须记录 `user_confirmed: true`、`choice_label` 和 `choice_reason`。
 
-| 用户选择 | 进入文件 | 流程要点 |
-|---------|---------|---------|
-| 方式 A(单角色合并) | `paradigms/R2-single-role.md` | 合并出 1 画像 |
-| 方式 B(已分组) | `paradigms/R1-pregrouped.md` | 每组出 1 画像 |
-| 方式 C(需确认分类) | `paradigms/R3-classify-basis.md` | 和用户对齐分类依据,再分组 |
-| 方式 D(2 维坐标图) | `paradigms/R4-2d-matrix.md` | 2 个区分点 → 4 象限 |
-| 方式 E(多维分布图) | `paradigms/R5-multi-variable.md` | 3-5 个区分点 → 多维分布图 |
+“我会按多区分点方式跑测试”属于模型替用户选路线,禁止输出这类直接推进话术。坐标图、多维分布图和其它 toC 路线都要由用户显式选择。
 
-每个范式文件都会引用 `steps/` 下的公共步骤(研究目标对齐、字段对齐、抽取合并、画像页渲染),只在范式专属逻辑上独立展开。
-
----
-
-## 核心理念
-
-把工作拆成两类:
-
-- **能脚本固化的走脚本**:格式转换、单文档预抽取调用、多份合并、JSON 校验、HTML/PPT 渲染
-- **需要语义判断的走模型**:跨文档归纳、聚类决策、跟用户确认调整、内容润色
-
----
-
-## toC 画像的内容处理原则
-
-toC 画像和 toB/toD 不同:**toC 画像是抽象的典型人物,不一定 1:1 对应任何具体受访者**。
-
-具体处理方式:
-
-- **多数派一致的字段**:模型直接归纳成画像内容
-- **分歧的字段**:模型基于研究目标选取一个表述(不强行展示所有分歧)
-- **样本量小(2 人或以下)的字段**:模型给出一个抽象表述,不堆细节
-- **画像内容保持干净**,不在画像里出现「研究员加工」「数据支撑度 X/N」这种元标签
-
-**证据保留**:虽然画像内容简洁,但所有原始证据仍然全量存在 `extracted/` JSON 和 `04-personas.json` 的 `evidence_quotes` 字段里。渲染时,**每个画像字段可 hover 查看原话证据**(沿用 v7 的频次徽章 + hover 机制)。这保证了 UXR 可信度 — 读者想验证,任何字段都能看到原始数据。
-
-**模型不做离群标记**。toC 画像追求的是"典型代表",不是"严格覆盖"。受访者在某个变量上的反常表现,会自然体现在分歧场景中,模型按上面的原则处理。
-
----
-
-## ★ 视觉系统选择规则
-
-画像渲染前,模型按以下规则**自动判断**视觉呈现方式,**不需要也不应该问用户**(关乎技术实现细节)。
-
-### 主题与密度
-
-| 范式 / 受众 | 主题(data-theme) | 默认密度(data-density) |
+| 用户看到的方式 | 机器范式 | 含义 |
 |---|---|---|
-| toB / toD | `2b` / `2d`(深蓝高密度) | `high` |
-| toC | `2c`(暖米黄低密度,清爽插画风) | `low` |
+| A | R2 | 单一用户类型，合并为一个画像 |
+| B | R1 | 用户已提供多个分组或角色 |
+| C | R3 | 确认一个分类依据后形成多类画像 |
+| D | R4 | 两个区分点形成二维矩阵 |
+| E | R5 | 三到五个区分点形成多维分布 |
 
-用户明示「信息很多放不下」「希望更密集」时,可切 `mid` 或 `high`(不改主题)。
+`choice_label` 与 `paradigm` 必须按表一一对应，校验器会阻止错配。
 
-### 布局自动判断
+| 范式 | 使用条件 | 读取文件 |
+|---|---|---|
+| R1 已预分组 | 输入已按角色或画像分组 | `paradigms/R1-pregrouped.md` |
+| R2 单角色 | 全部访谈属于一个角色 | `paradigms/R2-single-role.md` |
+| R3 分类依据 | 用户提供一个明确分类维度 | `paradigms/R3-classify-basis.md` |
+| R4 二维矩阵 | 两个维度交叉形成画像 | `paradigms/R4-2d-matrix.md` |
+| R5 多变量 | 需要多变量聚类和人工解释 | `paradigms/R5-multi-variable.md` |
 
-**五种方式 × 2B/2C 主路由表**(2026-05-29 收口,单点真相;与 `steps/visual-system.md` §2 一致):
+分类维度存在歧义时,在 `02-classification.md` 列出候选解释、边界和样例,由用户选择。不要自行猜测。
 
-| 方式 | 范式 | 导航/首页 | 2B/2D 画像子页 | 2B/2D 旅程(用户确认时) | 2C 画像子页 | 2C 旅程(用户确认时) |
-|------|------|-----------|----------------|------------------------|-------------|---------------------|
-| A | R2 | 单 tab | `layout-2b-grid`(溢出→双页) | `layout-2b-journey` `.is-l2` + `tob_journey_l2` | `layout-2c-portrait`(溢出→`layout-2c-detail`) | `layout-2c-journey` + `journey_2c` |
-| B | R1 | 多 tab | 同上 × N | 同上(可选 L1+L2) | 同上 × N | 同上 × N |
-| C | R3 | 多 tab | 同上 × N | 同上 | 同上 × N | 同上 |
-| D | R4 | `layout-matrix-2d`(**总览仅配色**) | `layout-2b-grid` × 4 | `tob_journey_l2` × 4 | `layout-2c-portrait` × 4 | `journey_2c` × 4 |
-| E | R5 | `layout-distribution-multi`(**总览仅配色**) | `layout-2b-grid` × N | `tob_journey_l2` × N | `layout-2c-portrait` × N | `journey_2c` × N |
+### 分类词显性确认硬规则
 
-硬规则:
-1. `research_type` 决定走 2B/2D 列或 2C 列,**禁止混用**(`P8-THEME-LAYOUT-MISMATCH`)。
-2. R4/R5 **总览 slide** 只用 `matrix_2d` / `distribution_multi` 容器,**禁止** `identity_card` / `identity_panel` 等画像组件(`P8-OVERVIEW-FORBIDDEN-COMPONENT`)。
-3. R4/R5 总览与 toC 样板的差异 = `metadata.theme` + `data-density`;**不改变** matrix/distribution 的 DOM 结构。
+R3/R4/R5 的类别名、坐标轴档位名和多变量标签都会进入最终报告。02 必须列出全部分类词并获得用户显式确认,随后写入 `label_confirmed: true`。该字段缺失或为 false 时,不能进入画像合并和最终渲染。
 
-**单画像 / 多 tab 补充**:
+## 内容硬约束
 
-| 数据情况 | 布局类 |
-|---|---|
-| 单画像 toB/toD,信息能装下 12×3 网格 | `layout-2b-grid`(单页) |
-| 单画像 toB/toD,信息溢出 | **双页**:按"画像核心 vs 工作细节"切(身份卡左栏共享,右栏分配字段) |
-| 单画像 toC | `layout-2c-portrait`(单页,大插画 + 段落式) |
-| 多画像(R1/R2/R3 多角色) | tab 切换,每画像走上表对应族 |
-| toB/toD 多角色 + 旅程 + **同组织**(`journey_l1_eligible=true`) | `layout-2b-journey`:L1 整体旅程 + 可选每角色 L2 |
-| toB/toD 多角色 + 旅程 + **完全独立** | 仅各角色 L2(`persona-N-journey`),**禁止** `journey-l1` |
-| toB/toD 多角色 + 用户确认不需要旅程 | 仅画像 tab,无 journey slide |
-| 任何 toC + 研究目标涉及「旅程 / 使用流程 / 上手过程」 | **可建议**加一页 `layout-2c-journey`,但必须问用户(2026-05-28 起,旧自动触发已删) |
+### 研究目标
 
-**模型切换布局时,必须在终端用人话告诉用户切了什么、为什么**(屏蔽实现细节,但要告知决策),例如:
+所有“重要”“典型”“高价值”的判断都要回指 `00-research-goal.json`。研究目标改变时,回到 00 更新 MD/JSON,再重跑受影响步骤。
 
-> "由于你提供的字段较多,12×3 网格放不下,已切换为双页 — 第 1 页放画像核心,第 2 页放工作细节。"
+### 字段与内容
 
-**禁止静默切换**。
+- 03 必须展示完整字段池、纳入字段、排除字段及理由。
+- 用户未确认的字段不得进入 04 或 05。
+- 用户未确认的旅程不得进入 05。05 中的旅程组件必须与 `04-journeys.json` 完全一致。
+- 渲染器不得截断数组、文本、证据、旅程节点或画像数量。
+- 内容过密时调整布局或分页,保留完整内容。
+- 中文报告清理模型痕迹,避免把 `Key insight:`、`Evidence:` 等英文标签直接展示给用户。
 
-### 2C 强调色选择(3 步法)
+### 证据
 
-仅 toC 主题。对每个 toC 画像执行一次:
+- 每条结论至少连接一条可定位证据。
+- 证据保留来源文件、受访者匿名 ID、段落或行号。
+- 同一句引文不得支撑不同画像的独立结论。
+- 引文与解释分字段保存,不得改写后冒充原话。
+- 04 必须覆盖全部纳入访谈,并说明未采用材料的原因。
 
-```
-Step 1. 画像是否"AI 相关"(AI 工具 / AI 决策 / 大模型 / 智能助手)?
-        是 → 强制雾紫 #9B7BC4
-        否 → 进 Step 2
+### 隐私
 
-Step 2. 画像中文名所有字符 unicode 求和 mod 5,从 5 色取:
-        0=雾蓝  1=苔绿  2=暖橙  3=陶红  4=芥末
+- 姓名、公司内部账号、手机号、邮箱、精确地址等全部脱敏。
+- 证据来源使用抽取脚本生成的稳定匿名 `_source_id`，格式为 `P` 加 8 位十六进制字符。展示层也可使用脱敏身份称呼。
+- 头像只使用用户授权素材或生成的非真人映射形象。
+- 最终 HTML、JSON、文件名和元数据都要扫描身份泄露。
 
-Step 3. 多画像并存时(tab / 矩阵 / 分布):按色环顺序循环避免相邻同色,
-        AI 类强制紫不参与循环计数
-```
+### toB/toD 组织同构
 
-### 详细执行手册
+多角色报告在绘制 L1 整体旅程前,必须判断角色是否共享同一组织级任务、阶段和交付目标。若同构,共享一套阶段骨架并保留角色泳道。若不满足,分别输出角色旅程,不得强行拼接。细则见 `steps/field-alignment.md`。
 
-具体的 slot 填充、各布局 HTML 结构、组件类名清单,见 `steps/visual-system.md`。
+### 视觉素材
 
-模板与样式文件:
-- `assets/templates/_base.html` — HTML 共享骨架(有 `{{slot}}` 占位符)
-- `assets/templates/_design-tokens.css` — 主题 + 密度 tokens
-- `assets/templates/_components.css` — 22 个组件(2B/2D 14 + 2C 8)
+03 必须询问头像和典型场景截图。记录用户提供、授权生成、占位或不使用的选择。未经确认不得自动加入网络图片。
 
----
+## 视觉系统硬约束
 
-## ★ 工作目录 + 断点续跑机制
+执行视觉阶段前读取 `steps/visual-style-guide.md`。脚本和模型共同遵守 `assets/templates/_visual-system.json`。
 
-### 工作目录约定
+### 通用规则
 
-skill 启动后,在用户操作目录下创建 `用户画像报告输出/`。每次运行必须在其下自动创建一个项目运行目录,格式为 `<项目名>-<日期时间>/`。这个项目运行目录必须拆成 `过程稿/`、`画像头像素材/`、`界面截图/` 和 `最终交付件-*` 四类文件夹。**不污染 skill 本身**。
+- 页面背景为白色。
+- 可读正文最小字号为 12px。
+- 使用设计系统中的字体、间距、圆角、边框和组件结构。
+- CSS token 承载颜色语义,禁止在组件里散落无语义色值。
+- 图标使用固定图标组件。禁止输出 Unicode emoji 字符和自写 SVG path。
 
-- **Claude Code 本地环境**:默认当前目录下 `./用户画像报告输出/<项目名>-<日期时间>/`,用户可通过 `--workdir` 参数指定项目运行目录或 `过程稿/` 目录
-- **Claude.ai 容器环境**:默认 `/home/claude/work/用户画像报告输出/<项目名>-<日期时间>/`,最终产物拷贝到 `/mnt/user-data/outputs/`
-### 过程稿与最终交付件分区
+### 2B
 
-项目运行目录下必须新建四个文件夹类型,不能把过程文件、用户素材和最终交付件混放:
+- L1 整体旅程与单角色旅程共用阶段、子阶段、角色列、节点、连线、字号、颜色和边框契约。
+- 阶段列宽和角色轨道来自同一几何源,禁止目测复制。
+- 模型只给节点数据与连接关系,渲染器生成几何和 SVG。
 
-1. `过程稿/`
-   - 放可续跑、可排查的中间产物
-   - 包括 `00-research-goal.json` … `05-report.json`、`processed/`、`extracted/`、`CHECKPOINTS.md`、`logs/`、`drafts/`(见 `assets/templates/CHECKPOINTS.md`)
-   - 这个文件夹像厨房备菜台,可以乱一点,但必须保留完整脉络
+### 2C
 
-2. `画像头像素材/`
-   - **用户自定义**画像头像、半身插画或代表该画像的角色形象
-   - 文件名建议使用画像中文名,例如 `品质聆听者.png`
-   - **未放自定义图时**,渲染层按画像名回退 skill 内置 `assets/default-avatars/`(见 `steps/visual-assets.md` §1.1)
-   - 用于 2B 画像左栏头像、2C 身份卡/旅程头图/detail 角落图
+- 每个画像只选择一套 TO C 色卡。
+- 同一画像的画像页、细节页、分布图和旅程页使用同一套色卡。
+- 禁止跨色卡借色。未知或废弃的 `accent` 必须报错,不得静默回退。
+- 旅程阶段头使用当前色卡浅表面色,文字用深色,编号和下边框用主色。
+- 触点、工具、证据标签使用当前色卡辅助跳色,不得直接复用主色背景。
+- 2C 分布图和旅程图所有可读文字不小于 12px。
+- 多画像报告在 `visual_spec.persona_palette_map` 显式记录 `persona-N` 到色卡 ID 的映射。
 
-3. `界面截图/`
-   - 用户提供的产品界面、业务系统、典型使用场景截图
-   - **2B**: `scenario_grid` 典型业务场景卡片;**2C**: `mockup_list` 专题详情等
-   - **2C mockup**:每张须为**单屏**截图(多屏合成图须先裁成多张);允许多张原始高度不同,报告里由 CSS **统一帧高、宽按比例缩放**(见 `steps/visual-system.md` §3.1)
-   - 启用旅程页时,亦可用于旅程关注点卡片
-   - 用户放入截图后,模型必须先列出图片名并询问每张图对应哪个场景/关注点,不能自动猜测
+## JSON 与渲染职责
 
-4. `最终交付件-<对象类型>-<项目名>-<样本数>用户-<构建方式>/`
-   - 只放可直接发给用户、可归档、可整包复制的文件
-   - 必须包含 `report.html`
-   - 如果 HTML 外链 CSS、头像、图片、JS 或其他资源,依赖必须一并放入该文件夹
-   - 必须包含 `交付件说明.md`,说明入口文件、依赖文件、生成时间和样本数
-   - 禁止引用 `过程稿/`、绝对路径、用户本机临时路径或项目运行目录外部文件
-   - 渲染完成时,实际使用到的头像和截图必须复制进最终交付件目录,`report.html` 只使用相对路径
+`05-report.json` 必须符合 `scripts/components/schemas/report.json`,并只使用已注册组件。模型不得生成 HTML 字符串、内联脚本、SVG path 或 CSS 片段。
 
-#### 最终交付件命名规则
+组件 schema 和渲染器负责：
 
-固定格式:
+- 允许字段与类型
+- 数组完整性
+- 设计 token 注入
+- 2B 旅程几何
+- 2C 色卡映射
+- HTML 转义与结构
 
-```text
-最终交付件-<对象类型>-<项目名>-<样本数>用户-<构建方式>
-```
+## 渲染前四道门禁
 
-字段解释:
+在完整工作流中按顺序执行：
 
-- `<对象类型>`:报告面向的用户或业务类型。常用值是 `2C`、`2B`、`2D`。
-  - `2C`:消费者、会员、个人用户、内容用户
-  - `2B`:企业客户、岗位角色、组织内工作流用户
-  - `2D`:开发者、生态角色、技术工具链用户
-- `<项目名>`:用户能识别的项目或产品名,从研究目标、输入文件夹名或报告标题中提取。控制在 6 到 18 个字,去掉空格、斜杠、冒号、括号等特殊符号。
-  - 原始名太长时压缩为核心识别名,如“华为云音乐 HiRes 专区增长研究”压缩为 `华为云音乐HiRes专区`
-  - 英文品牌名可保留,如 `DevOps平台`、`CodeArts协作流程`
-- `<样本数>用户`:本次有效访谈或有效样本数量,格式固定为数字加 `用户`。
-  - 例如 `5用户`、`7用户`、`12用户`
-  - 样本数来自有效输入文件数或最终纳入分析的受访者数
-- `<构建方式>`:画像生成方式,使用用户能看懂的短词,不写 R1/R2/R3/R4/R5 这类内部代号。
-  - R2 写 `单画像`
-  - R1/R3 写 `多画像`
-  - R4 写 `2维`
-  - R5 写 `多区分点`
-  - toB/toD 多角色且 `journey_l1_eligible=true` 时写 `多角色旅程`
-  - toB/toD 多角色且 `journey=true` 但 `journey_l1_eligible=false`(仅 L2)时写 `多画像`
-  - toB/toD 多角色且用户确认不需要旅程时写 `多画像`
-  - 单画像拆成主画像和详情页时写 `双页画像`
-
-正例:
-
-```text
-最终交付件-2C-华为云音乐HiRes专区-5用户-2维
-最终交付件-2C-品质聆听者研究-5用户-单画像
-最终交付件-2C-会员续费流失研究-12用户-多区分点
-最终交付件-2B-DevOps平台-7用户-多角色旅程
-最终交付件-2B-电力调度员-6用户-单画像
-最终交付件-2D-算子开发者生态-15用户-多画像
-最终交付件-2C-音乐专区增长研究-5用户-2维
-最终交付件-2B-CodeArts协作流程-9用户-双页画像
+```powershell
+python scripts/validate_checkpoint_pairing.py --workdir <过程稿目录> --require-complete
+python scripts/validate_field_alignment.py --workdir <过程稿目录>
+python scripts/validate_journey_checkpoint.py --workdir <过程稿目录>
+python scripts/validate_components_json.py --workdir <过程稿目录> 05-report.json
+python scripts/components/render_report.py --input <项目目录>\过程稿\05-report.json --output <项目目录>\最终交付件-<标识>\report.html --project-dir <项目目录>
+python scripts/validate_html.py <项目目录>\最终交付件-<标识>\report.html --project-dir <项目目录>
 ```
 
-反例:
+`render_report.py` 会再次执行完整检查点门禁。缺失任一对文件、只有最终报告、03/05 字段或 `visual_spec` 不一致、组件非法时必须失败。
 
-```text
-最终版
-报告交付
-report-final
-2C结果
-HiRes
-最终交付件-项目-用户画像
-```
+任何校验失败都要回到最早出现问题的检查点修复。不得用参数、手工复制或修改最终 HTML 绕过。
 
-反例的问题:看不出对象类型、项目、样本数或构建方式。复制给别人后,很难判断是不是完整交付件。
+## 交付前检查
 
-命名自检:
-- 文件夹名必须以 `最终交付件-` 开头
-- 必须有 5 段,用短横线分隔
-- 第 2 段必须是 `2C`、`2B` 或 `2D`
-- 第 4 段必须匹配 `\d+用户`
-- 第 5 段必须来自允许的构建方式短词
-- 禁止使用 `report`、`final`、`测试效果`、`最新版`、`交付` 这类信息不足的名字
-
-**必须告诉用户的话术**:
-
-```
-我会把本次画像生成文件放到 `用户画像报告输出/<项目名>-<日期时间>/`。
-里面会分成四类内容:`过程稿/` 保存可续跑的分析过程,`画像头像素材/` 放画像头像,`界面截图/` 放典型场景与旅程界面截图,`最终交付件-*` 保存可以整包复制的 HTML 和依赖。后面如果中断,保留这个项目运行目录就能接着跑;对外发送时只复制 `最终交付件-*`。
-```
-
-### 工作目录的文件结构 + 命名规范
-
-**所有步骤产物都用 `NN-name.json` 数字前缀命名**,数字前缀就是流程顺序。这样:
-- 模型扫目录时按字典序自然就是流程顺序
-- 用户打开目录也能直观看到自己跑到哪
-- 数字前缀缺失就是"这一步还没跑"
-
-```
-用户画像报告输出/
-└── <项目名>-<日期时间>/
-    ├── 过程稿/
-│   ├── 00-research-goal.json          ← Step 0/1 产物:研究目标(读者/问题/决策)
-│   ├── 01-paradigm.json               ← Step 2 产物:范式选择(A/B/C/D/E + toB/toC)
-│   ├── 02-classification.json         ← R3/R4/R5 才有:分类依据 / 区分点 / 档位 / 受访者映射
-│   ├── 03-field-alignment.json        ← 字段对齐结果(每个画像选了哪些字段)
-│   ├── processed/                     ← 预处理后的访谈文本(每份一个 txt)
-│   ├── extracted/                     ← 单文档抽取产物(每份一个 JSON)
-│   ├── 04-personas.json               ← 合并后的画像数据(R4/R5 还含矩阵/分布图数据)
-│   ├── 05-report.json                 ← ★ 渲染用组件 JSON(P8 必写,断点续跑锚点)
-│   ├── CHECKPOINTS.md                 ← 检查点清单(init_run_dir 自动复制)
-│   ├── logs/                          ← 运行日志、检查结果、失败原因
-│   └── drafts/                        ← 中间 HTML、截图、临时验证件
-    ├── 画像头像素材/                  ← 用户补充的画像头像
-    ├── 界面截图/                      ← 典型场景截图 + 可选旅程关注点截图
-    └── 最终交付件-2C-华为云音乐HiRes专区-5用户-2维/
-        ├── report.html                ← 最终入口文件
-        ├── _design-tokens.css         ← 如 HTML 外链 CSS,必须随包复制
-        ├── _components.css            ← 如 HTML 外链 CSS,必须随包复制
-        ├── assets/                    ← 报告实际引用的图片、截图、图标等
-        └── 交付件说明.md              ← 入口文件、依赖清单、生成时间、样本数
-```
-
-### 断点续跑:模型启动时的恢复检查
-
-skill 启动时,**模型第一件事必须跑**:
-
-```bash
-python scripts/recovery_check.py --workdir <项目运行目录或过程稿目录> --format human
-```
-
-根据输出的 `next_step` 与 `missing_artifacts` 续跑。**禁止**不扫目录就凭对话记忆往下做。
-
-新建项目目录时优先:
-
-```bash
-python scripts/init_run_dir.py --base-dir . --project-name <项目名>
-```
-
-会在 `过程稿/` 下创建 `processed/`、`extracted/`、`logs/`、`drafts/` 并复制 `CHECKPOINTS.md`。
-
-```
-存在的文件                                                      从这一步继续
-─────────────────────────────────────────────────────────────  ─────────────────
-什么都没有                                                      Step 0:扫文件 + 形成初判
-有 00-research-goal.json                                        Step 2:确认范式 → 写 01
-有 01-paradigm.json,范式是 R3/R4/R5                             分类 → 写 02
-有 01-paradigm.json,范式是 R1/R2                                字段对齐 → 写 03
-有 02-classification.json                                       字段对齐 → 写 03
-有 03-field-alignment.json + 校验通过                            预处理+抽取 → processed/ + extracted/
-有 03 但校验失败(如仅 alignment_mode)                            回退字段对齐
-extracted/ 份数 < processed/                                    补全 extracted/*.json
-有 04-personas.json                                             写 05-report.json
-有 05-report.json                                               render_report.py → 最终交付件
-有 最终交付件-*/report.html                                      完成;缺 05 则续跑不可靠
-```
-
-**每步结束硬约束**:该步对应的 JSON/目录**必须已写入磁盘**才能进入下一步。禁止跳过 `extracted/` 逐份文件、禁止跳过 `05-report.json` 直接写 HTML。
-
-**模型恢复时的开场话术**:
-
-```
-我看到工作目录里已经有之前的进度,当前完成情况:
-✓ 研究目标已确认(给 [产品团队] 看,回答 [新功能定位])
-✓ 选定方式:C(toB,按岗位分类)
-✓ 分类依据已确认(按运维 / 调度 / 管理三组)
-✗ 字段对齐(下一步)
-✗ 抽取
-✗ 合并
-✗ 05-report.json
-✗ 渲染
-
-缺漏检查点:
-  - 05-report.json: 渲染前须写入组件 JSON
-  - extracted/*.json: 单文档抽取需 5/5 份
-
-要从【字段对齐】继续吗?或者你想回到某一步重做?
-```
-
-### 用户怎么用断点续跑(必须告诉用户)
-
-**第一次使用 skill 时,模型在 Step 1 之后必须告知**:
-
-```
-【关于中途中断】
-
-如果跑到一半模型卡了、或者你想换更强的模型重跑某一步:
-
-1. 别担心,中间产物应存在 `用户画像报告输出/<项目名>-<日期时间>/过程稿/`(含 `00`–`05` 与 `extracted/`)
-2. 重新启动 skill 时,我会先跑 `recovery_check.py`,按 `missing_artifacts` 补全后再继续
-3. 你需要保留两样东西:
-   - skill 文件夹(整个 user-persona/)
-   - 过程稿目录(`用户画像报告输出/<项目名>-<日期时间>/过程稿/`,在你当前操作的目录下)
-4. 想重做某一步:删掉对应的 JSON 文件(如 03-field-alignment.json),我会从这一步重新开始
-5. 想全部重来:删除整个工作目录
-
-迁移场景:
-- 换电脑:把 skill 文件夹和工作目录一起复制过去
-- 换模型(比如从 minimax 切到 Opus):工作目录不动,切模型后重新启动 skill 即可
-```
-
-### 每个步骤脚本必须满足两个契约
-
-1. **能从前一步的 JSON 文件读输入**,不依赖对话历史
-2. **产出独立可读的 JSON 文件**,下一步从这里读,不需要再问用户
-
-这是断点续跑能工作的基础。任何破坏这两个契约的设计都不允许。
-
----
-
-## 模型调用环境
-
-`extract_single.py` 通过环境变量读取 API 配置:
-
-- `ANTHROPIC_BASE_URL`:API endpoint(默认 Anthropic 官方)
-- `ANTHROPIC_AUTH_TOKEN`:鉴权 token
-- `ANTHROPIC_MODEL`:模型名
-
-这意味着:
-- 在 cc switch 切到内部模型的环境,自动用该模型
-- 在普通 Claude Code 环境,自动用 Anthropic Opus
-- 切换环境不需要改代码
-
----
+- 00 到 05 共 14 个检查点文件齐全且同名配对，其中 04 包含画像与旅程两对文件。
+- 02 在 R1/R2 中也存在,状态和原因有效。
+- `processed/` 与 `extracted/` 数量、主名逐份一致。
+- 03 与 05 的字段、主题、密度、布局、色卡映射一致。
+- 04 的画像、证据和 05 的组件一一对应。
+- `04-journeys.json` 与 05 的全部旅程组件逐项一致；不生成旅程时也有明确的不适用记录。
+- 最终 HTML 无身份泄露、无非法组件、无跨色卡、无小于 12px 的 2C 文字。
+- 最终交付件包含 HTML、依赖 CSS、授权视觉素材和必要说明。
+- `workflow.py status` 报告 `completed`，全部校验脚本返回成功。
 
 ## 错误处理
 
-- **预处理失败**:无法解析的文件跳过并提示用户,不中断流程
-- **单文档抽取失败**:重试 1 次,仍失败则该文档标记「抽取失败」继续后续
-- **schema 校验不通过**:把不通过的字段反馈给模型修补这一份的 JSON,不要全部重做
-- **渲染溢出**:产出溢出报告,回到字段对齐阶段让用户砍字段
-- **渲染失败**:产出能正常加载的 JSON,即使 HTML 渲染失败,用户也能拿到原始数据
+- 缺文件：补齐最早缺失的 MD/JSON 对,再重跑恢复检查。
+- JSON 无效：修复 JSON,不要删除已确认的 MD。
+- 用户修改上游决定：从该检查点重新确认,删除或标记后续产物过期,按顺序重建。
+- 数量不一致：逐份核对 `processed/` 和 `extracted/`,不得用改计数掩盖缺文件。
+- 视觉错误：修复设计 token、`visual_spec` 或组件数据,不要直接补丁最终 HTML。
+- 证据或隐私错误：回到 04 修复证据映射或脱敏,再重建 05。
+- 旅程阶段、节点或证据错误：回到 `04-journeys.md` 重新让用户确认,再重建对应 JSON 和 05。
 
----
+## 按需读取地图
 
-## 后续阅读(模型按范式选择)
+只读取当前步骤需要的详细文件,避免把全部说明同时塞入弱模型上下文。
 
-进入用户选定的范式后,按需读取:
+- 检查点与恢复：`steps/checkpoint-workflow.md`
+- 全范式质量标准：`steps/quality-contract.md`
+- R1-R5 与 toB/toC/toD 分支表：`steps/scenario-coverage.md`
+- 研究目标：`steps/research-goal.md`
+- 字段对齐与组织同构：`steps/field-alignment.md`
+- 逐份提取、合并、证据与隐私：`steps/extract-merge.md`
+- 用户旅程确认：`steps/journey-alignment.md`
+- 头像与场景图：`steps/visual-assets.md`
+- 视觉设计系统：`steps/visual-style-guide.md`
+- 页面组件：`steps/render-persona-page.md`
+- 视觉系统选择补充：`steps/visual-system.md`
+- 检查点模板：`templates/checkpoints/`
+- 报告 schema：`scripts/components/schemas/report.json`
 
-- `paradigms/R1-pregrouped.md` — B 情况:已分组
-- `paradigms/R2-single-role.md` — A 情况:单角色合并
-- `paradigms/R3-classify-basis.md` — C 情况:需确认分类
-- `paradigms/R4-2d-matrix.md` — D 情况:2 维矩阵
-- `paradigms/R5-multi-variable.md` — E 情况:多维分布
+## 文件用途速查
 
-公共步骤库(范式文件会引用):
+弱模型第一次执行时先看本表，只读取当前阶段需要的文件。
 
-- `steps/research-goal.md` — 研究目标对齐话术 + JSON 模板
-- `steps/field-alignment.md` — 画像字段对齐流程
-- `steps/visual-assets.md` — 用户头像与场景截图必问流程(2B/2C)
-- `steps/extract-merge.md` — 单文档抽取 + 多份合并
-- `steps/render-persona-page.md` — 画像页渲染规则(12×3 网格)
-- `steps/visual-system.md` — 视觉系统执行手册(主题/密度/布局/2C 配色/slot 规范)
+| 路径 | 用途 | 何时使用 |
+|---|---|---|
+| `templates/checkpoints/` | 00 到 05 的 MD/JSON 过程稿模板 | 每个检查点开始时复制对应模板 |
+| `assets/prompts/` | 单访谈抽取、字段合并、分类和区分点 prompt | 运行抽取或 reduce 脚本时由脚本读取 |
+| `assets/templates/` | HTML 骨架、CSS token、组件样式和机器视觉系统 | renderer 自动读取，模型只读 `_visual-system.json` |
+| `assets/default-avatars/` | 可直接使用的默认非真人画像头像 | 用户允许默认头像且画像名能匹配时复制到交付件 |
+| `schemas/` | toB、toC 字段库和分类依据 | 00 到 03 做研究类型、分类与字段对齐时读取 |
+| `paradigms/` | R1 到 R5 的差异化流程 | 01 确认范式后只读对应文件 |
+| `scripts/components/schemas/` | 05 组件 JSON 的机器 schema | 组装与校验 05 时使用 |
+| `scripts/` | 预处理、抽取、恢复、校验和渲染 | 按本文件给出的命令执行 |
+| `docs/reference/reports/` | 人类查看的静态完整样例 | 只用于说明书和视觉验收，不参与运行时生成 |
 
-字段池和库:
-
-- `schemas/schema-tob.md` — toB 画像字段池
-- `schemas/schema-toc.md` — toC 画像字段池
-- `schemas/classify-basis-tob.md` — toB 常见分类依据库(岗位/职级/技能水平/...)
-- `schemas/classify-basis-toc.md` — toC 常见分类依据库 + 区分点推荐
+执行结束时向用户说明当前检查点、已确认决策、下一步和恢复命令。

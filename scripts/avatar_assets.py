@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+from difflib import SequenceMatcher
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
@@ -13,6 +14,7 @@ DELIVERY_AVATAR_DIR = Path("assets") / "画像头像素材"
 USER_AVATAR_DIRNAME = "画像头像素材"
 
 _AVATAR_REF_RE = re.compile(r'assets/画像头像素材/([^"\'>\s]+\.png)')
+TOC_DEFAULT_POOL = ("内行场景派.png", "认价检索派.png", "优惠深听派.png", "感知场景派.png", "实惠助眠派.png")
 
 
 def project_dir() -> Path:
@@ -60,6 +62,81 @@ def list_default_avatars() -> list[str]:
     if not DEFAULT_AVATARS_DIR.is_dir():
         return []
     return sorted(p.name for p in DEFAULT_AVATARS_DIR.glob("*.png"))
+
+
+def _base_persona_id(value: str) -> str:
+    return re.sub(r"-(?:core|detail(?:-\d+)?|journey)$", "", value)
+
+
+def _alignment_avatar_mapping(process_dir: Path) -> dict[str, str]:
+    path = process_dir / "03-field-alignment.json"
+    if not path.is_file():
+        return {}
+    try:
+        import json
+        visual = json.loads(path.read_text(encoding="utf-8")).get("visual_assets") or {}
+        return {str(k): Path(str(v)).name for k, v in (visual.get("avatar_mapping") or {}).items()}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def _persona_names(report: dict) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for page in report.get("personas") or []:
+        pid = _base_persona_id(str(page.get("id") or ""))
+        name = str(page.get("name") or "").strip()
+        if re.fullmatch(r"persona-[0-9]+", pid) and name and pid not in result:
+            result[pid] = name
+    return result
+
+
+def preview_default_avatar_assignments(report: dict, process_dir: Path) -> dict[str, str]:
+    """Resolve exact/mapped names, then stably assign unused generic defaults."""
+    names = _persona_names(report)
+    explicit = _alignment_avatar_mapping(process_dir)
+    theme = str((report.get("metadata") or {}).get("theme") or "")
+    all_defaults = list_default_avatars()
+    pool = [name for name in (TOC_DEFAULT_POOL if theme == "2c" else tuple(all_defaults)) if name in all_defaults]
+    used: set[str] = set()
+    result: dict[str, str] = {}
+    for _pid, persona_name in names.items():
+        candidates = [explicit.get(persona_name), explicit.get(_pid), f"{persona_name}.png"]
+        chosen = next((name for name in candidates if name and resolve_avatar_file(name)), None)
+        if not chosen:
+            remaining = [name for name in pool if name not in used]
+            if remaining:
+                chosen = max(
+                    remaining,
+                    key=lambda filename: SequenceMatcher(None, persona_name, Path(filename).stem).ratio(),
+                )
+        if chosen:
+            used.add(chosen)
+            result[persona_name] = chosen
+    return result
+
+
+def apply_default_avatar_assignments(report: dict, process_dir: Path) -> dict[str, str]:
+    assignments = preview_default_avatar_assignments(report, process_dir)
+    if not assignments:
+        return {}
+    names = _persona_names(report)
+    by_id = {pid: assignments.get(name) for pid, name in names.items()}
+    for page in report.get("personas") or []:
+        filename = by_id.get(_base_persona_id(str(page.get("id") or "")))
+        if not filename:
+            continue
+        for component in page.get("components") or []:
+            props = component.get("props") or {}
+            ctype = component.get("type")
+            if ctype in {"identity_card", "journey_2c", "detail_illust_corner"} and not props.get("illust_path"):
+                props["illust_path"] = f"assets/画像头像素材/{filename}"
+            elif ctype == "identity_panel":
+                avatar = props.get("persona_avatar") or {}
+                if not avatar.get("image_path"):
+                    avatar["image_path"] = f"assets/画像头像素材/{filename}"
+                    props["persona_avatar"] = avatar
+    report.setdefault("metadata", {})["_internal_avatar_assignments"] = assignments
+    return assignments
 
 
 def collect_avatar_filenames_from_json(input_json: dict) -> set[str]:

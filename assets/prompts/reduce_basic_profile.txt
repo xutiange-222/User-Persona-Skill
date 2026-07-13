@@ -25,14 +25,23 @@
 
 ## 输出格式
 
-输出 JSON 对象,字段名跟输入保持一致,**不要前言后记**:
+输出 JSON 对象。`value` 保存归并后的完整字段值；`evidence_by_subfield` 逐子字段保存来源和原话；`differences` 保留少数值、冲突和适用条件。**不要前言后记**:
 
 ```json
 {
-  "department": "...",
-  "role": "...",
-  "work_years": "...",
-  "background": "..."
+  "value": {
+    "department": "...",
+    "role": "...",
+    "work_years": "...",
+    "background": "..."
+  },
+  "evidence_by_subfield": {
+    "department": {"mention_count": 2, "mentioned_by": ["P11111111", "P22222222"], "evidence_quotes": ["[来源:P11111111]: \"逐字原话\"", "[来源:P22222222]: \"逐字原话\""]},
+    "role": {"mention_count": 1, "mentioned_by": ["P11111111"], "evidence_quotes": ["[来源:P11111111]: \"逐字原话\""]},
+    "work_years": {"mention_count": 0, "mentioned_by": [], "evidence_quotes": []},
+    "background": {"mention_count": 1, "mentioned_by": ["P22222222"], "evidence_quotes": ["[来源:P22222222]: \"逐字原话\""]}
+  },
+  "differences": []
 }
 ```
 
@@ -40,15 +49,21 @@
 
 ```json
 {
-  "domain": "...",
-  "tools": "...",
-  "experience": "..."
+  "value": {"domain": "...", "tools": "...", "experience": "..."},
+  "evidence_by_subfield": {
+    "domain": {"mention_count": 1, "mentioned_by": ["P11111111"], "evidence_quotes": ["[来源:P11111111]: \"逐字原话\""]},
+    "tools": {"mention_count": 1, "mentioned_by": ["P22222222"], "evidence_quotes": ["[来源:P22222222]: \"逐字原话\""]},
+    "experience": {"mention_count": 0, "mentioned_by": [], "evidence_quotes": []}
+  },
+  "differences": []
 }
 ```
 
 ## 关键约束
 
-- 不输出 mention_count,因为这个字段是合并后整体描述
+- 每个子字段都满足 `mention_count = mentioned_by.length = evidence_quotes.length`
+- 没有材料的子字段在 `value` 写“材料未提及”，对应证据数组为空
+- 禁止取平均、猜测区间或用多数值覆盖少数差异；差异写入 `differences`
 - 每个子字段值 ≤ 50 字
 - 涉及人物的描述用「这类调度员」「这一岗位人群」,不要用具体人名
 - background 如果差异大,可以并列(如「省调 / 地调 / 电站调度,工龄 1-15 年不等」)

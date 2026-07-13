@@ -2,7 +2,7 @@
 
 这份文档定义 toB 画像的 JSON schema、可选字段池、默认推荐字段集,以及每个字段的填写规范。
 
-`extract_single.py` 和 `merge.py` 按这个 schema 产出 JSON,`validate.py` 按这个 schema 校验。
+`extract_single.py` 逐份抽取，`reduce_field.py` 按字段归并，`validate.py` 校验确认后的画像 JSON。
 
 ## 可选字段池(全集 + 中文说明,展示给用户选)
 
@@ -15,8 +15,8 @@
 
 ### B. 工作内容(右栏核心)
 
-- `responsibilities` — 主要工作职责及分配占比(top3 职责,占比合计 100%)
-- `main_tasks` — 主要业务任务(具体到日常实操的任务清单,通常 4-8 条,比 responsibilities 更细)
+- `responsibilities` — 主要工作职责；占比仅在材料明确给出或标记为研究计算时使用
+- `main_tasks` — 主要业务任务(具体到日常实操的完整任务清单,比 responsibilities 更细)
 - `high_freq_tasks` — 高频任务处理(每天/每周必做的任务,频次 + 处理流程)
 - `kpi` — 岗位考核指标(独立成块,具体指标 + 度量方式)
 - `collaboration` — 上下游协同关系(需求来源、交付物、产物流转去向)
@@ -45,7 +45,7 @@
 □ 知识背景:领域知识 / 工具能力 / 经验积累
 
 【工作内容】(右栏核心,这一组建议至少选 3 个)
-□ 主要工作职责及占比(top3 职责)
+□ 主要工作职责及材料明确支持的占比
 □ 主要业务任务(更细的任务清单)
 □ 高频任务处理(每天/每周必做的)
 □ 岗位考核指标 KPI
@@ -119,7 +119,7 @@
       "description": "一句话概括(20-40 字)",
       "user_count": 3,
       "persona_type": "toB",
-      "source_documents": ["访谈_张三.docx", "访谈_李四.docx"],
+      "source_documents": ["P1234ABCD", "P5678EF90"],
 
       "basic_profile": {
         "department": "所属部门",
@@ -156,7 +156,7 @@
 
       "experience_goals": [
         {"title": "效率提升", "detail": "操作流程简化,不需要切换多个系统"},
-        {"title": "降噪", "detail": "告警噪音降低,只看真正需要处理的"}
+        {"title": "减少无效告警", "detail": "过滤无需处理的告警,优先显示需要立即处置的问题"}
       ],
 
       "pain_points": [
@@ -164,11 +164,11 @@
         {"title": "工具碎片化", "detail": "排查一个问题要切换 4-5 个系统"}
       ],
 
-      "one_sentence_need": "代表该角色需求的用户原声 [来源:访谈_张三.docx]: \"原话\"",
+      "one_sentence_need": "代表该角色需求的用户原声 [来源:P1234ABCD]: \"原话\"",
 
       "representative_quotes": [
-        "[来源:访谈_张三.docx]: \"原话片段...\"",
-        "[来源:访谈_李四.docx]: \"原话片段...\""
+        "[来源:P1234ABCD]: \"原话片段...\"",
+        "[来源:P5678EF90]: \"原话片段...\""
       ]
     }
   ]
@@ -204,10 +204,11 @@
 - **tools**:具体工具栈(例:Airflow、SQL、Grafana)
 - **experience**:经验描述(例:5 年某领域经验)
 
-### responsibilities(职责占比)
+### responsibilities(职责与可选占比)
 
-- top3 最核心职责,**占比合计必须 = 100%**
-- 占比是数字(0-100),不是字符串
+- 研究真值保留全部独立职责。占比只在材料明确给出时作为事实；研究计算必须标记 `synthesis` 并写明依据
+- `percentage` 是数字(0-100)或 `null`。只有材料明确给出或用户确认研究计算时，才要求展示项合计 = 100%
+- 只有用户确认展示 3 个职责且三项占比可靠时使用 `resp_rings`；其余情况使用列表组件完整呈现，或在 04 明示压缩与信息损失
 - 描述要具体到动作 + 对象,例:「编写 ETL 任务并做日常调度监控(40%)」
 
 ### collaboration(四个维度齐全)
@@ -218,24 +219,24 @@
 ### scenarios(场景 + 工具)
 
 - 每个场景必须包含两部分:**场景描述** + **该场景使用的工具/产品**
-- 2-4 个典型场景
+- 保留全部与研究问题相关、语义独立且有证据的典型场景
 - 工具列表:具体名字,不要写「办公软件」「监控工具」这种笼统词
 
 ### pain_points(核心痛点)
 
-- 2-5 条
+- 保留全部与研究问题相关、语义独立且有证据的痛点
 - 每条是 `{"title": "...", "detail": "..."}` 结构
-  - **title**:3-6 字小标题,概括痛点核心(例:「告警噪音」「工具碎片化」)
+  - **title**:语义完整、简洁、可独立理解并尽量一行呈现。中文通常 4-12 字；技术 token 保持完整
   - **detail**:具体可观察的描述,带数字/事实(例:「每天 200+ 条告警里只有 5 条真正需要处理」)
 - 好例子:`{"title": "告警噪音", "detail": "每天 200+ 条告警里只有 5 条真正需要处理"}`
 - 坏例子:`{"title": "工具问题", "detail": "工具不好用"}`(空话,没事实)
 
 ### experience_goals(体验目标)
 
-- 2-3 条
+- 保留全部与研究问题相关、语义独立且有证据的体验目标
 - 每条是 `{"title": "...", "detail": "..."}` 结构
-  - **title**:2-4 字标题(例:「降噪」「效率提升」「自定义」)
-  - **detail**:一句话目标(例:「告警噪音降低,只看真正需要处理的」)
+  - **title**:语义完整、简洁、可独立理解并尽量一行呈现(例:「减少无效告警」「集中查看关键数据」)
+  - **detail**:一句话说明目标的对象、场景和预期结果
 
 ### one_sentence_need
 
@@ -245,30 +246,29 @@
 ### representative_quotes(代表性原声)
 
 - 2-4 条原话,**逐字稿真实出现过**的句子
-- 每条带来源标注 `[来源:文件名]: "原话"`
+- 每条带来源标注 `[来源:P1234ABCD]: "原话"`
 - 选取标准:能代表这个画像最突出的特征(痛点 / 诉求 / 价值观)
 
-## "文档未提及" vs "推断" vs "省略"
+## “材料未提及”与“省略”
 
-三种情况要分清楚:
+两种情况要分清楚:
 
-- **文档未提及**:访谈里完全没提这个字段相关的内容 → 字段值填字符串「文档未提及」
-- **推断:[基于...]**:访谈里没明说,但基于其他信息可以合理推断 → 字段值前缀「推断:」例如「推断:基于其提到加班频次,工作年限应在 3-5 年区间」
+- **材料未提及**:访谈里完全没提这个字段相关的内容 → 字段值填字符串「材料未提及」
 - **省略**:这个字段被用户在对齐阶段排除掉了 → JSON 里完全没有这个 key
 
-第三种是用户主动排除的结果,前两种都要保留 key,只是值不同。
+事实字段禁止推断。研究者综合另存为 `synthesis` 并写清依据，经用户确认后才能展示。
 
 ## 多文档合并时的处理
 
-`merge.py` 把多份单文档抽取结果合并成一个画像时:
+`reduce_field.py` 与固定字段 prompt 归并多份抽取结果时，执行以下规则。结果先进入 `04-personas.md`，用户确认后再固化 JSON：
 
-- **共性字段**(basic_profile, knowledge_background, collaboration):取多份的交集 + 高频项,标注哪些是共识哪些是个体差异
+- **共性字段**(basic_profile, knowledge_background, collaboration):分别保留共性、差异和材料未提及，禁止只取交集导致少数观点消失
 - **列表字段**(pain_points, scenarios, representative_quotes):合并去重,每个 quote 保留各自来源标注
-- **比例字段**(responsibilities):取多份的均值后归一化到 100%
+- **比例字段**(responsibilities):只汇总材料明确给出的比例；研究计算标记 `synthesis` 并写明样本与算法
 - **数字字段**(user_count):合并的份数
-- **source_documents**:列出所有来源文件名
+- **source_documents**:列出所有稳定匿名 source ID
 
-合并冲突时(例:3 个人说工作年限 3-5 年,1 个人说 5-8 年),取多数意见,在 description 里标注差异。
+合并冲突时同时保留多数与少数值、各自来源和适用条件。禁止用多数意见覆盖差异。
 
 ---
 
@@ -279,7 +279,7 @@
 | 数据字段(04-personas.json) | 渲染组件 type(05-report.json) | 备注 |
 |---|---|---|
 | `basic_profile` + `knowledge_background` | `identity_panel`(整合到 5 个子结构) | toB/toD 左栏身份卡 |
-| `responsibilities` | `resp_rings` | 占比环图 |
+| `responsibilities` | `resp_rings` 或 `titled_list` | 仅可靠三项占比使用环图；其他情况用列表 |
 | `collaboration` | `collab_flow` | 字段名严格用 `demand_source` / `deliverables` / `downstream_flow` / `kpi`(对齐 validate_html LEGAL_COLLAB_KEYS) |
 | `main_tasks` | `titled_list` | 主要业务任务(高频任务字段 `high_freq_tasks` 亦走此组件) |
 | `high_freq_tasks` | `titled_list` | 高频任务处理 |

@@ -31,6 +31,16 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
+try:
+    from scripts.components.visual_system import load_visual_system
+except ImportError:
+    from components.visual_system import load_visual_system
+
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -49,20 +59,8 @@ LEGAL_ACCENT_TOKENS = {
     "--accent-mist-blue",
     "--accent-moss-green",
     "--accent-warm-orange",
-    "--accent-clay-red",
     "--accent-mustard",
     "--accent-cyan-gold",
-    # P7 别名,允许使用(虽然推荐用全名)
-    "--accent-blue",
-    "--accent-green",
-    "--accent-orange",
-    "--accent-red",
-    "--accent-yellow",
-    "--accent-mustard-yellow",
-    "--accent-mist",
-    "--accent-moss",
-    "--accent-warm",
-    "--accent-clay",
     # 主题语义色,合法
     "--color-accent",
     "--color-primary",
@@ -202,6 +200,26 @@ def check_skeleton(html: str, rep: Report) -> None:
                 f"出现非白名单 layout 类:{sorted(illegal)},必须从 {sorted(LEGAL_LAYOUTS)} 选")
 
 
+def check_section_boundaries(html: str, rep: Report) -> None:
+    """Block leaked tab content caused by malformed section boundaries."""
+    bad_patterns = [
+        ("</section>/div>", "P0-BROKEN-SECTION-DIV",
+         "section close is followed by raw /div>; later slide content may leak into the active tab"),
+        ("</section>iv>", "P0-BROKEN-SECTION-IV",
+         "section close is followed by raw iv>; later slide content may leak into the active tab"),
+    ]
+    for needle, code, message in bad_patterns:
+        pos = html.find(needle)
+        if pos >= 0:
+            rep.add("ERROR", code, message, line_no_of(html, pos), snippet_around(html, pos, 120))
+
+    leak = re.search(r"</section>\s*(?:</div>\s*)*<div class=\"meta-row\"", html)
+    if leak:
+        rep.add("ERROR", "P0-SECTION-META-LEAK",
+                "persona meta-row appears directly after a section close; slide wrapper is broken",
+                line_no_of(html, leak.start()), snippet_around(html, leak.start(), 140))
+
+
 def check_accent_tokens(html: str, rep: Report) -> None:
     """2. 所有 var(--accent-XXX) 必须在 token 白名单内
        注意:只校验 --accent-* 系列(LLM 最常写错的);
@@ -213,7 +231,6 @@ def check_accent_tokens(html: str, rep: Report) -> None:
         "--accent-mist-blue",
         "--accent-moss-green",
         "--accent-warm-orange",
-        "--accent-clay-red",
         "--accent-mustard",
         "--accent-cyan-gold",
     }
@@ -334,11 +351,17 @@ def check_nav_pair(html: str, rep: Report) -> None:
         if f'data-target="{jid}"' not in html:
             rep.add("ERROR", "P5-NO-NAV-FOR-JOURNEY",
                     f"存在 {jid} 但 nav 里没有对应 data-target='{jid}' 的按钮")
-        # 旧风格的旅程按钮文案不能再出现
-        bad_text = re.search(rf'>([^<]*旅程)<.*?data-target="{jid}"', html)
-        if bad_text and "›" not in bad_text.group(1):
+        # 只检查与当前 L2 journey id 绑定的按钮，不能误把前面的 L1“总体旅程”当成 L2 文案。
+        button = re.search(
+            rf'<button\b(?=[^>]*\bdata-target="{re.escape(jid)}")'
+            rf'(?=[^>]*\bclass="[^"]*\bnav-btn-journey\b[^"]*")[^>]*>(.*?)</button>',
+            html,
+            re.DOTALL,
+        )
+        label = re.sub(r"<[^>]+>", "", button.group(1)).strip() if button else ""
+        if label and "›" not in label:
             rep.add("WARNING", "P5-OLD-JOURNEY-NAV-TEXT",
-                    f"旅程按钮文案是 '{bad_text.group(1)}',应改为 '› 旅程'")
+                    f"旅程按钮文案是 '{label}',应改为 '› 旅程'")
 
 
 def check_journey_emotion(html: str, rep: Report) -> None:
@@ -571,6 +594,112 @@ def check_evidence_duplication(html: str, rep: Report) -> None:
                         line_no_of(html, slide_match.start()))
 
 
+def check_2b_l1_role_rail(html: str, rep: Report) -> None:
+    """Guard against overlapping 2B L1 role names and role tags."""
+    l1_match = re.search(
+        r'<section[^>]*id="journey-l1"[^>]*>(?P<body>.*?)</section>',
+        html,
+        re.S,
+    )
+    if not l1_match:
+        return
+    body = l1_match.group("body")
+    if '<svg class="l1-uml-svg"' not in body:
+        return
+    old_role_coord = re.search(
+        r'<text class="l1-role-text" x="36" y="\d+">.*?</text>\s*'
+        r'<text class="l1-role-tag" x="60" y="\d+">',
+        body,
+        re.S,
+    )
+    if old_role_coord:
+        rep.add(
+            "ERROR",
+            "P10-2B-L1-ROLE-RAIL-OVERLAP",
+            "2B L1 左侧角色栏仍使用旧坐标 x=36/x=60,角色名和动作标签会重叠。"
+            "请用渲染器的 _render_lane_role 固定盒内排版重新生成。",
+            line_no_of(html, l1_match.start() + old_role_coord.start()),
+        )
+    role_texts = re.findall(r'<text class="l1-role-text"[^>]*>(.*?)</text>', body, re.S)
+    for raw in role_texts:
+        text = re.sub(r'<[^>]+>', '', raw).strip()
+        if len(text) > 4 and "<tspan" not in raw:
+            rep.add(
+                "ERROR",
+                "P10-2B-L1-ROLE-NO-WRAP",
+                f"2B L1 左侧角色名 '{text}' 超过 4 字但没有 tspan 换行,会挤压或截断。",
+                line_no_of(html, l1_match.start()),
+            )
+
+
+def check_2b_l1_stage_grid(html: str, rep: Report) -> None:
+    """Guard against stage/substage rows drifting away from the SVG lane grid."""
+    l1_match = re.search(
+        r'<section[^>]*id="journey-l1"[^>]*>(?P<body>.*?)</section>',
+        html,
+        re.S,
+    )
+    if not l1_match:
+        return
+    body = l1_match.group("body")
+    if '<div class="l1-stage-board">' not in body or '<svg class="l1-uml-svg"' not in body:
+        return
+
+    journey_contract = load_visual_system()["themes"]["2b"]["journey"]
+    stage_count = len(re.findall(r'class="l1-stage-cell"', body))
+    if stage_count < 1:
+        return
+    rail_width = float(journey_contract["role_rail_width"])
+    view_box_width = float(journey_contract["view_box_width"])
+    stage_width = (view_box_width - rail_width) / stage_count
+    expected_values = [rail_width / view_box_width * 100]
+    expected_values.extend(stage_width / view_box_width * 100 for _ in range(stage_count))
+    expected_grid = " ".join(f"{value:.6f}%" for value in expected_values)
+    compact_expected = _compact_css(expected_grid)
+    css = _load_visual_css(rep)
+    compact_body = _compact_css(body)
+    compact_css = _compact_css(css)
+
+    bad_inline_patterns = [
+        "grid-template-columns:87fr219fr218fr219fr218fr219fr",
+        "grid-template-columns:87pxrepeat(",
+        "grid-template-columns:92pxrepeat(",
+        "grid-template-columns:92pxrepeat(5,1fr)",
+    ]
+    bad_css_patterns = [
+        ".persona-slide.layout-2b-journey.is-l1.l1-row{grid-template-columns:87fr",
+        ".persona-slide.layout-2b-journey.is-l1.l1-row{grid-template-columns:92px",
+    ]
+    if any(pattern in compact_body for pattern in bad_inline_patterns) or any(pattern in compact_css for pattern in bad_css_patterns):
+        rep.add(
+            "ERROR",
+            "P10-2B-L1-STAGE-GRID-MISMATCH",
+            "2B L1 阶段/子阶段表头仍使用旧列定义,会和下方 SVG 虚线泳道漂移。"
+            f"必须使用 viewBox 派生列: {expected_grid}",
+            line_no_of(html, l1_match.start()),
+        )
+
+    if compact_expected not in compact_body and compact_expected not in compact_css:
+        rep.add(
+            "ERROR",
+            "P10-2B-L1-STAGE-GRID-MISMATCH",
+            f"2B L1 未找到同源列定义: {expected_grid}。"
+            "阶段、子阶段、SVG 泳道必须共用这套比例。",
+            line_no_of(html, l1_match.start()),
+        )
+
+    stage_bg_ok = ".persona-slide.layout-2b-journey.is-l1.l1-row.stage-row{background:#96befa!important" in compact_css
+    substage_bg_ok = ".persona-slide.layout-2b-journey.is-l1.l1-row.substage-row{background:#dcf0fa!important" in compact_css
+    if not stage_bg_ok or not substage_bg_ok:
+        rep.add(
+            "ERROR",
+            "P10-2B-L1-STAGE-GRID-MISMATCH",
+            "2B L1 阶段行和子阶段行必须用同色背景承接箭头裁切,"
+            "避免露出白色条或白色三角。",
+            line_no_of(html, l1_match.start()),
+        )
+
+
 # ============================================================
 # 入口
 # ============================================================
@@ -594,8 +723,157 @@ def _css_has_decl(css: str, selector: str, prop: str, value: str) -> bool:
     return any(wanted in _compact_css(m.group("body")) for m in pattern.finditer(css))
 
 
+def _parse_inline_style(style: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for chunk in style.split(";"):
+        if ":" not in chunk:
+            continue
+        key, value = chunk.split(":", 1)
+        values[key.strip()] = value.strip()
+    return values
+
+
+def _check_2c_palette_packs(html: str, rep: Report) -> None:
+    system = load_visual_system()
+    packs = system["themes"]["2c"]["palette_packs"]
+    matches = re.findall(
+        r'<section\b(?=[^>]*class="[^"]*\blayout-2c-(?:portrait|detail|journey)\b[^"]*")'
+        r'(?=[^>]*\bid="([^"]+)")(?=[^>]*\bstyle="([^"]*)")[^>]*>',
+        html,
+    )
+    styled_ids = {section_id for section_id, _style in matches}
+    all_ids = set(re.findall(
+        r'<section\b(?=[^>]*class="[^"]*\blayout-2c-(?:portrait|detail|journey)\b[^"]*")'
+        r'(?=[^>]*\bid="([^"]+)")[^>]*>',
+        html,
+    ))
+    for section_id in sorted(all_ids - styled_ids):
+        rep.add(
+            "ERROR",
+            "VSTYLE-2C-PALETTE-PACK-MISSING",
+            f"2C section '{section_id}' must include the complete renderer-generated palette pack",
+        )
+
+    persona_styles: dict[str, set[str]] = {}
+    for section_id, style_text in matches:
+        declarations = _parse_inline_style(style_text)
+        style_name = declarations.get("--color-toc-style", "")
+        pack = packs.get(style_name)
+        if not pack:
+            rep.add(
+                "ERROR",
+                "VSTYLE-2C-PALETTE-STYLE-UNKNOWN",
+                f"2C section '{section_id}' uses an unknown palette style: {style_name or '(missing)'}",
+            )
+            continue
+        expected = pack["values"]
+        for token, expected_value in expected.items():
+            actual = declarations.get(token)
+            if _compact_css(actual or "") != _compact_css(expected_value):
+                rep.add(
+                    "ERROR",
+                    "VSTYLE-2C-PALETTE-VALUE-MISMATCH",
+                    f"2C section '{section_id}' must set {token} to {expected_value}; got {actual!r}",
+                )
+        if declarations.get("--color-toc-aux-bg") == declarations.get("--color-toc-primary"):
+            rep.add(
+                "ERROR",
+                "VSTYLE-2C-TOUCHPOINT-PRIMARY-COLOR",
+                f"2C section '{section_id}' maps the auxiliary tag background to the primary color",
+            )
+        persona_id = re.sub(r"-(?:detail(?:-\d+)?|journey|core)$", "", section_id)
+        persona_styles.setdefault(persona_id, set()).add(style_name)
+
+    for persona_id, styles in persona_styles.items():
+        if len(styles) > 1:
+            rep.add(
+                "ERROR",
+                "VSTYLE-2C-PALETTE-STYLE-MISMATCH",
+                f"2C persona '{persona_id}' uses multiple palette packs: {', '.join(sorted(styles))}",
+            )
+
+
+def _check_2c_font_floor(css: str, html: str, rep: Report) -> None:
+    class_prefixes: list[str] = []
+    if "layout-2c-journey" in html:
+        class_prefixes.extend([".journey-", ".emotion-label"])
+    if "layout-distribution-multi" in html:
+        class_prefixes.extend([".distribution-", ".snake-"])
+    if not class_prefixes:
+        return
+
+    for block in re.finditer(r"(?P<selector>[^{}]+)\{(?P<body>[^{}]*)\}", css, re.S):
+        selector = block.group("selector").strip()
+        if not any(prefix in selector for prefix in class_prefixes):
+            continue
+        for match in re.finditer(r"font-size\s*:\s*([^;]+)", block.group("body"), re.I):
+            value = match.group(1).strip()
+            pixels = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)px(?:\s*!important)?", value, re.I)
+            too_small = bool(pixels and float(pixels.group(1)) < 12)
+            unguarded_small_token = _compact_css(value) in {
+                "var(--text-xs)",
+                "var(--text-sm)",
+            }
+            if too_small or unguarded_small_token:
+                rep.add(
+                    "ERROR",
+                    "VSTYLE-2C-FONT-BELOW-MIN",
+                    f"2C journey/distribution text must be at least 12px: {selector} uses {value}",
+                )
+
+    for match in re.finditer(r"style=\"[^\"]*font-size\s*:\s*([0-9.]+)px", html, re.I):
+        if float(match.group(1)) < 12:
+            rep.add(
+                "ERROR",
+                "VSTYLE-2C-FONT-BELOW-MIN",
+                f"2C inline text size is below 12px: {match.group(1)}px",
+                line_no_of(html, match.start()),
+            )
+
+
+def _check_workflow_visual_spec(rep: Report, project_dir: Path | None) -> None:
+    if project_dir is None:
+        return
+    project_dir = Path(project_dir)
+    process_dir = project_dir if project_dir.name == "过程稿" else project_dir / "过程稿"
+    if not process_dir.is_dir():
+        return
+    alignment_path = process_dir / "03-field-alignment.json"
+    report_path = process_dir / "05-report.json"
+    if not alignment_path.is_file() or not report_path.is_file():
+        rep.add(
+            "ERROR",
+            "VSTYLE-VISUAL-SPEC-MISSING",
+            "workflow HTML validation requires both 03-field-alignment.json and 05-report.json",
+        )
+        return
+    try:
+        alignment = json.loads(alignment_path.read_text(encoding="utf-8"))
+        report_json = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        rep.add("ERROR", "VSTYLE-VISUAL-SPEC-MISSING", f"cannot read workflow visual_spec: {exc}")
+        return
+    alignment_spec = alignment.get("visual_spec")
+    report_spec = (report_json.get("metadata") or {}).get("visual_spec")
+    if not isinstance(alignment_spec, dict) or not isinstance(report_spec, dict):
+        rep.add(
+            "ERROR",
+            "VSTYLE-VISUAL-SPEC-MISSING",
+            "03-field-alignment.json and 05-report.json must both contain visual_spec",
+        )
+        return
+    for key in ("template_id", "palette_id", "persona_palette_map"):
+        if key in alignment_spec and alignment_spec.get(key) != report_spec.get(key):
+            rep.add(
+                "ERROR",
+                "VSTYLE-VISUAL-SPEC-MISMATCH",
+                f"workflow visual_spec.{key} differs between 03 and 05",
+            )
+
+
 def check_visual_style_contract(html: str, rep: Report) -> None:
     """Protect the visual rules in steps/visual-style-guide.md."""
+    system = load_visual_system()
     css = _load_visual_css(rep)
     if "_components.css" in html and "_design-tokens.css" in html and not css:
         rep.add("ERROR", "VSTYLE-NO-LOCAL-CSS",
@@ -604,15 +882,26 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
 
     compact = _compact_css(css)
 
+    if "layout-2b-grid-detail" in html:
+        detail_css = [
+            (".persona-slide.layout-2b-grid-detail.active", "display", "grid"),
+            (".persona-slide.layout-2b-grid-detail.active", "grid-template-rows", "auto minmax(0,1fr)"),
+            (".persona-slide.layout-2b-grid-detail .modules-panel", "grid-auto-rows", "auto"),
+            (".persona-slide.layout-2b-grid-detail .modules-panel", "align-content", "center"),
+            (".persona-slide.layout-2b-grid-detail .modules-panel > .grid-module", "background", "#fbfcfe"),
+            (".persona-slide.layout-2b-grid-detail .generic-list-item:not(:last-child)::after", "content", "none"),
+        ]
+        for selector, prop, value in detail_css:
+            if not _css_has_decl(css, selector, prop, value):
+                rep.add("ERROR", "VSTYLE-2B-DETAIL-BALANCE", f"2B detail layout contract failed: {selector} must include {prop}: {value}")
+
     if 'data-theme="2c"' in html and 'data-density="low"' not in html:
         rep.add("ERROR", "VSTYLE-2C-DENSITY",
                 '2C reports must use data-density="low"')
 
     if 'data-theme="2c"' in html:
         required_2c_tokens = {
-            "--color-bg-page": "#ffffff",
-            "--color-bg-canvas-left": "#ffffff",
-            "--color-bg-canvas-right": "#ffffff",
+            **system["themes"]["2c"]["tokens"],
             "--palette-2c-purple-primary": "#9664ff",
             "--palette-2c-purple-aux": "#fff0be",
             "--palette-2c-red-orange-primary": "#f05a28",
@@ -648,6 +937,9 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
             if _compact_css(f"{token}:{value}") not in compact:
                 rep.add("ERROR", "VSTYLE-2C-SEMANTIC-TOKEN-MISSING",
                         f"2C semantic color token missing or wrong: {token} must be {value}")
+
+        _check_2c_palette_packs(html, rep)
+        _check_2c_font_floor(css, html, rep)
 
         if "layout-2c-portrait" in html:
             portrait_css = [
@@ -751,6 +1043,9 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
             distribution_css = [
                 (".snake-point-level-label", "font-size", "max(12px,var(--text-sm))", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
                 (".snake-level-name", "font-size", "12px", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
+                (".distribution-legend-count", "font-size", "max(12px,var(--text-xs))", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
+                (".distribution-footer", "font-size", "max(12px,var(--text-sm))", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
+                (".distribution-footer-hint", "font-size", "max(12px,var(--text-xs))", "VSTYLE-2C-DISTRIBUTION-FONT-MIN"),
             ]
             for selector, prop, value, code in distribution_css:
                 if not _css_has_decl(css, selector, prop, value):
@@ -760,28 +1055,43 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
         if "layout-2c-journey" in html:
             journey_css = [
                 (".journey-cell", "font-size", "max(12px,var(--text-sm))"),
-                (".journey-stage-header", "color", "var(--color-text-inverse)"),
-                (".journey-stage-header", "background", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-stage-header", "color", "var(--color-text-primary)"),
+                (".journey-stage-header", "background", "var(--color-toc-surface, var(--color-bg-card-soft))"),
+                (".journey-stage-header", "border-bottom", "2px solid var(--color-toc-primary, var(--color-accent))"),
+                (".journey-stage-number", "color", "var(--color-toc-primary, var(--color-accent))"),
                 (".journey-dimension-label", "font-size", "12px"),
                 (".journey-dimension-label", "color", "var(--color-text-primary)"),
                 (".journey-dimension-label", "background", "var(--color-toc-surface, var(--color-bg-card-soft))"),
                 (".journey-cell-keyword", "font-size", "max(12px,var(--text-xs))"),
                 (".journey-cell-keyword", "color", "var(--color-text-primary)"),
                 (".journey-cell-summary", "font-size", "12px"),
-                (".journey-pain-highlight", "background", "color-mix(in srgb, var(--color-toc-primary, var(--color-accent)) 10%, var(--color-bg-card))"),
-                (".journey-pain-highlight", "border-left", "3px solid var(--color-toc-primary, var(--color-accent))"),
-                (".journey-pain-highlight .journey-cell-keyword", "background", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-pain-highlight", "background", "color-mix(in srgb, var(--color-toc-alert, var(--color-accent)) 12%, var(--color-bg-card))"),
+                (".journey-pain-highlight", "border-left", "3px solid var(--color-toc-alert, var(--color-accent))"),
+                (".journey-pain-highlight .journey-cell-keyword", "background", "var(--color-toc-alert, var(--color-accent))"),
+                (".journey-pain-highlight .journey-cell-keyword", "color", "var(--color-text-inverse)"),
                 (".journey-pain-opportunity-tag", "font-size", "max(12px,var(--text-xs))"),
-                (".journey-pain-opportunity-tag", "color", "var(--color-toc-primary, var(--color-accent))"),
+                (".journey-pain-opportunity-tag", "color", "var(--color-toc-alert, var(--color-accent))"),
                 (".journey-cell-touchpoint", "font-size", "max(12px,var(--text-xs))"),
                 (".journey-cell-touchpoint .touchpoint-tag", "font-size", "max(12px,var(--text-xs))"),
                 (".emotion-label", "font-size", "max(12px,var(--text-xs))"),
                 (".emotion-label .label-text", "font-size", "12px"),
+                (".journey-emotion-row", "min-height", "176px"),
+                (".journey-emotion-row", "padding", "40px var(--space-4)"),
+                (".journey-emotion-points-overlay", "top", "40px"),
+                (".journey-emotion-points-overlay", "bottom", "40px"),
+                (".emotion-label.above", "bottom", "14px"),
+                (".emotion-label.below", "top", "14px"),
+                (".journey-emotion-dimension-label", "display", "grid"),
+                (".journey-emotion-dimension-label", "place-items", "center"),
             ]
             for selector, prop, value in journey_css:
                 if not _css_has_decl(css, selector, prop, value):
-                    rep.add("ERROR", "VSTYLE-2C-JOURNEY-FONT-MIN",
-                            f"2C journey text must keep a 12px minimum: {selector} must include {prop}: {value}")
+                    rep.add("ERROR", "VSTYLE-2C-JOURNEY-CONTRACT",
+                            f"2C journey CSS contract failed: {selector} must include {prop}: {value}")
+            if "journey-emotion-dimension-label" not in html:
+                rep.add("ERROR", "VSTYLE-2C-EMOTION-LABEL-ALIGN", "2C journey emotion dimension label must use the centered journey-emotion-dimension-label class")
+            if not re.search(r'class="journey-emotion-svg"\s+viewBox="0 0 500 (?:80|100)"', html):
+                rep.add("ERROR", "VSTYLE-2C-EMOTION-SAFE-AREA", "2C emotion curve must use a registered 80 or 100 unit viewBox with the CSS safe area")
             touchpoint_aux_css = [
                 (".journey-cell-touchpoint .touchpoint-tag", "background", "var(--color-toc-aux-bg,var(--color-toc-aux,var(--color-border-subtle)))"),
                 (".journey-cell-touchpoint .touchpoint-tag", "color", "var(--color-toc-aux-text,var(--color-text-primary))"),
@@ -793,16 +1103,7 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
 
     is_2b_like = 'data-theme="2b"' in html or 'data-theme="2d"' in html
     if is_2b_like:
-        required_2b_tokens = {
-            "--color-process-main": "#96befa",
-            "--color-primary-light": "#dcf0fa",
-            "--color-primary": "#6ea0dc",
-            "--color-primary-dark": "#3296ff",
-            "--color-warning": "#dc2828",
-            "--color-warning-soft": "#fae6e6",
-            "--color-success": "#8cbe6e",
-            "--color-border-subtle": "#dcdcdc",
-        }
+        required_2b_tokens = system["themes"]["2b"]["tokens"]
         for token, value in required_2b_tokens.items():
             if _compact_css(f"{token}:{value}") not in compact:
                 rep.add("ERROR", "VSTYLE-2B-TOKEN-MISSING",
@@ -830,6 +1131,7 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
 
 ALL_CHECKS = [
     ("骨架", check_skeleton),
+    ("section boundaries", check_section_boundaries),
     ("accent token", check_accent_tokens),
     ("tooltip script", check_tooltip_script),
     ("data-evidence 格式", check_data_evidence_format),
@@ -843,6 +1145,8 @@ ALL_CHECKS = [
     ("tab 数量", check_tab_count),
     ("画像 subtitle 重复", check_persona_subtitle_repeat),
     ("证据复用", check_evidence_duplication),
+    ("2B L1 role rail", check_2b_l1_role_rail),
+    ("2B L1 stage grid", check_2b_l1_stage_grid),
     ("visual style contract", check_visual_style_contract),
 ]
 
@@ -868,7 +1172,7 @@ def run_validation(html_path: Path, project_dir: Path | None) -> Report:
     rep = Report(html_path=html_path)
     for name, fn in ALL_CHECKS:
         # 这些 check 必须看完整 HTML(因为要确认 script 存在与否)
-        target = raw_html if name in {"tooltip script", "骨架"} else html
+        target = raw_html if name in {"tooltip script", "骨架", "visual style contract"} else html
         try:
             fn(target, rep)
         except Exception as e:  # noqa: BLE001
@@ -876,6 +1180,7 @@ def run_validation(html_path: Path, project_dir: Path | None) -> Report:
                     f"check {fn.__name__} 自己抛异常,跳过:{type(e).__name__}: {e}")
     check_avatar_usage(raw_html, rep, project_dir)
     _check_privacy_leaks(raw_html, rep, project_dir)
+    _check_workflow_visual_spec(rep, project_dir)
     return rep
 
 

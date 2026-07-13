@@ -1,25 +1,22 @@
 # Checkpoint Workflow
 
-## 2026-07-08 Gate Update
-
-Every execution path must run the same hard gates:
-
-1. `python scripts/validate_checkpoint_pairing.py --workdir <run-or-process-dir>` before entering the next step and before rendering.
-2. `python scripts/validate_field_alignment.py --workdir <run-or-process-dir>` before extraction and before rendering when `03-field-alignment.json` exists.
-3. `python scripts/validate_components_json.py --workdir <process-dir> 05-report.json` before HTML generation.
-4. `python scripts/validate_html.py --project-dir <run-dir> <delivery-dir>/report.html` after rendering.
-
-`render_report.py` now calls the checkpoint pairing gate when rendering from a workflow `05-report.json`. A report with missing paired MD/JSON checkpoints, only final HTML, or mismatched `processed/` and `extracted/` artifacts is not a valid delivery.
-
 本文件是弱模型稳定执行的流程门禁。任何执行用户画像 skill 的模型都必须先完成中间文件落盘,再进入下一步。
 
 ## 最高优先级原则
 
 1. 每个关键节点必须成对输出 `.md` 和 `.json`。
-2. `.md` 面向用户对齐,必须能让用户暂停并接手后续 Keynote、PPT 或其他模型可视化。
+2. `.md` 面向用户对齐,必须能让用户暂停、审阅并交给后续执行者接手。
 3. `.json` 面向系统续跑和脚本校验,必须结构化、可解析、可追踪。
 4. 禁止跳过中间稿直接产出 `05-report.json` 或最终 HTML。
 5. 当前步骤没有通过校验前,不得进入下一步。
+6. 00 至 05 全部属于内容确认节点。MD 必须覆盖用户需要判断的完整中文语义，并带有 `确认状态：待用户确认`。只展示字段名、画像名、阶段名或一句摘要均不合格。04 的机器字段、稳定 ID 和组件枚举保留在 JSON，通过内容指纹与中文 MD 绑定。
+7. 七个节点必须分别确认。要求用户使用该节点的明确确认语或提出修改；“继续”“开始生成”“开始渲染”不能充当内容确认。
+   用户提出修改时，先更新本节点 MD 并重新展示；该条修改消息不能同时封存确认。只有用户在后续回复中包含本节点固定确认语，才运行封存脚本。
+8. 确认请求必须晚于内容交付。当前检查点 MD 未生成、未落盘或尚未在本轮对话中交付时，禁止要求用户回复任何确认短语。禁止在开始处理、报告进度或等待脚本时预告“完成后请回复……”；禁止介绍下一检查点的确认话术。每轮只告诉用户当前正在处理的内容。
+9. 预处理后先生成 `source-manifest.json`。相同内容只登记一个 source_id；补充材料只能补指定字段。
+10. 04 画像正文保存为 `display_components`，05 只用 `content_ref` 引用。禁止在 05 复制后改写、缩写或截断。
+11. 每一步只通过 `workflow.py check --auto-recover` 处理当前错误。输出必须包含 `recovery.kind`、恢复命令和恢复包路径。错误总数下降时继续；同一错误或总错误数连续三次无进展时生成恢复交付件并停止。完整路径见 `steps/recovery-workarounds.md`。
+12. `workflow.py prepare-05` 先运行完整渲染预检并一次列出全部上游阻断。预检未通过时不生成 05 用户确认稿。渲染复核出现新错误，视为确认后文件漂移或 Skill 缺陷，禁止让弱模型进入逐条试错循环。
 
 ## 检查点清单
 
@@ -27,25 +24,31 @@ Every execution path must run the same hard gates:
 | --- | --- | --- | --- |
 | 00 研究目标 | `00-research-goal.md` | `00-research-goal.json` | 锚定读者、研究问题、决策用途 |
 | 01 范式选择 | `01-paradigm.md` | `01-paradigm.json` | 选择 2B/2C、R1 到 R5 范式和处理路径 |
-| 02 分类依据 | `02-classification.md` | `02-classification.json` | R3/R4/R5 必填,说明分类维度和边界 |
+| 02 分类依据 | `02-classification.md` | `02-classification.json` | 全部范式必交。R1/R2 写 `not_applicable` 和具体原因；R3/R4/R5 写分类依据和边界 |
 | 03 字段对齐 | `03-field-alignment.md` | `03-field-alignment.json` | 展示字段池、用户取舍、视觉规范选择 |
 | 04 画像合并 | `04-personas.md` | `04-personas.json` | 固化画像数量、合并依据、证据映射 |
-| 05 报告组件 | `05-report.md` | `05-report.json` | 固化报告结构、组件清单、视觉模板 |
+| 04 用户旅程 | `04-journeys.md` | `04-journeys.json` | 固化用户确认的阶段、流程、节点、痛点、触点和证据缺口；无旅程也写不适用 |
+| 05 最终页面编排 | `05-report.md` | `05-report.json` | 只确认相对 03/04 新增的页面、内容分配和信息损失；其余设置直接沿用 |
 
 ## 每步执行顺序
 
 1. 读取上一步 `.json`,确认状态为 `confirmed` 或 `validated`。
-2. 生成本步骤 `.md`,用自然语言向用户展示判断、证据和待确认项。
+2. 生成本步骤 `.md`，用自然语言向用户展示判断、证据和待确认项。04 先写 `.draft.json`，再运行 `workflow.py prepare-04`。05 先写 `05-report.draft.json`，再运行 `workflow.py prepare-05` 生成增量确认稿。复杂 2B/2D 旅程按 MD 当前轮运行 `workflow.py journey-review`。
 3. 等待用户确认或根据用户反馈修订。
-4. 生成本步骤 `.json`,保存用户确认摘要和机器可读字段。
-5. 运行校验脚本,确认 MD/JSON 配对、schema、数量一致性通过。
-6. 进入下一步。
+4. 生成本步骤 `.json`，保存用户原话和机器可读字段。04 由封存脚本把结构化草稿固化为同名 JSON。
+5. 00 至 05 每个节点都运行 `python scripts/workflow.py --workdir <目录> seal --stem <节点名> --user-message "<用户原话>"`。
+6. 运行 `python scripts/workflow.py --workdir <目录> check --target <当前节点> --auto-recover`，确认 MD/JSON 配对、中文语义覆盖、内容指纹、确认原话、schema 和数量一致性通过。
+7. 进入下一步。
 
-## 给用户看的固定话术
+## 当前检查点交付后的话术
 
-每个对齐节点都应使用类似话术:
+只有当前 MD 已生成、落盘并向用户交付后，才使用类似话术：
 
-> 我先把这一步的中间结果落成 MD,方便你直接审阅或交给其他工具继续做视觉化。你确认后,我再生成对应 JSON 作为后续自动续跑和校验的依据。
+> 我已经把这一步的结构化草稿落盘，并生成了中文 MD 供你直接审阅。你确认后，我会封存同名 JSON，后续可续跑，也可把 MD 或 JSON 交给其他 AI。
+
+确认短语直接引用当前 MD 末尾的内容，不额外解释未来节点。处理开始前和处理中只报告当前动作、文件路径或进度，不要求用户记忆稍后要回复什么。
+
+若用户说“不确认”“看不懂”“看得头晕”“直接继续”，该节点继续保持待确认。模型必须降低当前稿的信息密度、先讲全局位置，再分块对齐。不得把确认短语拼接到用户原话，不得进入下一节点。
 
 ## 禁止行为
 
@@ -54,14 +57,29 @@ Every execution path must run the same hard gates:
 - 禁止只写 JSON,不提供用户可读 MD。
 - 禁止字段池不展示就进入画像生成。
 - 禁止未询问视觉素材、业务类型、模板和色板就生成 HTML。
+- 禁止在 05 中新写、改写或补写未经过 `04-journeys.md` 确认的旅程。
+- 禁止把“继续”“下一步”“开始渲染”等推进指令解释为任何节点的内容确认。用户提出修改的同一条消息也不能封存确认。
+- 禁止把固定确认短语追加到用户原话。用户原话含拒绝、困惑或跳过审阅语义时，任何拼接后的确认都无效。
+- 禁止在当前检查点 MD 生成和交付前请求确认短语，禁止预告下一检查点的确认短语。
+- 禁止渲染阶段批量回填 04 的 MD/JSON；04 的确认门禁必须在 05 创建前通过。
 - 禁止自创 layout 替代 `steps/visual-style-guide.md` 中的模板。
+- 禁止在 `过程稿/` 中创建自定义构建脚本或手写 HTML。画像、旅程和 05 只能使用既有 schema、模板、校验器和渲染器。
+- 同一份访谈只能在 `processed/` 与 `extracted/` 中各保存一次。它可以在 04 同时归属多个画像,但不能通过复制文件增加样本量或提及次数。
+- `source_count` 只等于 `unique_primary_interviews`。`unique_supplemental_sources` 与 `analysis_assignment_count` 单独展示。
+- 禁止把补充材料的提及计入主访谈 `mention_count`，禁止让补充材料单独定义画像或核心旅程节点。
 
 ## 弱模型执行提示
 
 当模型参数小于 100B 或遵循能力不稳定时,必须按以下简化命令执行:
 
 1. 只做当前一个检查点。
-2. 先复制对应 `templates/checkpoints/*.md` 模板,填完后停止给用户确认。
-3. 用户确认后复制对应 `templates/checkpoints/*.json` 模板。
+2. 00 至 03、05 复制对应 MD 模板。04 复制 `.draft.json` 模板并用 `workflow.py prepare-04` 生成 MD。
+3. 用户确认后复制普通 JSON 模板；04 直接运行封存脚本，由脚本固化草稿 JSON。
 4. 运行 `scripts/validate_checkpoint_pairing.py`。
 5. 不要合并多个阶段,不要提前生成最终报告。
+
+渲染前完整门禁：
+
+```bash
+python scripts/validate_checkpoint_pairing.py --workdir <项目目录或过程稿目录> --require-complete
+```

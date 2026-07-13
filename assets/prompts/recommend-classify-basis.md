@@ -1,5 +1,7 @@
 # Prompt:推荐分类依据(R3 范式)
 
+执行本 prompt 前先读取 `assets/prompts/_shared-language-contract.txt`。
+
 ## 用途
 
 R3 范式下,模型基于访谈数据 + 研究目标,推荐 1 个主要分类依据 + 1-2 个备选。
@@ -50,9 +52,9 @@ R3 范式下,模型基于访谈数据 + 研究目标,推荐 1 个主要分类依
     "basis_name": "岗位/角色",
     "reason": "因为研究目标涉及不同岗位对 AI 辅助的差异化需求,按岗位分能突出这种差异",
     "predicted_groups": [
-      {"name": "调度员", "members": ["邓老师", "孔老师", "肖老师"], "reason_short": "都负责实时调度"},
-      {"name": "运维", "members": ["刘老师"], "reason_short": "负责设备维护"},
-      {"name": "碳中和", "members": ["碳中和老师"], "reason_short": "从政策研究角度切入"}
+      {"name": "调度员", "members": ["P11111111", "P22222222"], "reason_short": "都负责实时调度"},
+      {"name": "运维", "members": ["P33333333"], "reason_short": "负责设备维护"},
+      {"name": "碳中和", "members": ["P44444444"], "reason_short": "从政策研究角度切入"}
     ]
   },
   "alternatives": [

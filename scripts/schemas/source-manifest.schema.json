@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "source-manifest",
+  "type": "object",
+  "required": ["version", "status", "sources", "reference_files", "counts"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"const": "1.0"},
+    "status": {"const": "reviewed"},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "processed_files", "content_sha256", "evidence_tier", "assigned_personas", "inclusion_reason", "supplemented_fields"],
+        "additionalProperties": false,
+        "properties": {
+          "source_id": {"type": "string", "pattern": "^P[0-9A-F]{8}$"},
+          "processed_files": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "evidence_tier": {"enum": ["primary", "supplemental"]},
+          "assigned_personas": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^persona-[0-9]+$"}},
+          "inclusion_reason": {"type": "string", "minLength": 4, "maxLength": 300},
+          "supplemented_fields": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 80}}
+        },
+        "allOf": [{
+          "if": {"properties": {"evidence_tier": {"const": "supplemental"}}},
+          "then": {"properties": {"supplemented_fields": {"minItems": 1}}},
+          "else": {"properties": {"supplemented_fields": {"maxItems": 0}}}
+        }]
+      }
+    },
+    "reference_files": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["path", "reference_type", "authoritative"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "reference_type": {"enum": ["terminology", "user_context", "design_reference"]},
+          "authoritative": {"type": "boolean"}
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": ["unique_primary_interviews", "unique_supplemental_sources", "analysis_assignment_count"],
+      "additionalProperties": false,
+      "properties": {
+        "unique_primary_interviews": {"type": "integer", "minimum": 1},
+        "unique_supplemental_sources": {"type": "integer", "minimum": 0},
+        "analysis_assignment_count": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

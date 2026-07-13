@@ -1,6 +1,6 @@
 {
   "2b": {
-    "title": "user-persona-v8 组件画廊 - toB 主题",
+    "title": "User Persona 组件测试夹具 - 2B",
     "theme": "2b",
     "density": "high",
     "items": [
@@ -206,7 +206,7 @@
           "items": [
             {
               "title": "链路长",
-              "detail": "信息在多个工具之间流转，追踪成本很高。",
+              "detail": "信息在多个工具之间反复流转，版本追踪和责任定位成本都很高。",
               "mention_badge": "3/5",
               "evidence_quotes": [
                 {
@@ -217,7 +217,7 @@
             },
             {
               "title": "反馈慢",
-              "detail": "结果需要多轮等待，影响当天推进节奏。"
+              "detail": "结果需要经过多轮等待和重复确认，持续影响当天任务的推进节奏。"
             }
           ]
         }
@@ -230,11 +230,11 @@
           "items": [
             {
               "title": "<script>",
-              "detail": "信息在多个工具之间流转，追踪成本很高。"
+              "detail": "信息在多个工具之间反复流转，版本追踪和责任定位成本都很高。"
             },
             {
               "title": "反馈慢",
-              "detail": "结果需要多轮等待，影响当天推进节奏。"
+              "detail": "结果需要经过多轮等待和重复确认，持续影响当天任务的推进节奏。"
             }
           ]
         }
@@ -1083,6 +1083,78 @@
               "type": "action",
               "slot": 1,
               "label": "补充任务 6"
+            },
+            {
+              "id": "n7",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "step",
+              "slot": 2,
+              "label": "访谈执行"
+            },
+            {
+              "id": "n8",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "doc",
+              "slot": 3,
+              "label": "归纳记录"
+            },
+            {
+              "id": "n9",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "step",
+              "slot": 1,
+              "label": "工作量评估"
+            },
+            {
+              "id": "n10",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "action",
+              "slot": 2,
+              "label": "任务拆分"
+            },
+            {
+              "id": "n11",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "doc",
+              "slot": 3,
+              "label": "排期确认"
+            },
+            {
+              "id": "n12",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "step",
+              "slot": 1,
+              "label": "洞察编码"
+            },
+            {
+              "id": "n13",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "action",
+              "slot": 2,
+              "label": "方案联调"
+            },
+            {
+              "id": "n14",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "decision",
+              "slot": 3,
+              "label": "自测通过?"
+            },
+            {
+              "id": "n15",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "step",
+              "slot": 2,
+              "label": "上线监控"
             }
           ],
           "edges": [
@@ -1102,6 +1174,11 @@
             {
               "from": "n4",
               "to": "n5"
+            },
+            {
+              "from": "n14",
+              "to": "n15",
+              "branch": "yes"
             }
           ]
         }
@@ -1204,6 +1281,78 @@
               "type": "action",
               "slot": 1,
               "label": "补充任务 6"
+            },
+            {
+              "id": "n7",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "step",
+              "slot": 2,
+              "label": "访谈执行"
+            },
+            {
+              "id": "n8",
+              "lane": "researcher",
+              "stage": "discover",
+              "type": "doc",
+              "slot": 3,
+              "label": "归纳记录"
+            },
+            {
+              "id": "n9",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "step",
+              "slot": 1,
+              "label": "工作量评估"
+            },
+            {
+              "id": "n10",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "action",
+              "slot": 2,
+              "label": "任务拆分"
+            },
+            {
+              "id": "n11",
+              "lane": "researcher",
+              "stage": "plan",
+              "type": "doc",
+              "slot": 3,
+              "label": "排期确认"
+            },
+            {
+              "id": "n12",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "step",
+              "slot": 1,
+              "label": "洞察编码"
+            },
+            {
+              "id": "n13",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "action",
+              "slot": 2,
+              "label": "方案联调"
+            },
+            {
+              "id": "n14",
+              "lane": "researcher",
+              "stage": "build",
+              "type": "decision",
+              "slot": 3,
+              "label": "自测通过?"
+            },
+            {
+              "id": "n15",
+              "lane": "researcher",
+              "stage": "launch",
+              "type": "step",
+              "slot": 2,
+              "label": "上线监控"
             }
           ],
           "edges": [
@@ -1223,6 +1372,11 @@
             {
               "from": "n4",
               "to": "n5"
+            },
+            {
+              "from": "n14",
+              "to": "n15",
+              "branch": "yes"
             }
           ]
         }
@@ -1230,7 +1384,7 @@
     ]
   },
   "2c": {
-    "title": "user-persona-v8 组件画廊 - toC 主题",
+    "title": "User Persona 组件测试夹具 - 2C",
     "theme": "2c",
     "density": "high",
     "items": [
@@ -1325,6 +1479,36 @@
                   "source": "丁先生"
                 }
               ]
+            },
+            {
+              "title": "决策习惯",
+              "summary": "先核对关键条件再行动",
+              "body": "用户会在开始操作之前核对流程、权限和预期结果，以降低中途返工与信息遗漏的风险。",
+              "evidence_quotes": [
+                {
+                  "quote": "我会先把条件确认清楚",
+                  "source": "用户C"
+                },
+                {
+                  "quote": "不确认的话后面容易返工",
+                  "source": "用户D"
+                }
+              ]
+            },
+            {
+              "title": "体验期待",
+              "summary": "希望关键反馈及时可见",
+              "body": "用户希望每一步操作都有清晰反馈，并能快速判断当前状态与后续动作，减少等待和反复确认。",
+              "evidence_quotes": [
+                {
+                  "quote": "最好马上能看到结果",
+                  "source": "用户E"
+                },
+                {
+                  "quote": "状态清楚我才知道下一步",
+                  "source": "用户F"
+                }
+              ]
             }
           ],
           "full_width_index": 1
@@ -1363,6 +1547,36 @@
                 {
                   "quote": "这样比较放心",
                   "source": "丁先生"
+                }
+              ]
+            },
+            {
+              "title": "决策习惯",
+              "summary": "先核对关键条件再行动",
+              "body": "用户会在开始操作之前核对流程、权限和预期结果，以降低中途返工与信息遗漏的风险。",
+              "evidence_quotes": [
+                {
+                  "quote": "我会先把条件确认清楚",
+                  "source": "用户C"
+                },
+                {
+                  "quote": "不确认的话后面容易返工",
+                  "source": "用户D"
+                }
+              ]
+            },
+            {
+              "title": "体验期待",
+              "summary": "希望关键反馈及时可见",
+              "body": "用户希望每一步操作都有清晰反馈，并能快速判断当前状态与后续动作，减少等待和反复确认。",
+              "evidence_quotes": [
+                {
+                  "quote": "最好马上能看到结果",
+                  "source": "用户E"
+                },
+                {
+                  "quote": "状态清楚我才知道下一步",
+                  "source": "用户F"
                 }
               ]
             }

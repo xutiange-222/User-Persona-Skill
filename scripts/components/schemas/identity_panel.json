@@ -28,8 +28,8 @@
         "alt": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 12,
-          "description": "头像替代文本(与 name maxLength 对齐)"
+          "maxLength": 40,
+          "description": "头像替代文本；保留完整画像名称，禁止用省略号截断"
         }
       }
     },
@@ -44,8 +44,8 @@
         "name": {
           "type": "string",
           "minLength": 2,
-          "maxLength": 12,
-          "description": "画像中文名"
+          "maxLength": 24,
+          "description": "画像名称；语义完整、简洁、允许自然换行，禁止字符截断或用省略号代替"
         },
         "alias": {
           "type": "string",
