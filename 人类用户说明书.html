@@ -1,829 +1,116 @@
 <!doctype html>
-<html lang="zh-Hans">
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>User Persona Skill · 说明书</title>
-<style>
-  /* ---- reset ---- */
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-    color: #0f172a;
-    background: #f6f7fb;
-    line-height: 1.65;
-    font-size: 15px;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 32px 96px; }
-  @media (max-width: 720px) { .wrap { padding: 32px 20px 64px; } }
-
-  .topbar {
-    position: sticky; top: 0; z-index: 50;
-    background: rgba(246,247,251,0.88);
-    backdrop-filter: saturate(140%) blur(8px);
-    -webkit-backdrop-filter: saturate(140%) blur(8px);
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .topbar-inner {
-    max-width: 1080px; margin: 0 auto; padding: 14px 32px;
-    display: flex; align-items: center; gap: 24px;
-    font-size: 13px;
-  }
-  .topbar .brand {
-    font-weight: 600; color: #0f172a; letter-spacing: -0.01em;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  .topbar .brand-mark {
-    width: 18px; height: 18px; border-radius: 5px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%);
-  }
-  .topbar nav { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
-  .topbar nav a { color: #475569; text-decoration: none; font-weight: 500; }
-  .topbar nav a:hover { color: #1e3a8a; }
-  @media (max-width: 720px) {
-    .topbar-inner { padding: 12px 20px; gap: 12px; }
-    .topbar nav { display: none; }
-  }
-
-  .hero { margin-top: 16px; }
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 4px 10px; border-radius: 999px;
-    background: #eef2ff; color: #1e3a8a;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
-  }
-  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #1e3a8a; }
-  h1 {
-    margin: 16px 0 12px;
-    font-size: 38px; line-height: 1.2; letter-spacing: -0.02em;
-    color: #0f172a; font-weight: 700;
-  }
-  .lede {
-    margin: 0; color: #475569; font-size: 17px; line-height: 1.6;
-    max-width: 720px;
-  }
-  .hero-meta {
-    margin-top: 24px; display: flex; flex-wrap: wrap; gap: 8px;
-  }
-  .pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 6px;
-    background: #fff; border: 1px solid #e5e7eb;
-    font-size: 12px; color: #475569; font-weight: 500;
-  }
-  .pill strong { color: #0f172a; font-weight: 600; }
-
-  section { margin-top: 64px; scroll-margin-top: 80px; }
-  h2 {
-    margin: 0 0 8px;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #1e3a8a;
-  }
-  h2 .num {
-    display: inline-block; width: 22px; height: 22px;
-    line-height: 22px; text-align: center;
-    border-radius: 6px; background: #1e3a8a; color: #fff;
-    font-size: 12px; margin-right: 8px;
-  }
-  h3 {
-    margin: 0 0 20px;
-    font-size: 26px; line-height: 1.3; letter-spacing: -0.015em;
-    color: #0f172a; font-weight: 700;
-  }
-  .section-lede {
-    margin: -8px 0 32px; color: #64748b; max-width: 720px;
-  }
-
-  .roadmap {
-    background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px;
-    padding: 28px; box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-  }
-  .roadmap-row {
-    display: grid; grid-template-columns: 180px 1fr; gap: 24px;
-    padding: 18px 0; border-top: 1px dashed #e5e7eb;
-  }
-  .roadmap-row:first-child { border-top: 0; padding-top: 4px; }
-  .roadmap-q {
-    font-weight: 600; color: #0f172a; font-size: 14px;
-  }
-  .roadmap-q .step {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    background: #f1f5f9; color: #475569;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
-    margin-bottom: 6px;
-  }
-  .roadmap-options { display: flex; flex-wrap: wrap; gap: 10px; }
-  .opt {
-    background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px;
-    padding: 10px 14px; font-size: 13px;
-    color: #334155; display: inline-flex; align-items: center; gap: 8px;
-    text-decoration: none;
-  }
-  .opt:hover { border-color: #1e3a8a; background: #fff; }
-  .opt .lbl { font-weight: 600; color: #0f172a; }
-  .opt .arrow { color: #94a3b8; }
-  .opt .target {
-    padding: 2px 7px; border-radius: 4px; font-size: 11px;
-    font-weight: 700; letter-spacing: 0.04em;
-  }
-  .opt[data-to="a"] .target { background: #dbeafe; color: #1d4ed8; }
-  .opt[data-to="b"] .target { background: #ccfbf1; color: #0f766e; }
-  .opt[data-to="c"] .target { background: #fef3c7; color: #b45309; }
-  @media (max-width: 720px) {
-    .roadmap-row { grid-template-columns: 1fr; gap: 10px; }
-  }
-
-  /* ---- three output forms ---- */
-  .forms { display: flex; flex-direction: column; gap: 20px; }
-  .form-card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
-    padding: 24px 26px 22px;
-    scroll-margin-top: 80px;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-  }
-  .form-head {
-    display: flex; align-items: flex-start; gap: 14px;
-    margin-bottom: 14px;
-  }
-  .form-badge {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 18px; flex-shrink: 0;
-  }
-  .form-card[data-form="a"] .form-badge { background: #dbeafe; color: #1d4ed8; }
-  .form-card[data-form="b"] .form-badge { background: #ccfbf1; color: #0f766e; }
-  .form-card[data-form="c"] .form-badge { background: #fef3c7; color: #b45309; }
-  .form-title { font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
-  .form-sub { color: #64748b; font-size: 14px; margin-top: 4px; line-height: 1.5; }
-  .tag-scope, .tag-2c {
-    display: inline-block; margin-left: 8px; vertical-align: middle;
-    padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-  .tag-scope { background: #ecfdf5; color: #047857; }
-  .tag-2c { background: #fef3c7; color: #b45309; }
-  .form-scene {
-    margin: 0 0 16px; padding: 12px 14px; border-radius: 10px;
-    background: #f8fafc; border-left: 3px solid #cbd5e1;
-    font-size: 13.5px; color: #334155; line-height: 1.6;
-  }
-  .form-scene em { font-style: normal; color: #0f172a; font-weight: 600; }
-
-  .subpaths {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    margin: 16px 0;
-  }
-  @media (max-width: 720px) { .subpaths { grid-template-columns: 1fr; } }
-  .subpath {
-    background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px;
-    padding: 14px 16px;
-  }
-  .subpath-head {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-  }
-  .subpath-num {
-    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
-    background: #e2e8f0; color: #475569;
-  }
-  .form-card[data-form="b"] .subpath-num { background: #ccfbf1; color: #0f766e; }
-  .form-card[data-form="c"] .subpath-num { background: #fde68a; color: #92400e; }
-  .subpath-title { font-size: 14px; font-weight: 700; color: #0f172a; }
-  .subpath-desc { font-size: 13px; color: #64748b; line-height: 1.55; }
-
-  .form-row {
-    display: grid; grid-template-columns: 72px 1fr; gap: 8px;
-    font-size: 13px; line-height: 1.55; margin-bottom: 8px;
-  }
-  .form-row .k { color: #94a3b8; font-weight: 500; }
-  .form-row .v { color: #334155; }
-  .form-row .v code {
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 12.5px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;
-    color: #0f172a;
-  }
-  .samples {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;
-  }
-  .samples a {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 10px; border-radius: 6px;
-    background: #f8fafc; border: 1px solid #e5e7eb;
-    text-decoration: none; color: #1e3a8a; font-size: 12.5px; font-weight: 500;
-  }
-  .samples a:hover { background: #eef2ff; border-color: #1e3a8a; }
-  .form-decision {
-    margin-top: 14px; padding: 10px 12px; border-radius: 8px;
-    background: #f8fafc; border-left: 3px solid #1e3a8a;
-    font-size: 12.5px; color: #475569; line-height: 1.55;
-  }
-  .form-decision b { color: #0f172a; font-weight: 600; }
-
-  .timeline {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
-    padding: 8px 0; box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-  }
-  .tl-row {
-    display: grid; grid-template-columns: 110px 1fr 110px;
-    gap: 20px; align-items: start;
-    padding: 18px 24px; border-top: 1px solid #f1f5f9;
-  }
-  .tl-row:first-child { border-top: 0; }
-  .tl-step {
-    font-size: 12px; font-weight: 700; color: #1e3a8a;
-    letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .tl-step .n {
-    display: inline-block; width: 20px; height: 20px; line-height: 20px;
-    text-align: center; border-radius: 50%; background: #eef2ff;
-    color: #1e3a8a; font-size: 11px; margin-right: 6px;
-  }
-  .tl-what { color: #0f172a; font-size: 14px; line-height: 1.6; }
-  .tl-what .ex {
-    display: block; margin-top: 6px; color: #64748b; font-size: 12.5px;
-  }
-  .tl-who {
-    text-align: right; font-size: 12px; font-weight: 600;
-    padding: 3px 9px; border-radius: 6px;
-    justify-self: end; align-self: start;
-  }
-  .tl-who.user { background: #fee2e2; color: #b91c1c; }
-  .tl-who.model { background: #e0e7ff; color: #4338ca; }
-  .tl-who.both { background: #fef3c7; color: #92400e; }
-  @media (max-width: 720px) {
-    .tl-row { grid-template-columns: 1fr; gap: 8px; }
-    .tl-who { justify-self: start; }
-  }
-
-  .prep { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 720px) { .prep { grid-template-columns: 1fr; } }
-  .prep-card {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
-    padding: 20px 22px;
-  }
-  .prep-card h4 {
-    margin: 0 0 12px; font-size: 14px; font-weight: 700;
-    color: #0f172a; display: flex; align-items: center; gap: 8px;
-  }
-  .prep-card h4 .tag {
-    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
-    background: #eef2ff; color: #1e3a8a; letter-spacing: 0.05em;
-  }
-  .prep-card h4 .tag.optional { background: #f1f5f9; color: #64748b; }
-  .prep-card ul {
-    margin: 0; padding: 0; list-style: none; font-size: 13.5px;
-    color: #334155; line-height: 1.7;
-  }
-  .prep-card li { padding-left: 18px; position: relative; }
-  .prep-card li::before {
-    content: ""; position: absolute; left: 4px; top: 11px;
-    width: 4px; height: 4px; border-radius: 50%; background: #1e3a8a;
-  }
-  .prep-card code {
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 12.5px; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;
-  }
-
-  .tree-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 24px; }
-  @media (max-width: 860px) { .tree-wrap { grid-template-columns: 1fr; } }
-  .tree {
-    background: #0f172a; color: #cbd5e1; border-radius: 12px;
-    padding: 20px 22px; font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 12.5px; line-height: 1.75; overflow-x: auto;
-  }
-  .tree .dim { color: #64748b; }
-  .tree .key { color: #67e8f9; }
-  .tree .note { color: #94a3b8; font-style: italic; }
-  .tree-notes { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: #475569; line-height: 1.65; }
-  .tree-notes .item {
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-    padding: 12px 14px;
-  }
-  .tree-notes .item b { color: #0f172a; }
-  .tree-notes code {
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 12px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px;
-  }
-
-  .resume {
-    background: linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%);
-    border: 1px solid #cbd5e1; border-radius: 14px;
-    padding: 22px 24px;
-  }
-  .resume h4 {
-    margin: 0 0 10px; font-size: 15px; font-weight: 700; color: #0f172a;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .resume h4::before {
-    content: ""; display: inline-block; width: 8px; height: 8px;
-    border-radius: 50%; background: #0891b2;
-  }
-  .resume p { margin: 0 0 8px; color: #334155; font-size: 13.5px; line-height: 1.7; }
-  .resume code {
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: 12.5px; background: rgba(15,23,42,0.06); padding: 1px 6px; border-radius: 4px;
-  }
-
-  footer {
-    margin-top: 80px; padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
-    color: #94a3b8; font-size: 12.5px;
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-  }
-  footer a { color: #475569; text-decoration: none; }
-  footer a:hover { color: #1e3a8a; }
-
-  .callout {
-    margin: 20px 0; padding: 14px 16px;
-    border-radius: 10px; background: #fff7ed; border-left: 3px solid #ea580c;
-    color: #7c2d12; font-size: 13.5px; line-height: 1.65;
-  }
-  .callout b { color: #431407; }
-  .callout.info {
-    background: #eff6ff; border-left-color: #3b82f6; color: #1e3a8a;
-  }
-  .callout.info b { color: #1e40af; }
-
-  .quickstart {
-    margin-top: 40px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 24px 28px;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-  }
-  .quickstart-lede {
-    margin: 0 0 20px;
-    color: #64748b;
-    font-size: 14.5px;
-    max-width: 760px;
-  }
-  .prompt-list { display: flex; flex-direction: column; gap: 14px; }
-  .prompt-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #f8fafc;
-  }
-  .prompt-label {
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
-    background: #f1f5f9;
-    border-bottom: 1px solid #e5e7eb;
-    letter-spacing: 0.02em;
-  }
-  .prompt-text {
-    margin: 0;
-    padding: 14px 16px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 13px;
-    line-height: 1.65;
-    color: #0f172a;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .quickstart-notes {
-    margin-top: 16px;
-    display: grid;
-    gap: 8px;
-    font-size: 13.5px;
-    color: #64748b;
-  }
-  .quickstart-notes li { padding-left: 18px; position: relative; }
-  .quickstart-notes li::before {
-    content: "·"; position: absolute; left: 4px; color: #94a3b8; font-weight: 700;
-  }
-
-  .muted { color: #64748b; }
-  a.inline { color: #1e3a8a; text-decoration: underline; text-decoration-color: #cbd5e1; text-underline-offset: 3px; }
-  a.inline:hover { text-decoration-color: #1e3a8a; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Persona Skill 人类用户说明书</title>
+  <style>
+    :root{--ink:#282828;--muted:#667085;--line:#dcdcdc;--blue:#3296ff;--blue-soft:#eef7ff;--green-soft:#edf8f3;--amber-soft:#fff7d6;--surface:#f7f9fc;--radius:14px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:#fff;font:15px/1.72 "HarmonyOS Sans SC","Microsoft YaHei UI","PingFang SC",sans-serif;letter-spacing:0}
+    a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.shell{width:min(1120px,calc(100% - 40px));margin:0 auto}
+    header{padding:64px 0 44px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--blue);font-weight:700;font-size:13px}h1{margin:8px 0 14px;font-size:clamp(34px,5vw,58px);line-height:1.12;letter-spacing:-.03em}.lead{max-width:780px;margin:0;color:var(--muted);font-size:18px}
+    .principles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}.principle{padding:20px;border:1px solid #cfe7ff;border-radius:var(--radius);background:var(--blue-soft)}.principle strong{display:block;margin-bottom:5px;color:#1266a8}
+    nav{position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}nav .shell{display:flex;gap:22px;overflow-x:auto;padding:13px 0;white-space:nowrap}nav a{color:#475467;font-size:13px;font-weight:650}
+    main{padding:24px 0 76px}section{padding:34px 0;border-bottom:1px solid #eceff3}h2{margin:0 0 8px;font-size:28px;line-height:1.3}h3{margin:24px 0 8px;font-size:18px}.intro{margin:0 0 20px;color:var(--muted)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}.card h3{margin-top:0}.good{background:var(--green-soft);border-color:#cce9db}.note{background:var(--amber-soft);border-color:#f3dc86}
+    ol,ul{padding-left:22px}li+li{margin-top:7px}table{width:100%;border-collapse:collapse;margin-top:18px;font-size:14px}th,td{padding:12px 14px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--surface);font-weight:700}
+    code{padding:2px 6px;border-radius:5px;background:#f2f4f7;color:#344054;font:13px/1.5 Consolas,monospace}pre{overflow:auto;padding:18px;border-radius:12px;background:#172033;color:#e7edf7;font:13px/1.65 Consolas,monospace}
+    .flow{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:8px;margin-top:18px;overflow-x:auto;padding-bottom:8px}.flow-step{min-width:120px;padding:14px 12px;border-top:4px solid var(--blue);border-radius:8px;background:var(--surface)}.flow-step b{display:block;color:var(--blue);font-size:13px}.flow-step span{display:block;margin-top:4px;font-size:13px;color:var(--muted)}
+    .samples{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}.sample{display:block;padding:18px;border:1px solid var(--line);border-radius:12px;color:var(--ink)}.sample:hover{border-color:var(--blue);text-decoration:none;box-shadow:0 5px 20px rgba(50,150,255,.10)}.sample small{display:block;margin-top:5px;color:var(--muted)}
+    footer{padding:28px 0 48px;color:var(--muted);font-size:13px}@media(max-width:780px){.principles,.grid-2,.samples{grid-template-columns:1fr}header{padding-top:42px}.shell{width:min(100% - 28px,1120px)}}
+  </style>
 </head>
 <body>
-
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="#top"><span class="brand-mark"></span>User Persona Skill · 说明书</a>
-    <nav>
-      <a href="#quickstart">快速开始</a>
-      <a href="#goals">研究目标</a>
-      <a href="#roadmap">选路线</a>
-      <a href="#scenarios">三种形态</a>
-      <a href="#collab">协作时序</a>
-      <a href="#prep">准备清单</a>
-      <a href="#output">产出结构</a>
-      <a href="#resume">中断续跑</a>
-    </nav>
-  </div>
-</header>
-
-<div class="wrap" id="top">
-
-  <!-- HERO -->
-  <div class="hero">
-    <span class="eyebrow"><span class="dot"></span>READ ME FIRST · 首次使用者必读</span>
-    <h1>访谈逐字稿 → 可点开的画像报告</h1>
-    <p class="lede">
-      上传访谈文件，模型和你协作完成一份交互式 HTML <strong>用户画像 &amp; 用户旅程</strong> 报告。支持企业用户（2B）、开发者（2D）、消费者（2C）三类研究。
-      与你对齐画像分类方式后，输出 1 个或多个用户画像和旅程。
-    </p>
-    <div class="hero-meta">
-      <span class="pill">可切换画像 · 字段 hover 看原话</span>
-      <span class="pill">输入 <strong>.docx / .txt / .xlsx</strong></span>
-      <span class="pill">产出 <strong>report.html</strong></span>
-      <span class="pill">支持 <strong>断点续跑</strong></span>
+  <header><div class="shell">
+    <div class="eyebrow">USER PERSONA SKILL</div>
+    <h1>从研究资料到可追溯的用户画像</h1>
+    <p class="lead">这套工具帮助研究者把访谈和研究资料逐步整理成可追溯的用户画像、用户旅程和可浏览报告。每一步都能审阅、修改、交接，也可以直接用于 PPT 排版。</p>
+    <div class="principles">
+      <div class="principle"><strong>先看完整内容，再确认</strong>每一步先提供可读稿。你确认具体内容后，流程才继续。</div>
+      <div class="principle"><strong>随时可以接手</strong>固定保留 7 对 MD 与 JSON。你可以交给其他 AI，也可以直接复制到 PPT。</div>
+      <div class="principle"><strong>事实能够回到材料</strong>结论、术语、人数和引文都保留来源；材料没有提到时会明确说明。</div>
     </div>
-  </div>
+  </div></header>
+  <nav><div class="shell"><a href="#start">快速开始</a><a href="#confirm">确认什么</a><a href="#modes">五种方式</a><a href="#files">你会拿到什么</a><a href="#handoff">继续与交接</a><a href="#samples">参考报告</a></div></nav>
 
-  <!-- QUICKSTART -->
-  <section id="quickstart">
-    <h2><span class="num">0</span>快速开始</h2>
-    <h3>一句话就能开跑</h3>
-    <p class="section-lede">在对话里<strong>@ 本 skill</strong>（或提到「用户画像」「访谈分析」等关键词），附上访谈文件或给出路径即可。模型会先问研究目标，再带你走完字段对齐 → 抽取 → 渲染。</p>
-
-    <div class="quickstart">
-      <div class="prompt-list">
-        <div class="prompt-card">
-          <div class="prompt-label">@ skill + 附件</div>
-          <pre class="prompt-text">@user-persona 帮我从这些访谈生成画像报告。
-（把 .docx / .txt / .xlsx 拖进对话，或写路径：C:\你的路径\访谈资料\）</pre>
-        </div>
+  <main class="shell">
+    <section id="start">
+      <h2>快速开始</h2><p class="intro">准备研究资料和一个清晰的研究问题，然后让模型按检查点逐步推进。</p>
+      <div class="grid-2">
+        <div class="card good"><h3>适合的输入</h3><ul><li>访谈逐字稿、观察记录、研究笔记</li><li>CSV、JSON、Markdown、Word 或纯文本资料</li><li>已有的角色分组、术语说明或补充材料</li><li>可选的头像、产品截图或场景图片；没有也可以</li></ul></div>
+        <div class="card note"><h3>开始前准备</h3><ul><li>说明报告给谁看、要回答什么问题、支持什么决策</li><li>标出不应纳入分析的材料</li><li>尽量提前脱敏人名、电话、邮箱和敏感组织信息</li></ul></div>
       </div>
+      <h3>推荐指令</h3>
+      <pre>请使用 User Persona Skill 分析这个目录中的访谈资料。
+研究目标：……
+研究对象和使用场景：……
+报告受众：……
+请在第一条回复中告诉我本次工作目录的绝对路径。
+每一步先展示完整的可读过程稿，等我确认具体内容后再继续。</pre>
+    </section>
 
-      <ul class="quickstart-notes">
-        <li>支持格式：<code>.docx</code>、<code>.txt</code>、<code>.xlsx</code>；不必事先整理成 JSON。</li>
-        <li>头像可不提供：未放自定义图时，skill 会按画像名匹配内置 <code>assets/default-avatars/</code>。</li>
-        <li>跑完后对外只发 <code>最终交付件-*/</code> 文件夹里的 <code>report.html</code>（浏览器打开即可）。</li>
-      </ul>
-    </div>
-  </section>
+    <section id="confirm">
+      <h2>你会依次确认什么</h2><p class="intro">流程共有七次内容确认。画像和旅程分开审阅，你可以在生成报告前完整修改两部分内容。</p>
+      <div class="flow"><div class="flow-step"><b>00</b>研究目标<span>范围、对象、输入</span></div><div class="flow-step"><b>01</b>生成方式<span>A 至 E</span></div><div class="flow-step"><b>02</b>分类确认<span>命名和成员映射</span></div><div class="flow-step"><b>03</b>内容范围<span>字段、素材、旅程</span></div><div class="flow-step"><b>04</b>画像确认<span>正文、证据、取舍</span></div><div class="flow-step"><b>04</b>旅程确认<span>阶段、节点、触点</span></div><div class="flow-step"><b>05</b>报告确认<span>页面和内容安排</span></div></div>
+      <table><thead><tr><th>检查点</th><th>你主要看什么</th><th>确认语</th></tr></thead><tbody>
+        <tr><td>00</td><td>目标是否准确，资料范围是否完整，工作目录是否正确</td><td>回复“确认研究目标”</td></tr>
+        <tr><td>01</td><td>画像生成方式、理由和限制是否合适</td><td>回复“确认画像方式”</td></tr>
+        <tr><td>02</td><td>分类依据、类别名、人员归属和不确定点</td><td>回复“确认分类内容”</td></tr>
+        <tr><td>03</td><td>画像字段、图片、是否生成综合或单角色旅程，以及选用哪份参考报告。这里只确认范围</td><td>回复“确认字段与视觉范围”</td></tr>
+        <tr><td>04 画像</td><td>每个画像的中文完整正文、证据、差异、样本风险和展示取舍</td><td>回复“确认画像内容”</td></tr>
+        <tr><td>04 旅程</td><td>先看整体阶段链和角色分工，再看单角色细节、关键分支和证据缺口。复杂旅程会分层呈现</td><td>回复“确认旅程内容”</td></tr>
+        <tr><td>05</td><td>页面清单、内容安排、保留或省略的信息</td><td>回复“确认报告结构”</td></tr>
+      </tbody></table>
+      <p class="intro">如果你提出了修改，请先查看更新后的完整内容，再发送确认语。只回复“继续”不会被视为内容确认。内容过密或看不清全局时，可以要求模型只讲当前层级，过程稿会继续保持待确认。</p>
+    </section>
 
-  <!-- GOALS -->
-  <section id="goals">
-    <h2><span class="num">1</span>研究目标</h2>
-    <h3>先定目标，再选路线</h3>
-    <p class="section-lede">skill 启动后<strong>先问这三件事</strong>，确认后再进入三种产出形态。字段、分群、页面侧重都从研究目标出发，不是模型从数据里猜。</p>
+    <section id="modes">
+      <h2>五种画像生成方式</h2>
+      <table><thead><tr><th>方式</th><th>适用场景</th><th>你会确认什么</th></tr></thead><tbody>
+        <tr><td>A · 单一用户类型</td><td>所有资料共同描述一种角色或消费者</td><td>一个画像的名称、纳入成员和异常样本</td></tr>
+        <tr><td>B · 已有分组</td><td>你已经知道每份资料属于哪个角色或用户组</td><td>每组名称、成员、分组依据和样本风险</td></tr>
+        <tr><td>C · 一个分类依据</td><td>需要按一个关键维度分出多类画像</td><td>分类依据、边界、类别名和逐人归属</td></tr>
+        <tr><td>D · 二维矩阵</td><td>两个关键区分点共同解释差异</td><td>两个轴、档位、逐人落点、象限和空象限</td></tr>
+        <tr><td>E · 多维分布</td><td>三到五个区分点共同解释差异</td><td>区分点、档位、逐人映射和聚类结果</td></tr>
+      </tbody></table>
+      <p class="intro">消费者研究会明确展示 A 至 E 供你选择。你没有选定之前，流程会停在这里。</p>
+    </section>
 
-    <div class="roadmap">
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">①</span>给谁看？</div>
-        <div class="roadmap-options">
-          <span class="opt"><span class="lbl">产品 / 设计 / 运营 / 管理层 / 跨团队</span></span>
-        </div>
+    <section id="files">
+      <h2>你会拿到什么</h2><p class="intro">开始后，模型会先告诉你项目工作目录和过程稿目录的绝对路径。请保留整个项目目录。</p>
+      <table><thead><tr><th>文件或目录</th><th>你可以怎么用</th></tr></thead><tbody>
+        <tr><td><code>过程稿/*.md</code></td><td>中文的人类确认稿。可以直接审阅、复制到 PPT，或交给其他 AI 继续分析和排版。旅程稿先提供全局，再分层展开细节。外发前再次检查脱敏。</td></tr>
+        <tr><td><code>过程稿/*.json</code></td><td>与 MD 绑定的机器状态，包含稳定编号、证据映射和续跑信息。其他 AI 可以据此恢复流程、核对字段和生成新的呈现形式。外发 00 时可移除本地绝对路径。</td></tr>
+        <tr><td><code>最终交付件-*/</code></td><td>可整包复制和发送的 HTML 报告及配套样式、图片。</td></tr>
+      </tbody></table>
+      <h3>七对确认文件</h3><pre>过程稿/
+├── 00-research-goal.md / .json
+├── 01-paradigm.md / .json
+├── 02-classification.md / .json
+├── 03-field-alignment.md / .json
+├── 04-personas.md / .json
+├── 04-journeys.md / .json
+└── 05-report.md / .json</pre>
+      <p class="intro">每一对文件都包含研究上下文、确认状态和下一步说明。只拿其中一对，也能让新的 AI 理解这一步在做什么。</p>
+    </section>
+
+    <section id="handoff">
+      <h2>继续与交接</h2>
+      <p class="intro">如果工作中断，把整个项目目录交给原来的 AI 或新的 AI，并告诉它从现有过程稿继续。七份 MD 记录了你看到和确认的内容，配对的 JSON 帮助 AI 恢复进度。</p>
+      <div class="card good"><h3>内容始终由你决定</h3><p>你可以修改、删减或补充任何正文，也可以只拿过程稿去做 PPT。需要继续自动生成时，把修改后的 MD 交给 AI，并请它同步更新对应的 JSON，再从该步继续。</p></div>
+    </section>
+
+    <section id="samples">
+      <h2>参考报告</h2><p class="intro">以下五份报告可以直接打开。你只需告诉模型更接近哪一份，具体视觉规则由工具内部处理。</p>
+      <div class="samples">
+        <a class="sample" href="https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/A-%E5%8D%95%E7%94%BB%E5%83%8F/2B-%E4%BF%9D%E9%9A%9C%E5%9E%8B%E8%BF%90%E7%BB%B4%E5%B7%A5%E7%A8%8B%E5%B8%88/report.html"><strong>单画像 · toB/toD</strong></a>
+        <a class="sample" href="https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/A-%E5%8D%95%E7%94%BB%E5%83%8F/2C-%E5%86%85%E8%A1%8C%E5%9C%BA%E6%99%AF%E6%B4%BE/report.html"><strong>单画像 · toC</strong></a>
+        <a class="sample" href="https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/B-%E5%A4%9A%E8%A7%92%E8%89%B2/2B-DevOps%E4%BA%94%E8%A7%92%E8%89%B2/report.html"><strong>多角色 · toB/toD</strong></a>
+        <a class="sample" href="https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/D-%E4%BA%8C%E7%BB%B4%E7%9F%A9%E9%98%B5/2C-HiRes-2%E7%BB%B4/report.html"><strong>二维矩阵 · toC</strong></a>
+        <a class="sample" href="https://xutiange-222.github.io/User-Persona-Skill/docs/reference/reports/E-%E5%A4%9A%E7%BB%B4%E5%88%86%E5%B8%83/2C-HiRes-%E5%A4%9A%E5%8C%BA%E5%88%86%E7%82%B9/report.html"><strong>多维分布 · toC</strong></a>
       </div>
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">②</span>回答什么？</div>
-        <div class="roadmap-options">
-          <span class="opt"><span class="lbl">例：哪类用户最在意 X · 各角色差异在哪 · 上手卡点是什么</span></span>
-        </div>
-      </div>
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">③</span>支持什么决策？</div>
-        <div class="roadmap-options">
-          <span class="opt"><span class="lbl">例：功能优先级 · 路线选择 · 汇报对齐 · 体验改版方向</span></span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ROADMAP -->
-  <section id="roadmap">
-    <h2><span class="num">2</span>选路线</h2>
-    <h3>最多回答四个问题，指向三种形态</h3>
-    <p class="section-lede">顺着问下来即可；也可以跳过决策树，直接看 <a class="inline" href="#scenarios">§3 三种形态 + 样例</a>，选最接近的一种。</p>
-
-    <div class="roadmap">
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">Q1</span>受访者是什么类型？</div>
-        <div class="roadmap-options">
-          <span class="opt"><span class="lbl">企业内员工 / 开发者</span><span class="arrow">→</span><span class="muted">主题 2B / 2D</span></span>
-          <span class="opt"><span class="lbl">个人消费者 / 用户</span><span class="arrow">→</span><span class="muted">主题 2C</span></span>
-        </div>
-      </div>
-
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">Q2</span>这批人是同一种角色吗？</div>
-        <div class="roadmap-options">
-          <a class="opt" data-to="a" href="#scn-a"><span class="lbl">是，同一种</span><span class="arrow">→</span><span class="target">形态 A</span></a>
-          <span class="opt"><span class="lbl">不是，多种角色</span><span class="arrow">→</span><span class="muted">继续 Q3</span></span>
-        </div>
-      </div>
-
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">Q3</span>文件里角色已经分开了吗？</div>
-        <div class="roadmap-options">
-          <a class="opt" data-to="b" href="#scn-b"><span class="lbl">是，文件夹 / 文件名已分好</span><span class="arrow">→</span><span class="target">形态 B · 已分组</span></a>
-          <span class="opt"><span class="lbl">否，混在一起</span><span class="arrow">→</span><span class="muted">继续 Q4</span></span>
-        </div>
-      </div>
-
-      <div class="roadmap-row">
-        <div class="roadmap-q"><span class="step">Q4</span>你更想先定好几类人，还是用图找差异？</div>
-        <div class="roadmap-options">
-          <a class="opt" data-to="b" href="#scn-b"><span class="lbl">先一起定分类依据</span><span class="arrow">→</span><span class="target">形态 B · 未分组</span></a>
-          <a class="opt" data-to="c" href="#scn-c"><span class="lbl">两个维度画坐标</span><span class="arrow">→</span><span class="target">形态 C · 二维</span></a>
-          <a class="opt" data-to="c" href="#scn-c"><span class="lbl">三到五个维度横向对比</span><span class="arrow">→</span><span class="target">形态 C · 多维</span></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SCENARIOS -->
-  <section id="scenarios">
-    <h2><span class="num">3</span>三种产出形态</h2>
-    <h3>先选报告长什么样，再定协作路径</h3>
-    <p class="section-lede">每种形态附可点开样例。形态 B、C 内部还有两条路径（方式 2–5），差别在<strong>启动时要不要多聊几步</strong>，最终报告结构一致。</p>
-
-    <div class="callout info">
-      <b>心智模型：</b>1 张典型画像（形态 A）· 多个 tab 各一类人（形态 B）· 首页一张定位 / 对比图 + 各类画像（形态 C）。
-    </div>
-
-    <div class="forms">
-
-      <!-- Form A -->
-      <article class="form-card" id="scn-a" data-form="a">
-        <div class="form-head">
-          <span class="form-badge">A</span>
-          <div>
-            <div class="form-title">单画像合并 <span class="tag-scope">2C / 2B / 2D 均适用</span></div>
-            <div class="form-sub">同一种角色 · 多份访谈合成 1 张典型画像</div>
-          </div>
-        </div>
-        <p class="form-scene">例：<em>5 位产品经理的访谈</em> → 合成 1 份「典型产品经理」画像，字段 hover 可看原话。</p>
-        <div class="form-row"><span class="k">产出</span><span class="v">1 个画像（主画像 + 细节 + 旅程三 tab）+ 原话证据</span></div>
-        <div class="form-row"><span class="k">样例</span>
-          <span class="v samples">
-            <a href="docs/reference/reports/A-单画像/2B-保障型运维工程师/report.html" target="_blank" rel="noopener">↗ 2B · 保障型运维工程师（主画像 + 细节 + 旅程）</a>
-            <a href="docs/reference/reports/A-单画像/2C-内行场景派/report.html" target="_blank" rel="noopener">↗ 2C · 内行场景派</a>
-          </span>
-        </div>
-        <div class="form-decision"><b>你拍板：</b>展示完整字段池（★/□）；是否补头像 / 场景截图；是否加旅程页（与模型确认即可）。</div>
-      </article>
-
-      <!-- Form B -->
-      <article class="form-card" id="scn-b" data-form="b">
-        <div class="form-head">
-          <span class="form-badge">B</span>
-          <div>
-            <div class="form-title">多画像 · 按类别分开 <span class="tag-scope">2C / 2B / 2D 均适用</span></div>
-            <div class="form-sub">多种角色 · 报告里多个 tab，每类一张画像（可选总体旅程）</div>
-          </div>
-        </div>
-        <p class="form-scene">例：<em>运维、开发、产品各 2 人</em> → 3 个 tab，每类一张画像。<strong>最终报告一样</strong>，差别只在启动时文件有没有帮你分好组。</p>
-
-        <div class="subpaths">
-          <div class="subpath">
-            <div class="subpath-head">
-              <span class="subpath-num">方式 2</span>
-              <span class="subpath-title">多画像已分组</span>
-            </div>
-            <p class="subpath-desc">文件夹或文件名已按角色分开，如 <code>运维/</code> <code>调度/</code>。直接按组出画像，省事。</p>
-          </div>
-          <div class="subpath">
-            <div class="subpath-head">
-              <span class="subpath-num">方式 3</span>
-              <span class="subpath-title">多画像未分组</span>
-            </div>
-            <p class="subpath-desc">多种角色但文件混在一起。先和你确认「按什么分」（岗位 / 技能 / 场景…）和 tab 上的中文名。</p>
-          </div>
-        </div>
-
-        <div class="form-row"><span class="k">产出</span><span class="v">N 个画像 tab（各含细节 + 单角色旅程）+ 可选总体 L1 旅程</span></div>
-        <div class="form-row"><span class="k">样例</span>
-          <span class="v samples">
-            <a href="docs/reference/reports/B-多角色/2B-DevOps五角色/report.html" target="_blank" rel="noopener">↗ 2B · DevOps 五角色 + 总体旅程 + 单角色 L2</a>
-          </span>
-        </div>
-        <div class="form-decision"><b>你拍板：</b>方式 3 需确认分类依据与类别名；是否加旅程页（L1 整体 + 各角色 L2）、头像与场景截图。</div>
-      </article>
-
-      <!-- Form C -->
-      <article class="form-card" id="scn-c" data-form="c">
-        <div class="form-head">
-          <span class="form-badge">C</span>
-          <div>
-            <div class="form-title">多画像 · 用图区分 <span class="tag-2c">2C 常用 · 2B/2D 亦可</span></div>
-            <div class="form-sub">适合还没想好有几类人、想用可视化呈现差异</div>
-          </div>
-        </div>
-        <p class="form-scene">例：<em>5 位音乐用户</em> 或 <em>5 位调度员</em> → 首页一张<strong>定位图或对比图</strong>，再进入各类画像 tab（可选旅程）。</p>
-
-        <div class="subpaths">
-          <div class="subpath">
-            <div class="subpath-head">
-              <span class="subpath-num">方式 4</span>
-              <span class="subpath-title">二维坐标区分</span>
-            </div>
-            <p class="subpath-desc">选 2 个关键区分点（如专业度 × 付费意愿）→ 四象限 → 每象限一类画像。</p>
-          </div>
-          <div class="subpath">
-            <div class="subpath-head">
-              <span class="subpath-num">方式 5</span>
-              <span class="subpath-title">多维分布区分</span>
-            </div>
-            <p class="subpath-desc">选 3–5 个区分点 → 一张分布图横向比较多类用户，再进各类画像。</p>
-          </div>
-        </div>
-
-        <div class="form-row"><span class="k">产出</span><span class="v">图首页 + K 类画像 tab + 可选旅程</span></div>
-        <div class="form-row"><span class="k">样例</span>
-          <span class="v samples">
-            <a href="docs/reference/reports/D-二维矩阵/2C-HiRes-2维/report.html" target="_blank" rel="noopener">↗ 2C · 二维矩阵（方式 4）</a>
-            <a href="docs/reference/reports/D-二维矩阵/2B-电力调度员/report.html" target="_blank" rel="noopener">↗ 2B · 电力调度员二维矩阵（方式 4）</a>
-            <a href="docs/reference/reports/E-多维分布/2C-HiRes-多区分点/report.html" target="_blank" rel="noopener">↗ 2C · 多维分布（方式 5）</a>
-          </span>
-        </div>
-        <div class="form-decision"><b>你拍板：</b>区分点、档位名、类型名、受访者落点；是否加旅程页（每画像各 1 页 L2）。</div>
-      </article>
-
-    </div>
-  </section>
-
-  <!-- COLLABORATION -->
-  <section id="collab">
-    <h2><span class="num">4</span>协作时序</h2>
-    <h3>从启动到交付 8 步</h3>
-    <p class="section-lede">标 <span style="background:#fee2e2;color:#b91c1c;padding:1px 7px;border-radius:4px;font-weight:600;font-size:12px;">你</span> 的步骤会停下等你回复。</p>
-
-    <div class="timeline">
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">0</span>启动</div>
-        <div class="tl-what">扫文件、建项目目录、初判 2B/2D/2C。
-          <span class="ex">「产物在 <code>用户画像报告输出/&lt;项目名&gt;-&lt;日期&gt;/</code>。」</span>
-        </div>
-        <div class="tl-who model">模型</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">1</span>研究目标</div>
-        <div class="tl-what"><b>先问研究目标</b>（给谁看 / 回答什么 / 支持什么决策）。你答完才进下一步。
-          <span class="ex">这一步决定后面所有字段侧重和分群方向。</span>
-        </div>
-        <div class="tl-who user">你</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">2</span>选产出形态</div>
-        <div class="tl-what">介绍三种形态（及方式 2–5 路径），你选一种。toC 必须你确认，模型不替选。
-        </div>
-        <div class="tl-who user">你</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">3</span>分类 / 区分点</div>
-        <div class="tl-what">形态 B · 未分组，或形态 C，才有此步。区分点、档位、类别名 —— <b>每个名字你确认</b>后才写入报告。
-        </div>
-        <div class="tl-who user">你</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">4</span>字段对齐</div>
-        <div class="tl-what">须先展示完整字段池（★/□）等你回复，再写 <code>03-field-alignment.json</code>。并问<strong>头像</strong>、<strong>典型场景截图</strong>、是否加旅程（L1/L2）。
-          <span class="ex">内容塞不下网格时，回到这里砍字段，不偷偷截断。</span>
-        </div>
-        <div class="tl-who both">协同</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">5</span>抽取 + 合并</div>
-        <div class="tl-what">脚本抽取 + 合并画像数据，全自动。</div>
-        <div class="tl-who model">模型</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">6</span>渲染</div>
-        <div class="tl-what">生成 <code>report.html</code>，嵌入头像 / 截图（若已提供），校验通过才交付。</div>
-        <div class="tl-who model">模型</div>
-      </div>
-
-      <div class="tl-row">
-        <div class="tl-step"><span class="n">7</span>验收</div>
-        <div class="tl-what">交付 <code>最终交付件-*/</code> 整包，复制即可发同事。</div>
-        <div class="tl-who user">你</div>
-      </div>
-    </div>
-
-    <div class="callout">
-      <b>skill 不会做：</b>替你做研究目标判断 · 自己挑「更重要的数据」· 截断或藏字段 · 偷偷加旅程 · <b>报告里露访谈真名</b>(交付前自动 P0 校验,如「刘宇」「刘军」须改为刘* / 黄医生 / U1 等)。
-    </div>
-  </section>
-
-  <!-- PREP -->
-  <section id="prep">
-    <h2><span class="num">5</span>准备清单</h2>
-    <h3>第一次跑之前</h3>
-
-    <div class="prep">
-      <div class="prep-card">
-        <h4>访谈文件 <span class="tag">必需</span></h4>
-        <ul>
-          <li><code>.docx</code> / <code>.txt</code> / <code>.xlsx</code>，1 份到几十份均可</li>
-          <li>已按角色分文件夹 → 倾向形态 B · 方式 2</li>
-          <li>报告内受访者默认脱敏（如「张医生」「米同学」）</li>
-        </ul>
-      </div>
-
-      <div class="prep-card">
-        <h4>研究目标 <span class="tag">必需</span></h4>
-        <ul>
-          <li>想清楚 <a class="inline" href="#goals">§1 三问</a>；没想好模型会引导你聊清楚</li>
-          <li>不必提前选形态，研究目标定完再走 §2 决策树</li>
-        </ul>
-      </div>
-
-      <div class="prep-card">
-        <h4>画像头像 <span class="tag optional">可选</span></h4>
-        <ul>
-          <li><strong>自定义</strong> · <code>画像头像素材/</code> · 文件名建议 <code>画像中文名.png</code></li>
-          <li><strong>默认库</strong> · skill 内置 <code>assets/default-avatars/</code> · 不提供自定义图时按画像名自动匹配</li>
-          <li>字段对齐时模型会<strong>主动问你</strong>；只有默认库也匹配不到时才用占位</li>
-        </ul>
-      </div>
-
-      <div class="prep-card">
-        <h4>界面截图 <span class="tag optional">可选</span></h4>
-        <ul>
-          <li><code>界面截图/</code> · 典型业务场景 + 可选旅程关注点</li>
-          <li>放好后模型列出文件名，请你确认对应哪个场景</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- OUTPUT -->
-  <section id="output">
-    <h2><span class="num">6</span>产出结构</h2>
-    <h3>一次运行 = 一个项目目录</h3>
-    <p class="section-lede">发给同事的只有 <code>最终交付件-*/</code> 文件夹。</p>
-
-    <div class="tree-wrap">
-      <pre class="tree">用户画像报告输出/
-└── <span class="key">&lt;项目名&gt;-&lt;日期时间&gt;/</span>
-    ├── 过程稿/                       <span class="note">← 中间产物，可续跑用</span>
-    │   ├── 00-research-goal.json    <span class="dim">研究目标</span>
-    │   ├── 01-paradigm.json         <span class="dim">形态 + 方式选择</span>
-    │   ├── 02-classification.json   <span class="dim">分类 / 区分点（部分路径）</span>
-    │   ├── 03-field-alignment.json  <span class="dim">字段对齐结果</span>
-    │   ├── 04-personas.json         <span class="dim">合并后的画像数据</span>
-    │   ├── 05-report.json           <span class="dim">渲染用组件 JSON（必写）</span>
-    │   ├── processed/               <span class="dim">预处理访谈 txt</span>
-    │   ├── extracted/               <span class="dim">每份访谈的抽取 json</span>
-    │   ├── CHECKPOINTS.md           <span class="dim">检查点清单</span>
-    │   └── logs/                    <span class="dim">运行日志</span>
-    │
-    ├── 画像头像素材/                 <span class="note">← 你放头像图</span>
-    ├── 界面截图/                     <span class="note">← 你放截图</span>
-    │
-    └── <span class="key">最终交付件-2C-华为音乐HiRes-5用户-2维/</span>
-        ├── report.html              <span class="dim">入口文件</span>
-        ├── _design-tokens.css
-        ├── _components.css
-        ├── assets/                  <span class="dim">实际用到的头像 / 截图</span>
-        └── 交付件说明.md</pre>
-
-      <div class="tree-notes">
-        <div class="item">
-          <b>对外只发「最终交付件-*」。</b>相对路径，拷走就能打开。
-        </div>
-        <div class="item">
-          <b>「过程稿/」可续跑。</b>删某个 JSON 就从那步重做。
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- RESUME -->
-  <section id="resume">
-    <h2><span class="num">7</span>中断续跑</h2>
-    <h3>跑一半停了，或想重做某步</h3>
-
-    <div class="resume">
-      <h4>不用从头来</h4>
-      <p>续跑前在项目目录执行：<code>python scripts/recovery_check.py --workdir . --format human</code>，按输出的「下一步」和「缺漏检查点」补文件。</p>
-      <p>过程稿须按序落盘：<code>00</code> → <code>01</code> →（R3/R4/R5 才有 <code>02</code>）→ <code>03</code> → <code>processed/</code> + <code>extracted/</code>（份数一致）→ <code>04</code> → <code>05-report.json</code> → 再渲染 HTML。</p>
-      <p><b>重做某步：</b>删该步及之后的 JSON/目录（如删 <code>03-field-alignment.json</code> 即从字段对齐重来）。</p>
-      <p><b>全部重做：</b>删整个项目目录。换模型：复制 skill + 工作目录，先跑 recovery_check。</p>
-    </div>
-  </section>
-
-  <footer>
-    <div>User Persona Skill · v9 · 说明书</div>
-    <div>
-      <a href="SKILL.md">SKILL.md</a> ·
-      <a href="STRUCTURE.md">STRUCTURE.md</a> ·
-      <a href="docs/reference/README.md">参考索引</a> ·
-      <a href="docs/reference/reports/">报告样例</a> ·
-      <a href="docs/reference/layouts/">布局样板</a> ·
-      <a href="docs/reference/gallery/gallery-2b.html">组件 gallery</a>
-    </div>
-  </footer>
-
-</div>
-
+    </section>
+  </main>
+  <footer><div class="shell">User Persona Skill · 工程化用户研究工作流</div></footer>
 </body>
 </html>
