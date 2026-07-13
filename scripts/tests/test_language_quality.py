@@ -61,6 +61,18 @@ def test_language_quality_rejects_ellipsis_truncated_human_title():
         assert any(item["code"] == "LANGUAGE_TITLE_TRUNCATED" for item in errors)
 
 
+def test_language_quality_rejects_valid_utf8_with_mojibake_private_use_characters():
+    with tempfile.TemporaryDirectory() as tmp:
+        process = Path(tmp)
+        _write(
+            process,
+            "04-personas.json",
+            {"personas": [{"fields": {"summary": "鏍囩鍐呭"}}]},
+        )
+        errors = validate_language_quality(process)
+        assert any(item["code"] == "LANGUAGE_MOJIBAKE" for item in errors)
+
+
 def test_language_quality_does_not_treat_allowed_html_tags_as_technical_terms(tmp_path: Path):
     (tmp_path / "04-personas.json").write_text(
         json.dumps({"personas": [{"fields": {"summary": "<strong>重点</strong> 内容"}}]}, ensure_ascii=False),

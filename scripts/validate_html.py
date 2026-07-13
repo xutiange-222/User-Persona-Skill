@@ -104,6 +104,14 @@ BANNED_RESPONDENT_PATTERNS = [
     re.compile(r">U\d+_[一-鿿]+<"),  # U1_黄捷 这种带真名的
 ]
 
+# 已经发生过的发布故障：UTF-8 文本被按错误编码解读后再次保存。
+# 这类文件仍可能是“合法 UTF-8”，必须检查内容中的高置信信号。
+MOJIBAKE_PATTERNS = [
+    re.compile(r"[\uE000-\uF8FF]"),
+    re.compile(r"(?:鈥\?|銆\?|锛\?|锟斤拷|馃)"),
+    re.compile(r"\?/(?:div|button|section|span)>", re.IGNORECASE),
+]
+
 
 @dataclass
 class Issue:
@@ -173,6 +181,22 @@ def snippet_around(html: str, pos: int, width: int = 80) -> str:
 # ============================================================
 # 检查项
 # ============================================================
+
+
+def check_mojibake(html: str, rep: Report) -> None:
+    """阻塞合法 UTF-8 但正文已经被错误转码的 HTML。"""
+    for pattern in MOJIBAKE_PATTERNS:
+        match = pattern.search(html)
+        if match:
+            rep.add(
+                "ERROR",
+                "P0-MOJIBAKE",
+                "HTML 含错误转码或乱码信号，禁止发布；请回到未损坏的 UTF-8 源文件重新生成。",
+                line_no_of(html, match.start()),
+                snippet_around(html, match.start(), 140),
+            )
+            return
+
 
 def check_skeleton(html: str, rep: Report) -> None:
     """1. 必须 link 骨架 CSS + data-theme + layout 类(SKILL.md 约束 7)"""
@@ -1130,6 +1154,7 @@ def check_visual_style_contract(html: str, rep: Report) -> None:
 
 
 ALL_CHECKS = [
+    ("字符编码", check_mojibake),
     ("骨架", check_skeleton),
     ("section boundaries", check_section_boundaries),
     ("accent token", check_accent_tokens),
@@ -1172,7 +1197,7 @@ def run_validation(html_path: Path, project_dir: Path | None) -> Report:
     rep = Report(html_path=html_path)
     for name, fn in ALL_CHECKS:
         # 这些 check 必须看完整 HTML(因为要确认 script 存在与否)
-        target = raw_html if name in {"tooltip script", "骨架", "visual style contract"} else html
+        target = raw_html if name in {"tooltip script", "骨架", "visual style contract", "字符编码"} else html
         try:
             fn(target, rep)
         except Exception as e:  # noqa: BLE001

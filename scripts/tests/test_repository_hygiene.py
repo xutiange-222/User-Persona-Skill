@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,13 +36,15 @@ def test_maintainer_tools_have_one_entrypoint() -> None:
     assert tools == {"refresh_reference_reports.py"}
 
 
-def test_human_manual_local_links_exist() -> None:
+def test_human_manual_report_links_use_pages_and_exist() -> None:
     manual = (ROOT / "人类用户说明书.html").read_text(encoding="utf-8")
     links = re.findall(r'href="([^"]+)"', manual)
-    local_links = [link for link in links if not link.startswith(("#", "http://", "https://"))]
-    assert local_links
-    for link in local_links:
-        assert (ROOT / link).is_file(), link
+    pages_base = "https://xutiange-222.github.io/User-Persona-Skill/"
+    report_links = [link for link in links if link.startswith(pages_base) and link.endswith("/report.html")]
+    assert len(report_links) == 5
+    for link in report_links:
+        relative = unquote(urlparse(link).path.removeprefix("/User-Persona-Skill/"))
+        assert (ROOT / relative).is_file(), link
 
 
 def test_reference_report_set_is_exact_and_valid() -> None:

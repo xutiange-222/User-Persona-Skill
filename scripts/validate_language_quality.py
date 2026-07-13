@@ -13,7 +13,7 @@ except ImportError:
 
 TOKEN_RE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z][A-Za-z0-9+._-]{2,})(?![A-Za-z0-9])")
 TITLE_TRUNCATION_RE = re.compile(r"(?:…|……|\.{3,})\s*$")
-MOJIBAKE_RE = re.compile(r"�|(?:Ã.|Â.|â€|锟斤拷|馃|鈥[^一-鿿])")
+MOJIBAKE_RE = re.compile(r"[\uE000-\uF8FF]|�|(?:Ã.|Â.|â€|锟斤拷|馃|鈥[^一-鿿])")
 SKIP_KEYS = {
     "id", "persona_id", "checkpoint", "status", "type", "layout", "theme", "density",
     "accent", "content_ref", "source", "source_id", "source_ids", "members", "target",
