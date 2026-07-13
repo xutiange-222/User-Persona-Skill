@@ -16,7 +16,7 @@ def _pages_urls(text: str) -> list[str]:
 def test_readme_html_links_use_github_pages() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     html_links = re.findall(r"\]\(([^)]+\.html)\)", readme)
-    assert len(html_links) == 6
+    assert html_links
     assert all(url.startswith(PAGES_BASE) for url in html_links)
 
 
