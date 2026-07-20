@@ -23,7 +23,7 @@
 | 阶段 | 必须输出的 MD | 必须输出的 JSON | 目的 |
 | --- | --- | --- | --- |
 | 00 研究目标 | `00-research-goal.md` | `00-research-goal.json` | 锚定读者、研究问题、决策用途 |
-| 01 范式选择 | `01-paradigm.md` | `01-paradigm.json` | 选择 2B/2C、R1 到 R5 范式和处理路径 |
+| 01 画像方式 | `01-paradigm.md` | `01-paradigm.json` | 用户先理解五种中文画像方式，再确认推荐方案；R1 到 R5 只保存在 JSON |
 | 02 分类依据 | `02-classification.md` | `02-classification.json` | 全部范式必交。R1/R2 写 `not_applicable` 和具体原因；R3/R4/R5 写分类依据和边界 |
 | 03 字段对齐 | `03-field-alignment.md` | `03-field-alignment.json` | 展示字段池、用户取舍、视觉规范选择 |
 | 04 画像合并 | `04-personas.md` | `04-personas.json` | 固化画像数量、合并依据、证据映射 |

@@ -7,6 +7,24 @@ from scripts.render_checkpoint_md import render_journeys_md, render_personas_md
 from scripts.validate_human_checkpoint_md import validate_human_checkpoint_md
 
 
+PARADIGM_ROUTES = """# 01 画像方式选择
+
+## 五种画像方式
+
+| 画像方式 | 适合什么资料 | 会得到什么 |
+|---|---|---|
+| A 合并为一个画像 | 同一类用户 | 一个综合画像 |
+| B 沿用已有分组 | 已有分组 | 每组一个画像 |
+| C 按一个关键差异分类 | 一个关键差异 | 多个画像 |
+| D 用两个区分点形成矩阵 | 两个差异 | 二维矩阵 |
+| E 用多个区分点形成分布 | 多个差异 | 多维对照图 |
+
+## 我的推荐
+
+推荐方式：A 合并为一个画像。
+"""
+
+
 def _journey_data() -> dict:
     return {
         "status": "draft",
@@ -57,3 +75,35 @@ def test_persona_renderer_translates_common_field_names() -> None:
     assert "### 工作职责" in md
     assert "### 核心痛点" in md
     assert "responsibilities" not in md
+
+
+def test_paradigm_md_with_five_user_facing_routes_passes(tmp_path: Path) -> None:
+    (tmp_path / "01-paradigm.md").write_text(PARADIGM_ROUTES, encoding="utf-8")
+    assert validate_human_checkpoint_md(tmp_path) == []
+
+
+def test_paradigm_md_rejects_missing_routes_and_internal_codes(tmp_path: Path) -> None:
+    (tmp_path / "01-paradigm.md").write_text(
+        "# 01 画像方式选择\n\n推荐范式：R2 单角色。\n",
+        encoding="utf-8",
+    )
+    errors = validate_human_checkpoint_md(tmp_path)
+    codes = {item["code"] for item in errors}
+    assert "PARADIGM_MD_ROUTES_MISSING" in codes
+    assert "PARADIGM_MD_INTERNAL_CODE_VISIBLE" in codes
+    assert "PARADIGM_MD_RECOMMENDATION_MISSING" in codes
+
+
+def test_paradigm_md_rejects_route_table_without_a_specific_recommendation(tmp_path: Path) -> None:
+    md = PARADIGM_ROUTES.replace("推荐方式：A 合并为一个画像。", "推荐方式：待选择。")
+    (tmp_path / "01-paradigm.md").write_text(md, encoding="utf-8")
+    errors = validate_human_checkpoint_md(tmp_path)
+    assert {item["code"] for item in errors} == {"PARADIGM_MD_RECOMMENDATION_MISSING"}
+
+
+def test_confirmed_legacy_paradigm_wording_does_not_block_later_stages(tmp_path: Path) -> None:
+    (tmp_path / "01-paradigm.md").write_text(
+        "# 01 范式选择\n\n确认状态：已确认\n\n推荐范式：R2 单角色。\n",
+        encoding="utf-8",
+    )
+    assert validate_human_checkpoint_md(tmp_path) == []

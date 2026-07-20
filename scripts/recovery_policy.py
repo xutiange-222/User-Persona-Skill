@@ -46,6 +46,14 @@ def recovery_for(error: dict[str, Any], process_dir: Path) -> dict[str, Any]:
 
     if code == "UNAUTHORIZED_PROCESS_BUILDER":
         return {"kind": "automatic", "preserves_content": True, "command": f'{runner} --workdir {quoted} --action quarantine-builders', "fallback_command": fallback, "explanation": "把一次性脚本移入历史隔离目录，保留文件且恢复过程目录的数据纯度。"}
+    if code in {"PARADIGM_MD_ROUTES_MISSING", "PARADIGM_MD_INTERNAL_CODE_VISIBLE", "PARADIGM_MD_RECOMMENDATION_MISSING"}:
+        return {
+            "kind": "content_repair",
+            "preserves_content": True,
+            "command": None,
+            "fallback_command": fallback,
+            "explanation": "只重写 01-paradigm.md 的用户表达：完整展示五种中文画像方式，再给推荐；内部 R 代码继续保留在 JSON。无需回退其它检查点。",
+        }
     if code == "HUMAN_MD_CONTENT_FINGERPRINT_MISMATCH":
         target = stem or "04-journeys"
         return {

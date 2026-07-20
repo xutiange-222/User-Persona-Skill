@@ -172,6 +172,32 @@ def check_toc_route_gate(errors: list[Issue], warnings: list[Issue]) -> None:
         ))
 
 
+def check_paradigm_user_language_contract(errors: list[Issue], warnings: list[Issue]) -> None:
+    template = SKILL_ROOT / "templates" / "checkpoints" / "01-paradigm.md"
+    text = read_text(template)
+    required = [
+        "A 合并为一个画像",
+        "B 沿用已有分组",
+        "C 按一个关键差异分类",
+        "D 用两个区分点形成矩阵",
+        "E 用多个区分点形成分布",
+        "先帮助用户理解五种方式，再给出推荐",
+    ]
+    missing = [item for item in required if item not in text]
+    if missing:
+        errors.append(Issue(
+            "paradigm.user_routes_missing",
+            f"01 用户模板缺少中文画像方式契约: {', '.join(missing)}。",
+            rel(template),
+        ))
+    if re.search(r"(?<![A-Za-z0-9])R[1-5](?![A-Za-z0-9])", text, re.I):
+        errors.append(Issue(
+            "paradigm.internal_code_visible",
+            "01 用户模板出现 R1 至 R5 内部代码。",
+            rel(template),
+        ))
+
+
 def check_label_confirmation_gate(errors: list[Issue], warnings: list[Issue]) -> None:
     checks = {
         "SKILL.md": [
@@ -267,6 +293,7 @@ def main() -> int:
     check_prompt_contracts(errors, warnings)
     check_user_language_leaks(errors, warnings)
     check_toc_route_gate(errors, warnings)
+    check_paradigm_user_language_contract(errors, warnings)
     check_label_confirmation_gate(errors, warnings)
     check_journey_dsl_contract(errors, warnings)
     return emit_result(

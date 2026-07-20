@@ -19,6 +19,13 @@ RAW_ENUMS = {
     "tob_journey_l1", "tob_journey_l2", "journey_2c",
     "solid", "dashed", "start", "step", "action", "decision", "doc", "end",
 }
+PARADIGM_ROUTE_LABELS = (
+    "A 合并为一个画像",
+    "B 沿用已有分组",
+    "C 按一个关键差异分类",
+    "D 用两个区分点形成矩阵",
+    "E 用多个区分点形成分布",
+)
 
 
 def _visible(md_text: str) -> str:
@@ -44,6 +51,34 @@ def _schema_tokens(text: str) -> set[str]:
 
 def validate_human_checkpoint_md(process_dir: Path) -> list[dict[str, str]]:
     errors: list[dict[str, str]] = []
+    paradigm_md = process_dir / "01-paradigm.md"
+    if paradigm_md.is_file():
+        paradigm_text = _visible(paradigm_md.read_text(encoding="utf-8"))
+        # Enforce the user-language contract while 01 is being reviewed.  Do
+        # not retroactively block a later render for wording in a legacy 01
+        # that the user already confirmed.
+        if "确认状态：已确认" not in paradigm_text:
+            missing_routes = [label for label in PARADIGM_ROUTE_LABELS if label not in paradigm_text]
+            if missing_routes:
+                errors.append({
+                    "code": "PARADIGM_MD_ROUTES_MISSING",
+                    "path": paradigm_md.name,
+                    "message": "01 用户稿必须先解释五种中文画像方式，再给推荐。缺少：" + "、".join(missing_routes),
+                })
+            if re.search(r"(?<![A-Za-z0-9])R[1-5](?![A-Za-z0-9])", paradigm_text, re.I) or "范式" in paradigm_text:
+                errors.append({
+                    "code": "PARADIGM_MD_INTERNAL_CODE_VISIBLE",
+                    "path": paradigm_md.name,
+                    "message": "01 用户稿出现内部路线代码或“范式”术语。请只使用中文画像方式名称，把内部代码写入 JSON。",
+                })
+            recommendation = paradigm_text.split("## 我的推荐", 1)[1] if "## 我的推荐" in paradigm_text else ""
+            route_names = [label.split(" ", 1)[1] for label in PARADIGM_ROUTE_LABELS]
+            if not any(name in recommendation for name in route_names):
+                errors.append({
+                    "code": "PARADIGM_MD_RECOMMENDATION_MISSING",
+                    "path": paradigm_md.name,
+                    "message": "01 用户稿解释五种方式后，还必须明确推荐一个中文画像方式，并说明理由和预期结果。",
+                })
     for stem, root_key in (("04-personas", "personas"), ("04-journeys", "journeys")):
         md_path = process_dir / f"{stem}.md"
         json_path = process_dir / f"{stem}.json"
