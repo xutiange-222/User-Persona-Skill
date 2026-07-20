@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""受访者真名泄露守门 — 交付前 ERROR 阻断。
+"""受访者真名泄露守门 — 用户可见过程稿与交付件 ERROR 阻断。
 
-从过程稿收集访谈原始姓名(文件名、分类映射等),扫描 05-report.json 与 report.html
-中所有用户可见字段,禁止出现完整真名(约束 8 / P0-PRIVACY)。
+从过程稿收集访谈原始姓名(文件名、分类映射等),扫描 04、05、Markdown
+与 report.html 中所有用户可见字段,禁止出现完整真名(约束 8 / P0-PRIVACY)。
 """
 
 from __future__ import annotations
@@ -24,6 +24,14 @@ except ImportError:
 # 展示层允许的脱敏形态(含其一即不视为「裸真名」)
 _MASK_MARKERS = ("*", "（", "(", "医生", "同学", "经理", "主管", "工程师", "调度员", "负责人", "运维", "运营", "先生", "女士")
 _BARE_NAME_RE = re.compile(r"^[一-鿿]{2,4}$")
+_ANONYMOUS_SOURCE_RE = re.compile(r"^P[0-9A-F]{8}$")
+_SOURCE_LABEL_RE = re.compile(r"\[来源:([^\]]+)\]")
+_SELF_NAME_RE = re.compile(r"(?:我叫|我是|我的名字是|姓名\s*[：:]?)\s*([一-鿿]{2,4})(?=[，,。；;、\s]|$)")
+_COMMON_SURNAMES = set("赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦尤许何吕施张孔曹严华金魏陶姜戚谢邹喻柏水窦章云苏潘葛奚范彭郎鲁韦昌马苗凤花方俞任袁柳鲍史唐费廉岑薛雷贺倪汤滕殷罗毕郝邬安常乐于时傅皮卞齐康伍余元卜顾孟平黄和穆萧尹姚邵汪祁毛禹狄米贝明臧计伏成戴谈宋茅庞熊纪舒屈项祝董梁杜阮蓝闵席季麻强贾路娄危江童颜郭梅盛林刁钟徐邱骆高夏蔡田樊胡凌霍虞万支柯昝管卢莫经房裘缪干解应宗丁宣贲邓郁单杭洪包诸左石崔吉龚程嵇邢裴陆荣翁荀羊甄曲封芮储靳汲邴糜松井段富巫乌焦巴弓牧隗山谷车侯宓蓬全郗班仰秋仲伊宫宁仇栾暴甘钭厉戎祖武符刘景詹束龙叶幸司韶郜黎蓟薄印宿白怀蒲台从鄂索咸籍赖卓蔺屠蒙池乔阴胥能苍双闻莘党翟谭贡劳逄姬申扶堵冉宰郦雍郤璩桑桂濮牛寿通边扈燕冀郏浦尚农温庄晏柴瞿阎充慕连茹习宦艾鱼容向古易慎戈廖庾终暨居衡步都耿满弘匡国文寇广禄阙东欧殳沃利蔚越夔隆师巩厍聂晁勾敖融冷辛阚那简饶空曾毋沙乜养鞠须丰巢关蒯相查后荆红游竺权逯盖益桓公")
+_NAME_STOPWORDS = {
+    "华为", "用户", "访谈", "逐字稿", "转写稿", "规整稿", "语篇", "专家", "开发者",
+    "工程师", "负责人", "管理员", "研究员", "测试员", "产品经理", "模型开发", "算法开发",
+}
 _DIRECT_IDENTIFIER_PATTERNS = (
     ("P0-PRIVACY-PHONE", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)"), "手机号"),
     ("P0-PRIVACY-LANDLINE", re.compile(r"(?<!\d)0\d{2,3}-?\d{7,8}(?!\d)"), "固定电话"),
@@ -103,6 +111,32 @@ def _is_masked_display_name(name: str) -> bool:
     return True
 
 
+def _looks_like_person_name(value: str) -> bool:
+    token = str(value or "").strip()
+    return bool(
+        _BARE_NAME_RE.fullmatch(token)
+        and token[0] in _COMMON_SURNAMES
+        and token not in _NAME_STOPWORDS
+        and not any(word in token for word in ("访谈", "用户", "专家", "开发", "测试", "模型"))
+    )
+
+
+def _filename_name_candidates(stem: str) -> set[str]:
+    """Extract conservative Chinese-name candidates from research filenames."""
+    result: set[str] = set()
+    raw = str(stem or "").strip()
+    if not raw:
+        return result
+    if _looks_like_person_name(raw):
+        result.add(raw)
+    for part in re.split(r"[\s_\-—–·.（）()\[\]【】]+", raw):
+        token = re.sub(r"^(?:[NPU]\s*)?\d+[号]?[：:]?", "", part, flags=re.I)
+        token = re.sub(r"(?:语篇规整稿|规整稿|逐字稿|转写稿|访谈稿|访谈|录音|纪要)$", "", token)
+        if _looks_like_person_name(token):
+            result.add(token)
+    return result
+
+
 def collect_forbidden_real_names(process_dir: Path) -> set[str]:
     """从过程稿推断禁止出现在展示层的完整姓名/文件名主干。"""
     names: set[str] = set()
@@ -116,6 +150,15 @@ def collect_forbidden_real_names(process_dir: Path) -> set[str]:
             stem = p.stem.strip()
             if len(stem) >= 2:
                 names.add(stem)
+                names.update(_filename_name_candidates(stem))
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                content = ""
+            for match in _SELF_NAME_RE.finditer(content[:12000]):
+                candidate = match.group(1).strip()
+                if _looks_like_person_name(candidate):
+                    names.add(candidate)
 
     extracted = process_dir / "extracted"
     if extracted.is_dir():
@@ -124,6 +167,7 @@ def collect_forbidden_real_names(process_dir: Path) -> set[str]:
             stem = p.stem.strip()
             if len(stem) >= 2:
                 names.add(stem)
+                names.update(_filename_name_candidates(stem))
 
     cache = process_dir / ".privacy_forbidden_names.json"
     if cache.is_file():
@@ -144,6 +188,18 @@ def collect_forbidden_real_names(process_dir: Path) -> set[str]:
         except (json.JSONDecodeError, OSError):
             continue
         _collect_names_from_obj(data, names)
+
+    manifest_path = process_dir / "source-manifest.json"
+    if manifest_path.is_file():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            manifest = {}
+        for source in manifest.get("sources") or []:
+            if not isinstance(source, dict):
+                continue
+            for filename in source.get("processed_files") or []:
+                names.update(_filename_name_candidates(Path(str(filename)).stem))
 
     return {n for n in names if len(n) >= 2}
 
@@ -206,6 +262,23 @@ def validate_privacy_in_report(
 
         issues.extend(_direct_identifier_issues(text, path))
 
+        if ".mentioned_by[" in path and not _ANONYMOUS_SOURCE_RE.fullmatch(text.strip()):
+            issues.append(_issue(
+                "ERROR",
+                "P0-PRIVACY-EVIDENCE-SOURCE",
+                path,
+                "证据来源必须使用 P 加 8 位十六进制字符的匿名 source ID，禁止写姓名或原文件名",
+            ))
+
+        for source_label in _SOURCE_LABEL_RE.findall(text):
+            if not _ANONYMOUS_SOURCE_RE.fullmatch(source_label.strip()):
+                issues.append(_issue(
+                    "ERROR",
+                    "P0-PRIVACY-EVIDENCE-SOURCE",
+                    path,
+                    f"证据标签含非匿名来源「{source_label}」；请替换为 source-manifest 中的 P 编号",
+                ))
+
         if key in ("display_name", "source") or path.endswith(".display_name") or path.endswith(".source"):
             if not _is_masked_display_name(text):
                 issues.append(_issue(
@@ -234,6 +307,37 @@ def validate_privacy_in_report(
                     f"疑似裸真名:「{text}」",
                 ))
 
+    return issues
+
+
+def validate_privacy_in_markdown(
+    markdown: str,
+    process_dir: Path | None = None,
+    *,
+    path: str = "04-personas.md",
+) -> list[dict]:
+    """Scan human-facing checkpoint Markdown before it is delivered."""
+    issues = _direct_identifier_issues(markdown, path)
+    for source_label in _SOURCE_LABEL_RE.findall(markdown):
+        if not _ANONYMOUS_SOURCE_RE.fullmatch(source_label.strip()):
+            issues.append(_issue(
+                "ERROR",
+                "P0-PRIVACY-EVIDENCE-SOURCE-MD",
+                path,
+                f"用户确认稿的证据来源含姓名或文件名「{source_label}」",
+            ))
+    if process_dir is not None:
+        root = resolve_process_dir(process_dir) if resolve_process_dir else process_dir
+        visible = re.sub(r"<!--.*?-->", "", markdown, flags=re.S)
+        for name in sorted(collect_forbidden_real_names(root), key=len, reverse=True):
+            if name and name in visible:
+                issues.append(_issue(
+                    "ERROR",
+                    "P0-PRIVACY-REAL-NAME-MD",
+                    path,
+                    f"用户确认稿含访谈真名「{name}」",
+                ))
+                break
     return issues
 
 

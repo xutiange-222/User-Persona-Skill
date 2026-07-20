@@ -112,8 +112,25 @@ def main() -> int:
         }
         code = 0
     elif args.command == "prepare-04":
-        output = refresh_04_md(process_dir, args.stem)
-        code = 0
+        try:
+            output = refresh_04_md(process_dir, args.stem)
+            code = 0
+        except ValueError as exc:
+            message = str(exc)
+            privacy_block = "隐私" in message or "P0-PRIVACY" in message
+            output = {
+                "rendered": False,
+                "checkpoint": args.stem,
+                "blocking_error_code": "P0-PRIVACY-04" if privacy_block else "CHECKPOINT_CONTENT_INVALID",
+                "error": message,
+                "files_changed": False,
+                "next_action": (
+                    "只修复 04-personas 草稿中被指出的证据来源或原话：来源改用 source-manifest 的 P 编号，原话姓名写成[姓名已脱敏]；随后重跑 prepare-04。"
+                    if privacy_block else
+                    "只修复当前 04 草稿中被指出的内容，再重跑 prepare-04。"
+                ),
+            }
+            code = 1
     elif args.command == "prepare-05":
         completed = subprocess.run(
             [sys.executable, str(SCRIPT_DIR / "render_report_checkpoint_md.py"), "--workdir", str(process_dir)],

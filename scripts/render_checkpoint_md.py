@@ -81,6 +81,11 @@ def _text(value: Any) -> str:
     text = str(value).strip()
     text = re.sub(r"persona-([0-9]+)", r"画像 \1", text, flags=re.I)
     text = text.replace("tob_journey_l1", "整体旅程").replace("tob_journey_l2", "单角色旅程").replace("journey_2c", "消费者旅程")
+    text = re.sub(
+        r"\[来源:([^\]]+)\]",
+        lambda match: match.group(0) if re.fullmatch(r"P[0-9A-F]{8}", match.group(1).strip()) else "[来源:匿名来源待修复]",
+        text,
+    )
     return text or "材料未提及"
 
 
@@ -134,7 +139,15 @@ def _collect_quotes(value: Any) -> list[str]:
     if isinstance(value, dict):
         for key, child in value.items():
             if key == "evidence_quotes" and isinstance(child, list):
-                result.extend(_text(item) for item in child if str(item).strip())
+                for item in child:
+                    if isinstance(item, dict):
+                        quote = _text(item.get("quote") or item.get("text") or "")
+                        source = str(item.get("source") or "").strip()
+                        safe_source = source if re.fullmatch(r"P[0-9A-F]{8}", source) else "匿名来源待修复"
+                        if quote and quote != "材料未提及":
+                            result.append(f'[来源:{safe_source}]: "{quote}"')
+                    elif str(item).strip():
+                        result.append(_text(item))
             else:
                 result.extend(_collect_quotes(child))
     elif isinstance(value, list):
@@ -463,11 +476,21 @@ def main() -> int:
     output_path = Path(args.output) if args.output else process_dir / f"{args.stem}.md"
     data = json.loads(input_path.read_text(encoding="utf-8"))
     if args.stem == "04-personas":
+        try:
+            from scripts.privacy_guard import validate_privacy_in_report, validate_privacy_in_markdown
+        except ImportError:
+            from privacy_guard import validate_privacy_in_report, validate_privacy_in_markdown
+        privacy_issues = validate_privacy_in_report(data, process_dir)
+        if privacy_issues:
+            raise ValueError("04-personas 草稿含隐私问题，禁止生成用户确认稿：" + json.dumps(privacy_issues, ensure_ascii=False))
         alignment_path = process_dir / "03-field-alignment.json"
         custom = {}
         if alignment_path.is_file():
             custom = json.loads(alignment_path.read_text(encoding="utf-8")).get("fields_display_names") or {}
         content = render_personas_md(data, custom)
+        md_privacy_issues = validate_privacy_in_markdown(content, process_dir, path=output_path.name)
+        if md_privacy_issues:
+            raise ValueError("生成的 04-personas.md 未通过隐私检查：" + json.dumps(md_privacy_issues, ensure_ascii=False))
     else:
         content = render_journeys_md(data)
     output_path.write_text(content.rstrip() + "\n", encoding="utf-8")

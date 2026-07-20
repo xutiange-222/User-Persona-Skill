@@ -85,6 +85,12 @@ def validate_human_checkpoint_md(process_dir: Path) -> list[dict[str, str]]:
         if not md_path.is_file():
             continue
         md_text = md_path.read_text(encoding="utf-8")
+        if stem == "04-personas":
+            try:
+                from scripts.privacy_guard import validate_privacy_in_markdown
+            except ImportError:
+                from privacy_guard import validate_privacy_in_markdown
+            errors.extend(validate_privacy_in_markdown(md_text, process_dir, path=md_path.name))
         visible = _visible(md_text)
         schema_tokens = _schema_tokens(visible)
         for field in sorted(RAW_FIELD_NAMES):

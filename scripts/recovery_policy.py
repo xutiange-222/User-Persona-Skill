@@ -87,8 +87,8 @@ def recovery_for(error: dict[str, Any], process_dir: Path) -> dict[str, Any]:
         return {"kind": "user_review", "preserves_content": True, "command": None, "fallback_command": fallback, "explanation": "保持待确认，缩小信息范围重新展示。没有用户确认时可以交付恢复包，不能伪造确认。"}
     if code == "VALIDATOR_RUNTIME_ERROR":
         return {"kind": "skill_defect", "preserves_content": True, "command": None, "fallback_command": fallback, "explanation": "校验器自身或输入契约存在缺陷。停止重复尝试，交付恢复包并修复 Skill。"}
-    if code in PRIVACY_CODES or code.startswith("PRIVACY_"):
-        return {"kind": "manual_hard_block", "preserves_content": False, "command": None, "fallback_command": None, "explanation": "先完成脱敏。隐私错误未解决前禁止生成恢复包或最终交付。"}
+    if code in PRIVACY_CODES or code.startswith("PRIVACY_") or code.startswith("P0-PRIVACY-"):
+        return {"kind": "manual_hard_block", "preserves_content": True, "command": None, "fallback_command": None, "explanation": "只修复当前字段中的姓名、联系方式或证据来源。证据来源改用 source-manifest 的 P 编号；原话正文中的姓名写成[姓名已脱敏]。其它画像内容与上游检查点保持不变。"}
     if code.startswith(EVIDENCE_PREFIXES):
         return {"kind": "content_repair", "preserves_content": False, "command": None, "fallback_command": fallback, "explanation": "回到当前结论和原始证据修复对应关系。保留已通过的上游文件，不修改其他检查点。"}
     if code in {"CHECKPOINT_MD_MISSING", "CHECKPOINT_JSON_MISSING", "CHECKPOINT_PAIR_MISSING", "CHECKPOINT_SCHEMA_INVALID", "CHECKPOINT_JSON_INVALID"}:

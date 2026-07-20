@@ -77,6 +77,22 @@ def test_persona_renderer_translates_common_field_names() -> None:
     assert "responsibilities" not in md
 
 
+def test_persona_renderer_never_displays_a_non_anonymous_evidence_source() -> None:
+    data = {
+        "status": "draft", "context_snapshot": {},
+        "personas": [{
+            "name": "开发者", "description": "负责模型开发", "user_count": 1,
+            "fields": {"pain_points": [{
+                "title": "排查困难", "detail": "需要反复切换工具",
+                "evidence_quotes": [{"quote": "排查很慢", "source": "张伟"}],
+            }]},
+        }],
+    }
+    md = render_personas_md(data)
+    assert "张伟" not in md
+    assert "匿名来源待修复" in md
+
+
 def test_paradigm_md_with_five_user_facing_routes_passes(tmp_path: Path) -> None:
     (tmp_path / "01-paradigm.md").write_text(PARADIGM_ROUTES, encoding="utf-8")
     assert validate_human_checkpoint_md(tmp_path) == []

@@ -65,11 +65,27 @@ def refresh_04_md(process_dir: Path, stem: str) -> dict:
         raise FileNotFoundError(f"Missing {final_path.name} and {draft_path.name}")
     data = json.loads(source.read_text(encoding="utf-8"))
     if stem == "04-personas":
+        try:
+            from scripts.privacy_guard import validate_privacy_in_report, validate_privacy_in_markdown
+        except ImportError:
+            from privacy_guard import validate_privacy_in_report, validate_privacy_in_markdown
+        privacy_issues = validate_privacy_in_report(data, process_dir)
+        if privacy_issues:
+            raise ValueError(
+                "04-personas 草稿含隐私问题，禁止生成用户确认稿。只修复对应证据来源或原话后重试："
+                + json.dumps(privacy_issues, ensure_ascii=False)
+            )
         custom = {}
         alignment = process_dir / "03-field-alignment.json"
         if alignment.is_file():
             custom = json.loads(alignment.read_text(encoding="utf-8")).get("fields_display_names") or {}
         md = render_personas_md(data, custom).rstrip() + "\n"
+        md_privacy_issues = validate_privacy_in_markdown(md, process_dir, path=f"{stem}.md")
+        if md_privacy_issues:
+            raise ValueError(
+                "生成的 04-personas.md 未通过隐私检查："
+                + json.dumps(md_privacy_issues, ensure_ascii=False)
+            )
         reduced_written = persist_persona_snapshots(data, process_dir)
     else:
         try:

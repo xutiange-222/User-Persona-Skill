@@ -23,7 +23,7 @@ description: 从用户访谈逐字稿和研究资料生成可追溯的用户画�
 10. LLM 只生成结构化 JSON。HTML、SVG 几何和 CSS 由固定渲染器与模板生成。
    `过程稿/` 只能保存数据文件。禁止创建自定义 Python、JavaScript、PowerShell、批处理或 HTML 构建器；禁止用 `[:N]` 等字符串切片拼装展示文案。
 11. 视觉实现以 `assets/templates/_visual-system.json` 为机器真源,以 `steps/visual-style-guide.md` 为人类可读规则。禁止自创布局、颜色和组件。
-12. 不得泄露受访者真实身份。证据要逐条可追溯,不得虚构、跨画像复用或用少量示例代替全量证据。
+12. 不得泄露受访者真实身份。`prepare-04` 在写出用户可见 MD 前先扫描画像草稿和证据原话；证据来源只能使用 `P` 加 8 位十六进制字符的匿名 ID，原话正文出现姓名时写成 `[姓名已脱敏]`。证据要逐条可追溯,不得虚构、跨画像复用或用少量示例代替全量证据。
 13. 预处理后立即生成并审核 `source-manifest.json`。样本按内容哈希去重，只把 `unique_primary_interviews` 称为访谈数；补充材料和多画像分配不得增加访谈数或提及频次。
 14. 事实字段禁止推断。缺失统一写“材料未提及”。研究综合、用户补充和材料事实分别标为 `synthesis`、`user_context`、`primary/supplemental`。
 15. 归并数据保留全部相关真值。`04-personas.json` 用 `field_decisions` 明示完整展示、压缩或省略及信息损失，`display_components` 是用户确认后的画像正文唯一真值；05 的画像页和细节页只写 `content_ref`。旅程逐元素写证据绑定；术语审计表先编译为 `terminology-glossary.json`。
