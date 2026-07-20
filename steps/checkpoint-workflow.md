@@ -33,7 +33,7 @@
 ## 每步执行顺序
 
 1. 读取上一步 `.json`,确认状态为 `confirmed` 或 `validated`。
-2. 生成本步骤 `.md`，用自然语言向用户展示判断、证据和待确认项。04 先写 `.draft.json`，再运行 `workflow.py prepare-04`。05 先写 `05-report.draft.json`，再运行 `workflow.py prepare-05` 生成增量确认稿。复杂 2B/2D 旅程按 MD 当前轮运行 `workflow.py journey-review`。
+2. 生成本步骤 `.md`，用自然语言向用户展示判断、证据和待确认项。04 先写 `.draft.json`，再运行 `workflow.py prepare-04`。05 先写 `05-report.draft.json`，再运行 `workflow.py prepare-05` 生成增量确认稿。复杂 2B/2D 旅程按 MD 当前轮运行 `workflow.py journey-review`；每轮只展示当前层，确认结果必须即时进入草稿 JSON 和刷新后的 MD，第四轮后直接封存。
 3. 等待用户确认或根据用户反馈修订。
 4. 生成本步骤 `.json`，保存用户原话和机器可读字段。04 由封存脚本把结构化草稿固化为同名 JSON。
 5. 00 至 05 每个节点都运行 `python scripts/workflow.py --workdir <目录> seal --stem <节点名> --user-message "<用户原话>"`。

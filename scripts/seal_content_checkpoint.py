@@ -54,29 +54,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Seal any confirmed 00-05 workflow checkpoint.")
     parser.add_argument("--workdir", required=True, help="Run directory or process directory.")
     parser.add_argument("--stem", required=True, choices=sorted(DEFAULT_SECTIONS))
-    parser.add_argument("--user-message", required=True, help="Exact user reply, copied verbatim.")
+    parser.add_argument("--user-message", default="", help="Exact user reply, copied verbatim. Guided 2B/2D journey rounds do not need a fifth reply.")
     args = parser.parse_args()
 
     exact_reply = args.user_message.strip()
     required_phrase = CONFIRMATION_PHRASES[args.stem]
-    if (
-        GENERIC_REPLY_RE.fullmatch(exact_reply)
-        or required_phrase not in exact_reply
-        or REJECTION_OR_SKIP_RE.search(exact_reply)
-    ):
-        raise SystemExit(
-            "Refusing ambiguous, contradictory, skip-review, or correction-only confirmation. "
-            "Keep this checkpoint pending, simplify or revise the MD, then "
-            f"ask the user to include the exact phrase '{required_phrase}' in a new reply."
-        )
-
     process_dir = resolve_process_dir(Path(args.workdir))
     md_path = process_dir / f"{args.stem}.md"
     json_path = process_dir / f"{args.stem}.json"
     draft_path = process_dir / f"{args.stem}.draft.json"
     if not md_path.is_file():
         raise SystemExit(f"{md_path.name} must exist before sealing.")
-    source_json_path = draft_path if args.stem == "05-report" and draft_path.is_file() else (json_path if json_path.is_file() else draft_path)
+    source_json_path = draft_path if args.stem in {"04-personas", "04-journeys", "05-report"} and draft_path.is_file() else (json_path if json_path.is_file() else draft_path)
     if not source_json_path.is_file():
         raise SystemExit(
             f"{json_path.name} or {draft_path.name} must contain the structured content shown in {md_path.name}."
@@ -97,6 +86,31 @@ def main() -> int:
     data = json.loads(source_json_path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise SystemExit(f"{json_path.name} must contain one JSON object.")
+    guided_journey_review = False
+    if args.stem == "04-journeys":
+        try:
+            from scripts.journey_alignment import alignment_review_errors, expected_alignment_review
+        except ImportError:
+            from journey_alignment import alignment_review_errors, expected_alignment_review  # type: ignore
+        review = expected_alignment_review(data)
+        guided_journey_review = review.get("mode") == "guided_rounds"
+        if guided_journey_review:
+            review_errors = alignment_review_errors(data)
+            if review_errors:
+                details = "\n".join(f"[{item['code']}] {item['message']}" for item in review_errors)
+                raise SystemExit("Refusing to seal 04-journeys: guided review is incomplete.\n" + details)
+            exact_reply = str(review["rounds"][-1]["user_message"]).strip()
+            required_phrase = str(review["rounds"][-1]["required_phrase"])
+    if (
+        GENERIC_REPLY_RE.fullmatch(exact_reply)
+        or required_phrase not in exact_reply
+        or REJECTION_OR_SKIP_RE.search(exact_reply)
+    ):
+        raise SystemExit(
+            "Refusing ambiguous, contradictory, skip-review, or correction-only confirmation. "
+            "Keep this checkpoint pending, simplify or revise the MD, then "
+            f"ask the user to include the exact phrase '{required_phrase}' in a new reply."
+        )
     if args.stem == "05-report":
         payload = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         expected_marker = hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -133,7 +147,11 @@ def main() -> int:
             target["status"] = "confirmed"
     target["user_confirmed"] = True
     target["confirmation_user_message"] = exact_reply
-    target["confirmation_message_summary"] = f"用户已明确确认本检查点完整内容：{required_phrase}。"
+    target["confirmation_message_summary"] = (
+        "用户已分四轮确认旅程全局、角色责任、单角色旅程、分支与证据。"
+        if guided_journey_review else
+        f"用户已明确确认本检查点完整内容：{required_phrase}。"
+    )
     target["confirmed_value_sections"] = DEFAULT_SECTIONS[args.stem]
     if args.stem == "02-classification" and target.get("status") == "not_applicable":
         target["confirmed_value_sections"] = ["applicability", "uncertainties"]

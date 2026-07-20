@@ -21,12 +21,12 @@
 0. 把 03 的旅程开关和 L1/L2 选择仅作为生成范围。不得复用用户在 03 的回答确认 04 内容。
 1. 使用 `assets/prompts/build_journeys.txt` 从 04 画像和证据生成 `04-journeys.draft.json`。
 2. 运行 `python scripts/workflow.py --workdir <过程稿> prepare-04 --stem 04-journeys`。禁止手写、拼接或局部修补 04 旅程 MD。
-3. 2B/2D 的 MD 固定先给旅程总览地图，再为每条旅程显示“你现在在这里”；复杂项目进入四轮对齐。2C 固定使用“阶段 × 内容维度”表。可见正文使用中文名称，不展示阶段 ID、泳道 ID、节点 ID、组件类型和英文枚举。
+3. 复杂 2B/2D 的 MD 每轮只展示当前层：全局地图、角色责任、单角色旅程、分支与证据。上一轮正文不重复，只在进度表保留确认状态和用户原话；第四轮结束后生成完整交接稿。2C 固定使用“阶段 × 内容维度”表。可见正文使用中文名称，不展示阶段 ID、泳道 ID、节点 ID、组件类型和英文枚举。
 4. 用户修改时更新草稿 JSON，再重新生成 MD。禁止只改 MD。
 5. 用户说看不懂、看得头晕、不确认或要求直接继续时，保持待确认。先把当前问题拆成全局阶段、角色责任、单角色细节三个小块重新说明，禁止进入 05。
-6. `04-journeys.md` 显示“分轮确认进度”时，一次只讨论当前轮。按顺序运行 `workflow.py journey-review --round global_map|role_responsibility|individual_journeys|branches_evidence --user-message <用户本轮原话>`。每次运行后脚本刷新 MD，并返回唯一的下一轮。
-7. 四轮完成，或 MD 明确显示当前为一次确认模式后，再请用户发送一条新回复并明确包含“确认旅程内容”。03 的范围选择、泛化的“继续”和任何拒绝审阅的回复都不能确认旅程正文。
-8. 用户明确确认后运行 `workflow.py seal`。它会校验分轮状态、MD 内容指纹并把草稿固化为 `04-journeys.json`。
+6. `04-journeys.md` 显示“分轮确认进度”时，一次只讨论当前轮。按顺序运行 `workflow.py journey-review --round global_map|role_responsibility|individual_journeys|branches_evidence --user-message <用户本轮原话>`。每次运行都是原子动作：用户原话和本轮内容指纹必须先写入 `04-journeys.draft.json`，随后刷新同一份 MD；禁止只在对话中记住确认结果。
+7. 前三轮运行后只交付新生成的当前轮 MD。第四轮运行后，MD 自动成为包含全部正文和四轮确认记录的完整交接稿。四条逐项确认共同构成 04 内容确认，禁止再请求“确认旅程内容”。
+8. 四轮完成后直接运行 `workflow.py seal --stem 04-journeys`。简单 2C 和小型旅程仍需用户明确回复“确认旅程内容”，再把该原话传给 `seal`。封存脚本校验分轮记录、每轮内容指纹和完整 MD，并把草稿固化为 `04-journeys.json`。
 9. `journeys[].props` 必须符合既有组件 schema，`evidence_bindings` 必须覆盖全部阶段、节点、连线、痛点卡或 2C 单元格和情绪。
 10. 封存会自动记录结构化内容数量、JSON 哈希和中文 MD 哈希。随后运行 `workflow.py check --target 04-journeys --auto-recover`。指纹不一致、中文全局导航缺失、机器 ID 外露、分轮未完成或确认原话含矛盾语义时必须进入对应恢复路径。
 

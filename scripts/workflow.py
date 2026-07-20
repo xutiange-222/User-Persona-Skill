@@ -84,7 +84,7 @@ def main() -> int:
     sub.add_parser("prepare-05")
     seal = sub.add_parser("seal")
     seal.add_argument("--stem", required=True, choices=list(TARGETS[:-1]))
-    seal.add_argument("--user-message", required=True)
+    seal.add_argument("--user-message", default="")
     journey_review = sub.add_parser("journey-review")
     journey_review.add_argument("--round", required=True, choices=["global_map", "role_responsibility", "individual_journeys", "branches_evidence"])
     journey_review.add_argument("--user-message", required=True)

@@ -173,7 +173,11 @@ def journey_presentation_errors(md_text: str, data: dict[str, Any]) -> list[dict
         from journey_alignment import alignment_review_errors  # type: ignore
     errors.extend(alignment_review_errors(data))
     exact_reply = str(data.get("confirmation_user_message") or "")
-    if JOURNEY_CONFIRMATION_PHRASE not in exact_reply or REJECTION_OR_SKIP_RE.search(exact_reply):
+    guided_complete = (
+        (data.get("alignment_review") or {}).get("mode") == "guided_rounds"
+        and not alignment_review_errors(data)
+    )
+    if not guided_complete and (JOURNEY_CONFIRMATION_PHRASE not in exact_reply or REJECTION_OR_SKIP_RE.search(exact_reply)):
         errors.append({
             "code": "JOURNEY_CONTENT_CONFIRMATION_MISSING",
             "path": "confirmation_user_message",

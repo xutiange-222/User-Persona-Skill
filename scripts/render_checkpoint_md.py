@@ -247,6 +247,7 @@ def _node_maps(props: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, s
 def _render_tob_journey(
     lines: list[str], journey: dict[str, Any], index: int,
     overall_stage_names: list[str] | None = None,
+    section: str = "all",
 ) -> None:
     props = journey.get("props") or {}
     stages, stage_names, lane_names = _stage_maps(props)
@@ -268,17 +269,18 @@ def _render_tob_journey(
             else "本段是该角色的局部工作链；请结合上方旅程总览地图判断其衔接位置。"
         )
     lines += ["### 你现在在这里", "", f"- 位置：{location}", f"- 与全局的关系：{relation}", ""]
-    lines += ["### 一眼看全局", "", " → ".join(local_stage_names), ""]
-    lines += ["| 顺序 | 阶段 | 子阶段 | 参与角色 | 该阶段的关键动作与判断 |", "|---:|---|---|---|---|"]
-    for order, stage in enumerate(stages, 1):
-        sid = str(stage.get("id"))
-        stage_nodes = [n for n in nodes if str(n.get("stage")) == sid]
-        participants = list(dict.fromkeys(lane_names.get(str(n.get("lane")), "未标注角色") for n in stage_nodes))
-        actions = "；".join(_text(n.get("label")) for n in stage_nodes) or "材料未提及"
-        sub = " / ".join(_text(x) for x in stage.get("subStages") or []) or "材料未提及"
-        lines.append(f"| {order} | {_escape(stage.get('name'))} | {_escape(sub)} | {_escape('、'.join(participants))} | {_escape(actions)} |")
-    lines.append("")
-    if lane_names:
+    if section in {"all", "individual_journeys"}:
+        lines += ["### 一眼看全局", "", " → ".join(local_stage_names), ""]
+        lines += ["| 顺序 | 阶段 | 子阶段 | 参与角色 | 该阶段的关键动作与判断 |", "|---:|---|---|---|---|"]
+        for order, stage in enumerate(stages, 1):
+            sid = str(stage.get("id"))
+            stage_nodes = [n for n in nodes if str(n.get("stage")) == sid]
+            participants = list(dict.fromkeys(lane_names.get(str(n.get("lane")), "未标注角色") for n in stage_nodes))
+            actions = "；".join(_text(n.get("label")) for n in stage_nodes) or "材料未提及"
+            sub = " / ".join(_text(x) for x in stage.get("subStages") or []) or "材料未提及"
+            lines.append(f"| {order} | {_escape(stage.get('name'))} | {_escape(sub)} | {_escape('、'.join(participants))} | {_escape(actions)} |")
+        lines.append("")
+    if lane_names and section in {"all", "role_responsibility"}:
         lines += ["### 角色 × 阶段责任矩阵", ""]
         known_stage_ids = {str(s.get("id")) for s in stages}
         has_branch = any(str(node.get("stage")) not in known_stage_ids for node in nodes)
@@ -295,7 +297,7 @@ def _render_tob_journey(
             lines.append(f"| {_escape(lane_name)} | " + " | ".join(_escape(x) for x in cells) + " |")
         lines.append("")
     edges = props.get("edges") or []
-    if edges:
+    if edges and section in {"all", "branches_evidence"}:
         lines += ["### 关键衔接与分支", "", "| 从哪里 | 到哪里 | 关系 | 分支条件 | 说明 |", "|---|---|---|---|---|"]
         key_edges = [edge for edge in edges if edge.get("branch") not in (None, "", False) or str(edge.get("style") or "solid") == "dashed"]
         for edge in key_edges or edges[:8]:
@@ -318,10 +320,11 @@ def _render_tob_journey(
                     _escape(branch),
                 ))
             lines += ["", "</details>", ""]
-    for title_key, key in (("关注点与痛点", "focusAreas"), ("工具与触点", "tools")):
-        value = props.get(key)
-        if value:
-            lines += [f"### {title_key}", ""] + _simple_lines(value) + [""]
+    if section in {"all", "branches_evidence"}:
+        for title_key, key in (("关注点与痛点", "focusAreas"), ("工具与触点", "tools")):
+            value = props.get(key)
+            if value:
+                lines += [f"### {title_key}", ""] + _simple_lines(value) + [""]
 
 
 def _render_2c_journey(lines: list[str], journey: dict[str, Any], index: int) -> None:
@@ -386,7 +389,15 @@ def render_journeys_md(data: dict[str, Any]) -> str:
         "- 2B/2D 先看阶段链和角色责任矩阵，再检查分支与证据。2C 直接看阶段 × 内容维度表。",
         "- 机器 ID、组件类型和连线编码保存在 JSON 中，不占用人类阅读空间。", "",
     ]
-    if journeys:
+    try:
+        from scripts.journey_alignment import expected_alignment_review
+    except ImportError:
+        from journey_alignment import expected_alignment_review  # type: ignore
+    review = expected_alignment_review(data)
+    pending = next((item for item in review["rounds"] if not item["confirmed"]), None)
+    active_round = pending["id"] if review["mode"] == "guided_rounds" and pending else None
+    show_full = review["mode"] != "guided_rounds" or pending is None
+    if journeys and (show_full or active_round == "global_map"):
         lines += ["## 旅程总览地图", "", "| 编号 | 层级 | 旅程 | 覆盖阶段 | 阅读目的 |", "|---:|---|---|---|---|"]
         for index, journey in enumerate(journeys, 1):
             props = journey.get("props") or {}
@@ -407,21 +418,16 @@ def render_journeys_md(data: dict[str, Any]) -> str:
             ]
             lines.append(f"| {index} | {level} | {_escape(title)} | {_escape(' → '.join(stage_names))} | {purpose} |")
         lines.append("")
-    try:
-        from scripts.journey_alignment import expected_alignment_review
-    except ImportError:
-        from journey_alignment import expected_alignment_review  # type: ignore
-    review = expected_alignment_review(data)
     if review["mode"] == "guided_rounds":
-        lines += ["## 分轮确认进度", "", "| 轮次 | 核对内容 | 状态 | 用户确认语 |", "|---:|---|---|---|"]
+        lines += ["## 分轮确认进度", "", "| 轮次 | 核对内容 | 状态 | 已保存的用户原话 |", "|---:|---|---|---|"]
         for number, item in enumerate(review["rounds"], 1):
-            state = "已确认" if item["confirmed"] else "待确认"
-            lines.append(f"| {number} | {item['label']} | {state} | {item['required_phrase']} |")
-        pending = next((item for item in review["rounds"] if not item["confirmed"]), None)
+            state = "已确认并落盘" if item["confirmed"] else ("当前待确认" if pending and item["id"] == pending["id"] else "待后续")
+            saved_message = _escape(item["user_message"]) if item["confirmed"] else ""
+            lines.append(f"| {number} | {item['label']} | {state} | {saved_message} |")
         if pending:
-            lines += ["", f"> 当前只核对：{pending['label']}。确认后请回复“{pending['required_phrase']}”。后续轮次暂不请求确认。", ""]
+            lines += ["", f"> 本稿只展示第 {next(i for i, x in enumerate(review['rounds'], 1) if x['id'] == pending['id'])} 轮：{pending['label']}。其他层级正文会在对应轮次单独展示，不需要现在阅读。", ""]
         else:
-            lines += ["", "> 四轮均已完成。现在可以对整份旅程做最终确认。", ""]
+            lines += ["", "> 四轮均已分别确认并落盘。以下为完整交接稿，无需再次确认旅程正文。", ""]
     if not journeys:
         lines += ["## 本次不生成旅程", "", _text(data.get("not_applicable_reason")), ""]
     overall_stage_names: list[str] = []
@@ -431,19 +437,35 @@ def render_journeys_md(data: dict[str, Any]) -> str:
             for stage in (overall[0].get("props") or {}).get("stages") or []
         ]
     for index, journey in enumerate(journeys, 1):
-        if journey.get("component_type") in {"tob_journey_l1", "tob_journey_l2"}:
-            _render_tob_journey(lines, journey, index, overall_stage_names)
+        component_type = journey.get("component_type")
+        should_render = show_full
+        section = "all"
+        if not show_full:
+            if active_round == "role_responsibility" and (
+                component_type == "tob_journey_l1"
+                or (not overall and component_type == "tob_journey_l2")
+            ):
+                should_render, section = True, "role_responsibility"
+            elif active_round == "individual_journeys" and component_type == "tob_journey_l2":
+                should_render, section = True, "individual_journeys"
+            elif active_round == "branches_evidence":
+                should_render, section = True, "branches_evidence"
+        if not should_render:
+            continue
+        if component_type in {"tob_journey_l1", "tob_journey_l2"}:
+            _render_tob_journey(lines, journey, index, overall_stage_names, section=section)
         else:
             _render_2c_journey(lines, journey, index)
         bindings = journey.get("evidence_bindings") or []
-        if bindings:
+        if bindings and (show_full or active_round == "branches_evidence"):
             lines += ["<details>", "<summary>展开逐项证据与归纳依据</summary>", "", "| 序号 | 支持内容 | 证据类型 | 匿名来源 | 原话或归纳依据 |", "|---:|---|---|---|---|"]
             for number, binding in enumerate(bindings, 1):
                 sources = "、".join(binding.get("source_ids") or []) or "无单一来源"
                 lines.append(f"| {number} | {_escape(_evidence_target_label(journey, binding.get('target')))} | {_escape(EVIDENCE_LABELS.get(binding.get('evidence_type'), binding.get('evidence_type')))} | {_escape(sources)} | {_escape(binding.get('quote_or_basis'))} |")
             lines += ["", "</details>", ""]
     gaps = (data.get("quality_review") or {}).get("evidence_gaps") or []
-    lines += ["## 证据缺口", ""] + (_simple_lines(gaps) if gaps else ["- 未记录证据缺口。"])
+    if show_full or active_round == "branches_evidence":
+        lines += ["## 证据缺口", ""] + (_simple_lines(gaps) if gaps else ["- 未记录证据缺口。"])
     lines += ["", "## 请确认", ""]
     if review["mode"] == "guided_rounds":
         pending = next((item for item in review["rounds"] if not item["confirmed"]), None)
@@ -453,7 +475,7 @@ def render_journeys_md(data: dict[str, Any]) -> str:
                 f"> 本轮准确后，请单独回复“{pending['required_phrase']}”。", "",
             ]
         else:
-            lines += ["> 四轮内容均准确后，请单独回复“确认旅程内容”。", ""]
+            lines += ["> 四轮确认记录已经构成完整确认。系统现在直接封存 04，无需用户再次回复确认短语。", ""]
     else:
         lines += [
             "请按阶段顺序检查完整内容。任何一处看不清时，请要求模型缩小范围说明，当前内容保持待确认。", "",

@@ -47,8 +47,7 @@
     "confirmation_user_message": {
       "type": "string",
       "minLength": 2,
-      "maxLength": 500,
-      "pattern": "确认旅程内容"
+      "maxLength": 500
     },
     "confirmed_value_sections": {
       "type": "array",
@@ -90,14 +89,15 @@
           "maxItems": 4,
           "items": {
             "type": "object",
-            "required": ["id", "label", "required_phrase", "confirmed", "user_message"],
+            "required": ["id", "label", "required_phrase", "confirmed", "user_message", "content_sha256"],
             "additionalProperties": false,
             "properties": {
               "id": {"enum": ["global_map", "role_responsibility", "individual_journeys", "branches_evidence"]},
               "label": {"type": "string", "minLength": 2, "maxLength": 30},
               "required_phrase": {"type": "string", "minLength": 4, "maxLength": 30},
               "confirmed": {"type": "boolean"},
-              "user_message": {"type": "string", "maxLength": 500}
+              "user_message": {"type": "string", "maxLength": 500},
+              "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
             }
           }
         }

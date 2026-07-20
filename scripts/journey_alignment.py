@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -23,6 +24,56 @@ ROUND_DEFS = (
     ("branches_evidence", "分支与证据", "确认旅程分支与证据"),
 )
 REJECTION_RE = re.compile(r"不确认|先不确认|取消确认|看不懂|看得头晕|跳过|直接继续|你继续吧", re.I)
+
+
+def _round_payload(data: dict[str, Any], round_id: str) -> Any:
+    """Return only the structured values reviewed in one human-facing round."""
+    journeys = data.get("journeys") or []
+    if round_id == "global_map":
+        return {
+            "scope": data.get("scope"),
+            "journeys": [{
+                "persona_id": item.get("persona_id"),
+                "component_type": item.get("component_type"),
+                "title": (item.get("props") or {}).get("banner_title") or (item.get("props") or {}).get("title"),
+                "stages": [
+                    (stage.get("name") if isinstance(stage, dict) else stage)
+                    for stage in (item.get("props") or {}).get("stages") or []
+                ],
+            } for item in journeys],
+        }
+    if round_id == "role_responsibility":
+        return [{
+            "persona_id": item.get("persona_id"),
+            "lanes": (item.get("props") or {}).get("lanes") or [],
+            "nodes": (item.get("props") or {}).get("nodes") or [],
+        } for item in journeys if item.get("component_type") in {"tob_journey_l1", "tob_journey_l2"}]
+    if round_id == "individual_journeys":
+        return [{
+            "persona_id": item.get("persona_id"),
+            "props": {
+                key: (item.get("props") or {}).get(key)
+                for key in ("banner_title", "banner_subtitle", "stages", "lanes", "nodes")
+                if key in (item.get("props") or {})
+            },
+        } for item in journeys if item.get("component_type") == "tob_journey_l2"]
+    if round_id == "branches_evidence":
+        return {
+            "journeys": [{
+                "persona_id": item.get("persona_id"),
+                "edges": (item.get("props") or {}).get("edges") or [],
+                "focusAreas": (item.get("props") or {}).get("focusAreas") or [],
+                "tools": (item.get("props") or {}).get("tools") or [],
+                "evidence_bindings": item.get("evidence_bindings") or [],
+            } for item in journeys],
+            "evidence_gaps": (data.get("quality_review") or {}).get("evidence_gaps") or [],
+        }
+    raise ValueError(f"未知旅程确认轮次：{round_id}")
+
+
+def round_content_sha256(data: dict[str, Any], round_id: str) -> str:
+    payload = json.dumps(_round_payload(data, round_id), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def needs_guided_rounds(data: dict[str, Any]) -> bool:
@@ -48,13 +99,20 @@ def expected_alignment_review(data: dict[str, Any]) -> dict[str, Any]:
     for round_id, label, phrase in ROUND_DEFS:
         old = existing_by_id.get(round_id) or {}
         message = str(old.get("user_message") or "").strip()
-        confirmed = bool(old.get("confirmed")) and phrase in message and not REJECTION_RE.search(message)
+        digest = round_content_sha256(data, round_id)
+        confirmed = (
+            bool(old.get("confirmed"))
+            and phrase in message
+            and not REJECTION_RE.search(message)
+            and str(old.get("content_sha256") or "") == digest
+        )
         rounds.append({
             "id": round_id,
             "label": label,
             "required_phrase": phrase,
             "confirmed": confirmed,
             "user_message": message if confirmed else "",
+            "content_sha256": digest,
         })
     return {"mode": "guided_rounds", "rounds": rounds}
 
@@ -104,15 +162,23 @@ def record_round(process_dir: Path, round_id: str, user_message: str) -> dict[st
         raise SystemExit(f"本轮未确认。用户新回复需明确包含“{target['required_phrase']}”，且不能含拒绝、困惑或跳过语义。")
     target["confirmed"] = True
     target["user_message"] = message
+    target["content_sha256"] = round_content_sha256(data, round_id)
     data["alignment_review"] = review
-    draft_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     md_path = process_dir / "04-journeys.md"
-    md_path.write_text(render_journeys_md(data).rstrip() + "\n", encoding="utf-8")
+    # Build both outputs in memory before changing either file.  A rendering
+    # failure therefore cannot leave a recorded round paired with a stale MD.
+    next_md = render_journeys_md(data).rstrip() + "\n"
+    draft_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(next_md, encoding="utf-8")
     next_item = next((item for item in review["rounds"] if not item["confirmed"]), None)
     return {
         "recorded": round_id,
         "next_round": next_item["id"] if next_item else None,
-        "next_label": next_item["label"] if next_item else "全部分轮已完成，可请求最终确认",
+        "next_label": next_item["label"] if next_item else "四轮确认已完成，可直接封存 04-journeys",
+        "next_action": (
+            f"journey-review --round {next_item['id']}" if next_item
+            else "seal --stem 04-journeys"
+        ),
         "md": str(md_path),
     }
 

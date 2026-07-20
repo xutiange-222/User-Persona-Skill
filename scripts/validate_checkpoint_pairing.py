@@ -531,6 +531,13 @@ def validate_checkpoint_pairing(
                     or data.get("user_confirmed") is True
                 )
                 if stem != "05-report" and is_confirmed_checkpoint:
+                    guided_journey_confirmation = False
+                    if stem == "04-journeys" and (data.get("alignment_review") or {}).get("mode") == "guided_rounds":
+                        try:
+                            from scripts.journey_alignment import alignment_review_errors
+                        except ImportError:
+                            from journey_alignment import alignment_review_errors  # type: ignore
+                        guided_journey_confirmation = not alignment_review_errors(data)
                     if PENDING_MD_RE.search(md_text) or CONFIRMED_MD_MARKER not in md_text:
                         errors.append({
                             "code": "CHECKPOINT_MD_STATUS_MISMATCH",
@@ -550,7 +557,7 @@ def validate_checkpoint_pairing(
                             "path": json_path.name,
                             "message": "A generic progress reply cannot confirm checkpoint values. Ask for an explicit checkpoint-specific reply.",
                         })
-                    elif CONFIRMATION_PHRASES[stem] not in exact_reply:
+                    elif not guided_journey_confirmation and CONFIRMATION_PHRASES[stem] not in exact_reply:
                         errors.append({
                             "code": "CHECKPOINT_CONFIRMATION_PHRASE_MISSING",
                             "path": json_path.name,

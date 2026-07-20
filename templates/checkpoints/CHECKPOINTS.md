@@ -13,7 +13,7 @@
 | 02 | `02-classification.md` | `02-classification.json` | 完整分类与映射已展示，或明确不适用；用户回复“确认分类内容”；封存脚本通过 |
 | 03 | `03-field-alignment.md` | `03-field-alignment.json` | 字段、模块、素材、旅程和视觉均已展示；用户回复“确认字段与视觉范围”；封存脚本通过 |
 | 04 | `04-personas.md` | `04-personas.json` | `04-personas.draft.json` 经官方脚本生成中文 MD；字段名无机器英文；用户单独回复“确认画像内容”；封存脚本通过 |
-| 04 | `04-journeys.md` | `04-journeys.json` | `04-journeys.draft.json` 经官方脚本生成分层中文 MD；2B/2D 有全局阶段链和角色 × 阶段矩阵；用户单独回复“确认旅程内容”；封存脚本通过，或明确记录不适用 |
+| 04 | `04-journeys.md` | `04-journeys.json` | `04-journeys.draft.json` 经官方脚本生成分层中文 MD；复杂 2B/2D 四轮分别展示、分别记录用户原话和内容指纹，第四轮后直接封存；简单旅程单次确认；或明确记录不适用 |
 | 05 | `05-report.md` | `05-report.json` | 相对 03/04 新增的页数、详情页、内容分配和信息损失已确认；既有选择不重复确认 |
 
 辅助机器真值：`source-manifest.json` 负责内容去重、证据层级和样本计数；输入含术语审计表时，`terminology-glossary.json` 负责术语规范。两者不替代 00 到 05 的 MD/JSON 配对。

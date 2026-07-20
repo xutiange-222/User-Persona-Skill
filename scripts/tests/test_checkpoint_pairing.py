@@ -245,6 +245,9 @@ class CheckpointPairingTests(unittest.TestCase):
                 "merge_rules": ["单角色不合并"], "evidence_map": {"persona-1": ["P12345678"]}, "risks": ["样本较少"]
             }
             (proc / "04-personas.draft.json").write_text(json.dumps(draft, ensure_ascii=False), encoding="utf-8")
+            # A stale sealed JSON may remain after reopening 04.  The current
+            # draft must win so newly recorded review data is not discarded.
+            (proc / "04-personas.json").write_text("{}", encoding="utf-8")
             from scripts.render_checkpoint_md import render_personas_md
             (proc / "04-personas.md").write_text(render_personas_md(draft), encoding="utf-8")
             script = REPO_ROOT / "scripts" / "seal_content_checkpoint.py"
@@ -255,6 +258,7 @@ class CheckpointPairingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             data = json.loads((proc / "04-personas.json").read_text(encoding="utf-8"))
             self.assertTrue(data["user_confirmed"])
+            self.assertEqual(data["personas"][0]["name"], "运维工程师")
             self.assertIn("确认状态：已确认", (proc / "04-personas.md").read_text(encoding="utf-8"))
 
     def test_contradictory_confirmation_is_rejected(self):
